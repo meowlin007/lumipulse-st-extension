@@ -2,7 +2,7 @@
     "name": "lumipulse-st-extension",
     "display_name": "🌸 LumiPulse: Immersive Hub",
     "version": "1.0.0",
-    "description": "ระบบบันทึกความทรงจำอัตโนมัติ โซเชียล และพื้นที่ส่วนตัวของตัวละคร",
+    "description": "Auto-Memory, Character Phone, and University Forum for deep immersion.",
     "author": "meowlin",
     "js": ["index.js"],
     "css": ["style.css"]
