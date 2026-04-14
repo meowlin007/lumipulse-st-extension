@@ -1,33 +1,34 @@
-/* ปุ่มกดหลัก LumiPulse */
 .lumi-fab {
     position: fixed;
-    bottom: 85px; /* ตำแหน่งเหนือก้นจอเล็กน้อย */
-    right: 20px;
-    width: 55px;
-    height: 55px;
-    background: linear-gradient(135deg, #FFB6C1, #FF69B4); /* ชมพูเข้มขึ้นนิดนึงให้ปุ่มเด่น */
+    bottom: 25px;
+    right: 25px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #FFD1DC 0%, #FFB6C1 100%);
     border-radius: 50%;
-    border: 3px solid #FFF0F5;
-    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.5); /* เงาสีชมพู */
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 10000;
     cursor: pointer;
-    z-index: 9999; /* ให้อยู่บนสุดจริงๆ */
-    color: white; /* สีของไอคอน FontAwesome */
-    font-size: 26px; /* ขนาดไอคอน */
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Animation แบบนุ่มนวล */
+    color: white;
+    font-size: 24px;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 0 15px rgba(255, 182, 193, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.5);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* เอฟเฟกต์ตอนเอาเมาส์ชี้ (หรือเอานิ้วแตะค้าง) */
 .lumi-fab:hover {
-    transform: scale(1.1) translateY(-3px); /* ขยายและลอยขึ้นนิดนึง */
-    box-shadow: 0 6px 20px rgba(255, 105, 180, 0.7);
-    background: linear-gradient(135deg, #FFC0CB, #FF1493); /* เปลี่ยนสีให้สว่างขึ้นตอนชี้ */
+    transform: scale(1.1) rotate(10deg);
+    filter: brightness(1.05);
+    box-shadow: 0 0 25px rgba(255, 182, 193, 0.9);
 }
 
-/* เอฟเฟกต์ตอนกดปุ่มจริงๆ (ถูกควบคุมด้วยคลาส .clicked ใน JS) */
-.lumi-fab.clicked {
-    transform: scale(0.9); /* หดตัวลงตอนกด */
-    box-shadow: 0 2px 10px rgba(255, 105, 180, 0.4);
+.lumi-fab:active {
+    transform: scale(0.9);
+}
+
+/* ปรับสีไอคอนให้มีความเงาแบบ Y2K */
+.lumi-fab i {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
 }
