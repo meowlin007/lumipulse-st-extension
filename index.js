@@ -2,19 +2,19 @@
 import { extension_settings, saveSettingsDebounced } from '../../../extensions.js';
 import { registerExtension } from '../../extensions.js';
 
-const extensionName = "lumipulse"; // ชื่อโฟลเดอร์ extension ของคุณ
+// แก้ตรงนี้ครับ! ต้องตรงกับชื่อ Folder ใน GitHub ของคุณเป๊ะๆ
+const extensionName = "lumipulse-st-extension"; 
+
 const defaultSettings = {
-    isEnabled: false, // สถานะเริ่มต้น (ปิดไว้ก่อน)
+    isEnabled: false, 
 };
 
-// ฟังก์ชันสำหรับโหลดการตั้งค่า
 function loadSettings() {
     if (!extension_settings[extensionName]) {
         extension_settings[extensionName] = defaultSettings;
     }
 }
 
-// ฟังก์ชันสร้างหน้าจอเมนูในแถบ Extension
 function onSettingsClick() {
     const settingsHtml = `
         <div class="lumipulse-settings">
@@ -30,27 +30,22 @@ function onSettingsClick() {
                         🌸 ระบบจังหวะแสงแห่งความทรงจำและโซเชียลจำลอง
                     </p>
                     <hr>
-                    </div>
+                </div>
             </div>
         </div>
     `;
 
-    // สั่งให้ปุ่ม Toggle ทำงานเวลาคนมากด
-    $(document).on('change', '#lumi-enable-toggle', function() {
+    // ใช้การดักจับ Event แบบนิ่งๆ
+    $(document).off('change', '#lumi-enable-toggle').on('change', '#lumi-enable-toggle', function() {
         extension_settings[extensionName].isEnabled = !!$(this).prop('checked');
         saveSettingsDebounced();
-        alert(extension_settings[extensionName].isEnabled ? 'LumiPulse เปิดใช้งานแล้ว!' : 'LumiPulse ปิดการใช้งาน');
     });
 
     return settingsHtml;
 }
 
-// ฟังก์ชันเริ่มต้น (รันทันทีที่ ST โหลด)
 $(document).ready(function () {
     loadSettings();
-    
-    // จดทะเบียน Extension เข้ากับระบบของ SillyTavern
     registerExtension(extensionName, onSettingsClick);
-    
     console.log("🌸 LumiPulse Extension Registered!");
 });
