@@ -4,10 +4,10 @@ const extensionName = "lumipulse-st-extension";
 const defaultSettings = { isEnabled: false };
 let extension_settings = {};
 
+// 1. รอให้ SillyTavern พร้อมจริงๆ
 function checkSillyTavernReady() {
     return window.SillyTavern && 
-           typeof window.SillyTavern.getContext === 'function' && 
-           window.SillyTavern.getContext().extensionSettings;
+           typeof window.SillyTavern.getContext === 'function';
 }
 
 jQuery(async () => {
@@ -28,7 +28,11 @@ function initLumiPulse() {
     extension_settings = context.extensionSettings;
 
     createSettingsUI();
-    toggleLumiFab(extension_settings[extensionName].isEnabled);
+    
+    // บังคับเช็คสถานะปุ่มทันทีที่โหลด
+    setTimeout(() => {
+        toggleLumiFab(extension_settings[extensionName].isEnabled);
+    }, 2000); // รอเพิ่มอีก 2 วิเพื่อให้หน้าจอแชทโหลดนิ่งๆ
 }
 
 function createSettingsUI() {
@@ -60,48 +64,52 @@ function createSettingsUI() {
         });
 }
 
+// ฟังก์ชันสร้างปุ่ม FAB ที่จะใช้ jQuery แปะลงหน้าจอตรงๆ
 function toggleLumiFab(isEnabled) {
-    const existingFab = document.getElementById('lumi-main-fab');
-    if (existingFab) existingFab.remove();
+    // ลบอันเก่าออกก่อนทุกครั้งกันเหนียว
+    $('#lumi-main-fab').remove();
 
     if (isEnabled) {
-        const fab = document.createElement('div');
-        fab.id = 'lumi-main-fab';
-        fab.title = 'LumiPulse Hub';
+        console.log("🌸 LumiPulse: Creating FAB...");
         
-        // ยัด CSS ตรงๆ ลงใน JS! ไม่ง้อไฟล์ style.css แล้ว (ยกระดับ z-index และปรับ bottom หลบ UI)
-        fab.style.cssText = `
-            position: fixed !important;
-            bottom: 85px !important;
-            right: 20px !important;
-            width: 55px !important;
-            height: 55px !important;
-            background: linear-gradient(135deg, #FFD1DC 0%, #FFB6C1 100%) !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            z-index: 9999999 !important;
-            cursor: pointer !important;
-            color: white !important;
-            font-size: 24px !important;
-            border: 3px solid #FFFFFF !important;
-            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.8) !important;
-            transition: transform 0.2s ease !important;
+        // สร้าง HTML ปุ่มแบบใส่สไตล์ลงไปเลย (Inline Style)
+        const fabHtml = `
+            <div id="lumi-main-fab" style="
+                position: fixed !important;
+                bottom: 25px !important;
+                right: 25px !important;
+                width: 60px !important;
+                height: 60px !important;
+                background: linear-gradient(135deg, #FFD1DC 0%, #FFB6C1 100%) !important;
+                border-radius: 50% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                z-index: 2147483647 !important;
+                cursor: pointer !important;
+                color: white !important;
+                font-size: 26px !important;
+                border: 3px solid #FFFFFF !important;
+                box-shadow: 0 4px 15px rgba(255, 182, 193, 0.8) !important;
+                pointer-events: auto !important;
+                -webkit-user-select: none !important;
+            ">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
         `;
-        
-        // ใส่ Icon FontAwesome
-        fab.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles" style="text-shadow: 0 0 5px rgba(255,255,255,0.8);"></i>';
-        
-        // เพิ่มลูกเล่นเวลากดแตะหน้าจอมือถือ
-        fab.addEventListener('touchstart', () => { fab.style.transform = 'scale(0.9)'; }, {passive: true});
-        fab.addEventListener('touchend', () => { fab.style.transform = 'scale(1)'; }, {passive: true});
-        
-        fab.addEventListener('click', () => {
-            toastr.info('🌸 LumiPulse Hub!');
-        });
 
-        // แปะลง body โดยตรงแบบ Mobile Context
-        document.body.appendChild(fab);
+        // แปะลงใน Body โดยใช้ jQuery (วิธีเดียวกับที่เมนูติด)
+        $('body').append(fabHtml);
+
+        // ใส่ Event คลิก
+        $('#lumi-main-fab').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toastr.info('🌸 LumiPulse Hub พร้อมรับใช้แล้วค่ะ!');
+            $(this).css('transform', 'scale(0.9)');
+            setTimeout(() => $(this).css('transform', 'scale(1)'), 100);
+        });
+        
+        console.log("🌸 LumiPulse: FAB injected successfully!");
     }
 }
