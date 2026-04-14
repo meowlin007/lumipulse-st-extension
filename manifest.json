@@ -1,0 +1,10 @@
+{
+    "name": "lumipulse",
+    "display_name": "🌸 LumiPulse: Immersive Hub",
+    "version": "1.0.0",
+    "description": "ระบบบันทึกความทรงจำอัตโนมัติ โซเชียล และพื้นที่ส่วนตัวของตัวละคร",
+    "author": "Mind",
+    "js": ["index.js"],
+    "css": ["style.css"],
+    "manifest_version": 1
+}
