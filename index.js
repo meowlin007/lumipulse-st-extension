@@ -5,16 +5,12 @@ const defaultSettings = { isEnabled: false };
 let extension_settings = {};
 
 jQuery(async () => {
-    if (!window.SillyTavern) {
-        const waitForST = setInterval(() => {
-            if (window.SillyTavern) {
-                clearInterval(waitForST);
-                initLumiPulse();
-            }
-        }, 1000);
-    } else {
-        initLumiPulse();
-    }
+    const checkInterval = setInterval(() => {
+        if (window.SillyTavern && window.SillyTavern.getContext().extensionSettings) {
+            clearInterval(checkInterval);
+            initLumiPulse();
+        }
+    }, 1000);
 });
 
 function initLumiPulse() {
@@ -59,22 +55,17 @@ function createSettingsUI() {
 }
 
 function toggleLumiFab(isEnabled) {
-    let fab = $('#lumi-main-fab');
+    $('#lumi-main-fab').remove();
     
     if (isEnabled) {
-        if (fab.length === 0) {
-            // ใช้ไอคอน FontAwesome 6 (Vector)
-            const fabHtml = `
-                <div id="lumi-main-fab" class="lumi-fab">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </div>`;
-            $('body').append(fabHtml);
-            
-            $('#lumi-main-fab').on('click', () => {
-                toastr.info('LumiPulse Hub is coming soon! ✨');
-            });
-        }
-    } else {
-        fab.remove();
+        const fabHtml = `
+            <div id="lumi-main-fab" class="lumi-fab">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>`;
+        $('body').append(fabHtml);
+        
+        $('#lumi-main-fab').on('click', () => {
+            toastr.info('LumiPulse Hub is coming soon! ✨');
+        });
     }
 }
