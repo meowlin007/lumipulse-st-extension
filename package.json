@@ -1,8 +1,5 @@
 {
     "name": "lumipulse-st-extension",
     "version": "1.0.0",
-    "description": "LumiPulse Immersive Hub",
-    "main": "index.js",
-    "type": "module",
-    "author": "meowlin"
+    "type": "module"
 }
