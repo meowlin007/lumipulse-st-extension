@@ -2,8 +2,8 @@
     "name": "lumipulse-st-extension",
     "display_name": "🌸 LumiPulse: Immersive Hub",
     "version": "1.0.0",
-    "description": "Auto-Memory, Character Phone, and University Forum for deep immersion.",
+    "description": "Auto-Memory, Character Phone, and University Forum.",
     "author": "meowlin",
-    "js": ["index.js"],
-    "css": ["style.css"]
+    "js": "index.js",
+    "css": "style.css"
 }
