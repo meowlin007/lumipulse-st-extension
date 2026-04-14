@@ -4,6 +4,5 @@
     "version": "1.0.0",
     "description": "Auto-Memory, Character Phone, and University Forum.",
     "author": "meowlin",
-    "js": "index.js",
-    "css": "style.css"
+    "js": ["index.js"]
 }
