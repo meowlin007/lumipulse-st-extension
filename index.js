@@ -1,113 +1,115 @@
 "use strict";
 
 const extensionName = "lumipulse-st-extension";
+const defaultSettings = { isEnabled: false };
 let extension_settings = {};
 
-// 1. รอ ST โหลดเสร็จ
 jQuery(async () => {
-    const boot = setInterval(() => {
-        if (window.SillyTavern && SillyTavern.getContext) {
-            clearInterval(boot);
-            initLumiPulse();
-        }
-    }, 1000);
+    if (!window.SillyTavern) {
+        const waitForST = setInterval(() => {
+            if (window.SillyTavern) {
+                clearInterval(waitForST);
+                initLumiPulsePlugin();
+            }
+        }, 1000);
+    } else {
+        initLumiPulsePlugin();
+    }
 });
 
-function initLumiPulse() {
-    const context = SillyTavern.getContext();
-    if (!context.extensionSettings[extensionName]) {
-        context.extensionSettings[extensionName] = { isEnabled: false };
-        context.saveSettingsDebounced();
-    }
-    extension_settings = context.extensionSettings;
+async function initLumiPulsePlugin() {
+    try {
+        const context = SillyTavern.getContext();
+        if (!context.extensionSettings[extensionName]) {
+            context.extensionSettings[extensionName] = { ...defaultSettings };
+            context.saveSettingsDebounced();
+        }
+        extension_settings = context.extensionSettings;
 
-    createSettingsUI();
-    
-    // 🔥 ท่าไม้ตาย: หมาเฝ้ายาม! เช็คทุกๆ 2 วินาทีว่าปุ่มหายไหม ถ้าเปิดอยู่แต่ปุ่มหาย ให้สร้างใหม่ทันที!
-    setInterval(forceFabWatchdog, 2000);
+        createSettingsUI();
+
+        if (extension_settings[extensionName].isEnabled) {
+            addLumiFabToBody();
+        }
+        
+        console.log("🌸 LumiPulse: Plugin Loaded Successfully");
+    } catch (error) {
+        console.error("🌸 LumiPulse: Init failed", error);
+    }
 }
 
 function createSettingsUI() {
     const settingsHtml = `
-    <div class="lumipulse-settings-panel">
+    <div id="lumi_context_settings">
         <div class="inline-drawer">
-            <div class="inline-drawer-header inline-drawer-toggle">
-                <b style="color: #ff85a2;">🌸 LumiPulse: Configuration</b>
+            <div class="inline-drawer-toggle inline-drawer-header">
+                <b>🌸 LumiPulse Hub</b>
+                <div class="inline-drawer-icon fa-solid fa-circle-chevron-down"></div>
             </div>
             <div class="inline-drawer-content">
-                <label class="checkbox_label">
-                    <input type="checkbox" id="lumi-enable-toggle">
-                    <span>Enable LumiPulse Hub</span>
-                </label>
+                <div class="flex-container">
+                    <label class="checkbox_label">
+                        <input id="lumi_enable_toggle" type="checkbox" />
+                        <span>เปิดใช้งาน LumiPulse</span>
+                    </label>
+                </div>
             </div>
         </div>
     </div>`;
 
     $('#extensions_settings').append(settingsHtml);
-    $('#lumi-enable-toggle').prop('checked', extension_settings[extensionName].isEnabled);
 
-    $('#lumi-enable-toggle').on('change', function () {
-        extension_settings[extensionName].isEnabled = !!$(this).prop('checked');
-        SillyTavern.getContext().saveSettingsDebounced();
-        
-        // แจ้งเตือนเพื่อให้รู้ว่าปุ่มโดนกดจริงๆ
-        if (extension_settings[extensionName].isEnabled) {
-            toastr.success("🌸 เปิดใช้งานแล้ว! กำลังเสกปุ่ม...");
-        }
-        
-        forceFabWatchdog();
-    });
+    $('#lumi_enable_toggle')
+        .prop('checked', extension_settings[extensionName].isEnabled)
+        .on('change', function () {
+            const enabled = $(this).prop('checked');
+            extension_settings[extensionName].isEnabled = enabled;
+            SillyTavern.getContext().saveSettingsDebounced();
+            
+            if (enabled) {
+                toastr.success("🌸 กำลังเสกปุ่ม LumiPulse...");
+                addLumiFabToBody();
+            } else {
+                $('#lumi-main-fab').remove();
+            }
+        });
 }
 
-// 🔥 ฟังก์ชันเสกปุ่มแบบโคตรดุดัน (ใช้ createElement แบบเดียวกับ Mobile Context เป๊ะๆ)
-function forceFabWatchdog() {
-    const isEnabled = extension_settings[extensionName].isEnabled;
-    let fab = document.getElementById('lumi-main-fab');
+function addLumiFabToBody() {
+    // หน่วงเวลานิดนึงเพื่อให้ ST พร้อม แบบที่ Mobile Context ทำ
+    setTimeout(() => {
+        if ($('#lumi-main-fab').length > 0) return;
 
-    if (isEnabled) {
-        // ถ้าเปิดใช้งานอยู่ แต่หาปุ่มไม่เจอ (โดนระบบลบทิ้ง) -> ให้สร้างใหม่!
-        if (!fab) {
-            fab = document.createElement('button'); // เปลี่ยนมาใช้ button แทน div
-            fab.id = 'lumi-main-fab';
-            fab.innerHTML = '💖'; // ใช้ Emoji ไปก่อนชัวร์สุด!
-            
-            // ยัด CSS แบบ Inline ดิบๆ
-            fab.style.cssText = `
-                position: fixed !important;
-                bottom: 100px !important;
-                right: 20px !important;
-                width: 60px !important;
-                height: 60px !important;
-                background: #FFB6C1 !important;
-                color: white !important;
-                border: 3px solid white !important;
-                border-radius: 50% !important;
-                font-size: 30px !important;
-                z-index: 2147483647 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                cursor: pointer !important;
-            `;
-            
-            // เวลากดให้เด้ง Alert เช็คว่าปุ่มทำงานได้ไหม
-            fab.onclick = function() {
-                alert("💖 LumiPulse Hub: ปุ่มกดได้แล้วววว!");
-            };
-            
-            document.body.appendChild(fab);
-            console.log("🌸 LumiPulse: Watchdog injected the button!");
-        } else {
-            // ถ้ามีปุ่มอยู่แล้ว บังคับให้มันโชว์
-            fab.style.display = 'flex';
-        }
-    } else {
-        // ถ้าปิดใช้งาน ให้ลบปุ่มทิ้ง
-        if (fab) {
-            fab.remove();
-        }
-    }
+        const fab = document.createElement('button');
+        fab.id = 'lumi-main-fab';
+        fab.innerHTML = '💖';
+        
+        // ใช้สไตล์แบบ Fixed ที่ Mobile Context ใช้ได้จริง
+        fab.style.cssText = `
+            position: fixed !important;
+            bottom: 120px !important;
+            right: 20px !important;
+            width: 55px !important;
+            height: 55px !important;
+            background: linear-gradient(135deg, #FFB6C1, #FF69B4) !important;
+            color: white !important;
+            border: 3px solid white !important;
+            border-radius: 50% !important;
+            font-size: 24px !important;
+            cursor: pointer !important;
+            z-index: 9998 !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.3s ease !important;
+        `;
+
+        fab.onclick = () => {
+            toastr.info("🌸 LumiPulse Hub เร็วๆ นี้ค่ะ!");
+        };
+
+        document.body.appendChild(fab);
+        console.log("🌸 LumiPulse: FAB Added to Body");
+    }, 500);
 }
