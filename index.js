@@ -1,6 +1,5 @@
 "use strict";
 
-// ดึงตัวแปรจากระบบ SillyTavern (เลียนแบบ RPG Companion)
 import { 
     extension_settings, 
     renderTemplateAsync, 
@@ -13,27 +12,33 @@ const defaultSettings = {
     isEnabled: false,
 };
 
-// ฟังก์ชันโหลด HTML หน้าตั้งค่า
+// ฟังก์ชันนี้จะถูกเรียกเมื่อ SillyTavern พยายามวาดหน้าจอ Extension
 async function loadSettings() {
-    // โหลดไฟล์ settings.html มาแสดงผล
     const html = await renderTemplateAsync(extensionName, "settings.html");
     const $settingsPage = $(html);
 
-    // ตั้งค่าปุ่ม Toggle ให้ตรงกับความจริง
+    // เชื่อมต่อปุ่ม Checkbox กับระบบ Save
     $settingsPage.find('#lumi-enable-toggle').prop('checked', extension_settings[extensionName].isEnabled);
-
-    // เมื่อกดติ๊กถูก
     $settingsPage.find('#lumi-enable-toggle').on('change', function () {
         extension_settings[extensionName].isEnabled = !!$(this).prop('checked');
         saveSettingsDebounced();
+        console.log("LumiPulse Status:", extension_settings[extensionName].isEnabled);
     });
 
     return $settingsPage;
 }
 
-// ฟังก์ชันเริ่มต้นทำงาน (เลียนแบบโครงสร้าง RPG Companion)
+// จุดเริ่มต้นของ Extension
 $(document).ready(async () => {
-    // ตรวจสอบว่ามีที่เก็บ Settings หรือยัง
+    // เตรียมที่เก็บข้อมูลถ้ายังไม่มี
+    if (!extension_settings[extensionName]) {
+        extension_settings[extensionName] = defaultSettings;
+    }
+
+    // ลงทะเบียนกับระบบหลัก
+    registerExtension(extensionName, loadSettings);
+    console.log("🌸 LumiPulse: Extension Registered Successfully!");
+});
     if (!extension_settings[extensionName]) {
         extension_settings[extensionName] = defaultSettings;
     }
