@@ -32,34 +32,57 @@ function injectStyles() {
     style.innerHTML = `
         @import url('https://fonts.googleapis.com/css2?family=Mali:wght@400;700&display=swap');
         
+        @keyframes lumiFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
         #lumi-main-fab {
             position: fixed !important; z-index: 2147483647 !important;
-            width: 60px; height: 60px; cursor: move; touch-action: none;
+            width: 65px; height: 65px; cursor: move; touch-action: none;
             background: url('${btnUrl}') no-repeat center; background-size: contain;
-            filter: drop-shadow(0 4px 8px rgba(255,182,193,0.4));
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 6px 12px rgba(255,182,193,0.5));
         }
-        #lumi-main-fab:active { transform: scale(0.85); }
+        
+        .lumi-floating { animation: lumiFloat 3s ease-in-out infinite; }
 
         .lumi-menu-wrapper {
             position: fixed; z-index: 2147483646; display: flex; flex-direction: column;
-            gap: 10px; pointer-events: none; align-items: center; font-family: 'Mali', cursive;
+            gap: 12px; pointer-events: none; align-items: center; font-family: 'Mali', cursive;
         }
+
         .lumi-menu-item {
-            width: 120px; background: white; border: 2px solid #FFD1DC;
-            border-radius: 15px; padding: 8px 12px; color: #ff85a2;
+            width: 140px; 
+            background: rgba(255, 255, 255, 0.9); /* พื้นหลังขาวนวลคล้ายในรูป */
+            backdrop-filter: blur(8px);
+            border: 2.5px solid #FFD1DC;
+            border-radius: 18px; padding: 10px 15px; color: #ff85a2;
             font-weight: bold; text-align: center; font-size: 14px;
             opacity: 0; transform: translateY(-20px) scale(0.8);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 10px rgba(255,182,193,0.2);
-            pointer-events: none; display: flex; align-items: center; gap: 8px; justify-content: center;
+            box-shadow: 0 6px 15px rgba(255,182,193,0.25);
+            display: flex; align-items: center; gap: 10px; justify-content: center;
         }
+
         .lumi-menu-wrapper.is-open .lumi-menu-item {
             opacity: 1; transform: translateY(0) scale(1); pointer-events: auto;
         }
-        .lumi-menu-item:active { transform: scale(0.9); background: #FFF5F7; }
-        
-        /* Staggered Animation Delay */
+
+        .lumi-menu-item:hover {
+            background: #FFFFFF;
+            border-color: #ff85a2;
+            transform: scale(1.05) !important;
+        }
+
+        .lumi-menu-item:active {
+            transform: scale(0.9) !important;
+        }
+
+        .lumi-menu-item i {
+            font-size: 18px;
+            filter: drop-shadow(0 2px 4px rgba(255,133,162,0.3));
+        }
+
         .lumi-menu-item:nth-child(1) { transition-delay: 0.05s; }
         .lumi-menu-item:nth-child(2) { transition-delay: 0.1s; }
         .lumi-menu-item:nth-child(3) { transition-delay: 0.15s; }
@@ -72,28 +95,30 @@ function spawnLumiButton() {
     
     const fab = document.createElement('div');
     fab.id = 'lumi-main-fab';
+    fab.className = 'lumi-floating';
     fab.style.top = '45%'; fab.style.right = '15px';
     document.body.appendChild(fab);
 
     const menuWrapper = document.createElement('div');
     menuWrapper.className = 'lumi-menu-wrapper';
     menuWrapper.innerHTML = `
-        <div class="lumi-menu-item"><i class="fa-solid fa-book-heart"></i> Diary</div>
-        <div class="lumi-menu-item"><i class="fa-solid fa-mobile-retro"></i> Phone</div>
-        <div class="lumi-menu-item"><i class="fa-solid fa-users-rectangle"></i> Forum</div>
+        <div class="lumi-menu-item" id="lumi-diary"><i class="fa-solid fa-book-heart"></i> Diary</div>
+        <div class="lumi-menu-item" id="lumi-phone"><i class="fa-solid fa-mobile-retro"></i> Phone</div>
+        <div class="lumi-menu-item" id="lumi-forum"><i class="fa-solid fa-users-rectangle"></i> Forum</div>
     `;
     document.body.appendChild(menuWrapper);
 
     let isDragging = false, offset = { x: 0, y: 0 };
 
-    const updateMenuPos = () => {
+    const updatePos = () => {
         const rect = fab.getBoundingClientRect();
-        menuWrapper.style.left = (rect.left + (rect.width / 2) - 60) + 'px';
-        menuWrapper.style.top = (rect.bottom + 10) + 'px';
+        menuWrapper.style.left = (rect.left + (rect.width / 2) - 70) + 'px';
+        menuWrapper.style.top = (rect.bottom + 15) + 'px';
     };
 
     fab.addEventListener('touchstart', (e) => {
         isDragging = false;
+        fab.classList.remove('lumi-floating');
         const t = e.touches[0];
         offset.x = t.clientX - fab.getBoundingClientRect().left;
         offset.y = t.clientY - fab.getBoundingClientRect().top;
@@ -103,21 +128,27 @@ function spawnLumiButton() {
         isDragging = true;
         menuWrapper.classList.remove('is-open');
         const t = e.touches[0];
-        let x = Math.max(0, Math.min(t.clientX - offset.x, window.innerWidth - 60));
-        let y = Math.max(0, Math.min(t.clientY - offset.y, window.innerHeight - 60));
+        let x = Math.max(0, Math.min(t.clientX - offset.x, window.innerWidth - 65));
+        let y = Math.max(0, Math.min(t.clientY - offset.y, window.innerHeight - 65));
         fab.style.left = x + 'px'; fab.style.top = y + 'px'; fab.style.right = 'auto';
-        updateMenuPos();
+        updatePos();
     });
 
     fab.addEventListener('touchend', () => {
         if (!isDragging) {
-            updateMenuPos();
+            updatePos();
             menuWrapper.classList.toggle('is-open');
         }
+        fab.classList.add('lumi-floating');
         isDragging = false;
     });
 
-    updateMenuPos();
+    // ดักจับการคลิกเมนูย่อย
+    $(document).on('click', '#lumi-diary', () => toastr.info('🌸 Diary Module Coming Soon!'));
+    $(document).on('click', '#lumi-phone', () => toastr.info('🌸 Character Phone Coming Soon!'));
+    $(document).on('click', '#lumi-forum', () => toastr.info('🌸 University Forum Coming Soon!'));
+
+    updatePos();
 }
 
 function createSettingsUI() {
