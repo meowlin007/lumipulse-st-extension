@@ -12,28 +12,35 @@ const defaultSettings = {
     isEnabled: false,
 };
 
-// ฟังก์ชันนี้จะถูกเรียกเมื่อ SillyTavern พยายามวาดหน้าจอ Extension
+// ฟังก์ชันโหลดหน้าตั้งค่า (Settings UI)
 async function loadSettings() {
     const html = await renderTemplateAsync(extensionName, "settings.html");
     const $settingsPage = $(html);
 
-    // เชื่อมต่อปุ่ม Checkbox กับระบบ Save
+    // ตรวจสอบสถานะ Checkbox
     $settingsPage.find('#lumi-enable-toggle').prop('checked', extension_settings[extensionName].isEnabled);
+    
+    // ตั้งค่าการบันทึกเมื่อกดติ๊กถูก
     $settingsPage.find('#lumi-enable-toggle').on('change', function () {
         extension_settings[extensionName].isEnabled = !!$(this).prop('checked');
         saveSettingsDebounced();
-        console.log("LumiPulse Status:", extension_settings[extensionName].isEnabled);
     });
 
     return $settingsPage;
 }
 
-// จุดเริ่มต้นของ Extension
+// จุดเริ่มต้นการทำงานของสคริปต์
 $(document).ready(async () => {
-    // เตรียมที่เก็บข้อมูลถ้ายังไม่มี
+    // เตรียมพื้นที่เก็บข้อมูลในระบบ SillyTavern
     if (!extension_settings[extensionName]) {
         extension_settings[extensionName] = defaultSettings;
     }
+
+    // ลงทะเบียน Extension เข้าสู่ระบบหลัก
+    registerExtension(extensionName, loadSettings);
+    
+    console.log("🌸 LumiPulse: Registered Successfully!");
+});
 
     // ลงทะเบียนกับระบบหลัก
     registerExtension(extensionName, loadSettings);
