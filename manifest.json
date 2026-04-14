@@ -3,7 +3,7 @@
     "display_name": "🌸 LumiPulse: Immersive Hub",
     "version": "1.0.0",
     "description": "ระบบบันทึกความทรงจำอัตโนมัติ โซเชียล และพื้นที่ส่วนตัวของตัวละคร",
-    "author": "Mind",
+    "author": "meowlin",
     "js": ["index.js"],
     "css": ["style.css"]
 }
