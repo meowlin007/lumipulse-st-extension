@@ -5,12 +5,9 @@ const defaultSettings = {
     isEnabled: false,
 };
 
-// ตัวแปรเก็บการตั้งค่า
 let extension_settings = {};
 
-// 1. รอให้หน้าเว็บโหลดเสร็จสมบูรณ์ก่อน (สไตล์ Mobile Context)
 jQuery(async () => {
-    // รอให้ SillyTavern โหลดระบบหลักเสร็จ
     if (!window.SillyTavern) {
         console.log("🌸 [LumiPulse] กำลังรอ SillyTavern เริ่มต้น...");
         const waitForST = setInterval(() => {
@@ -24,31 +21,28 @@ jQuery(async () => {
     }
 });
 
-// 2. ฟังก์ชันเริ่มการทำงานของระบบ
 function initLumiPulse() {
     try {
-        // ดึงค่า Context ตรงๆ โดยไม่ต้อง import ให้เกิด Error!
         const context = SillyTavern.getContext();
         
-        // ถ้ายังไม่มีการตั้งค่าของเรา ให้สร้างข้อมูลเริ่มต้น
         if (!context.extensionSettings[extensionName]) {
             context.extensionSettings[extensionName] = { ...defaultSettings };
             context.saveSettingsDebounced();
         }
         
-        // ผูกข้อมูลเข้ากับตัวแปรหลัก
         extension_settings = context.extensionSettings;
 
-        // 3. สร้างหน้าจอเมนูตั้งค่า
         createSettingsUI();
 
-        console.log("💖 LumiPulse: Registered Successfully (Mobile Context Pattern)!");
+        // **เวทมนตร์บรรทัดนี้!**: ตรวจสอบสถานะตอนเปิดแอป ถ้า Enable อยู่ ให้เสกปุ่ม FAB ขึ้นมาทันที
+        toggleLumiFab(extension_settings[extensionName].isEnabled);
+
+        console.log("💖 LumiPulse: Registered Successfully!");
     } catch (error) {
-        console.error("🌸 [LumiPulse] เกิดข้อผิดพลาดในการเริ่มต้น:", error);
+        console.error("🌸 [LumiPulse] เกิดข้อผิดพลาด:", error);
     }
 }
 
-// 4. สร้าง UI เมนู (ยัด HTML ลงไปตรงๆ ไม่ต้องโหลดไฟล์ settings.html ให้วุ่นวาย)
 function createSettingsUI() {
     const settingsHtml = `
     <div class="lumipulse-settings-panel" id="lumipulse-settings-container">
@@ -71,16 +65,52 @@ function createSettingsUI() {
         </div>
     </div>`;
 
-    // ยัด HTML ลงในเมนู Extension ของ SillyTavern ตรงๆ (วิธีนี้ 100% ติดชัวร์)
     $('#extensions_settings').append(settingsHtml);
 
-    // เชื่อมต่อปุ่ม Checkbox ให้บันทึกค่าได้
     $('#lumi-enable-toggle')
         .prop('checked', extension_settings[extensionName].isEnabled)
         .on('change', function () {
-            extension_settings[extensionName].isEnabled = $(this).prop('checked');
-            // บันทึกการตั้งค่า
+            const isChecked = $(this).prop('checked');
+            extension_settings[extensionName].isEnabled = isChecked;
             SillyTavern.getContext().saveSettingsDebounced();
-            console.log("🌸 [LumiPulse] เปิดใช้งาน:", extension_settings[extensionName].isEnabled);
+            
+            // **เวทมนตร์บรรทัดนี้!**: เรียกใช้ฟังก์ชันเสก/ลบปุ่ม เมื่อติ๊กเปิด-ปิด
+            toggleLumiFab(isChecked);
+            
+            console.log("🌸 [LumiPulse] สถานะถูกเปลี่ยนเป็น:", isChecked);
         });
+}
+
+// -------------------------------------------------------------------------
+// 🎀 ส่วนสร้างและจัดการปุ่ม FAB (หัวใจดวงใหม่ของเรา!)
+// -------------------------------------------------------------------------
+
+function toggleLumiFab(isEnabled) {
+    const existingFab = document.getElementById('lumi-main-fab');
+
+    if (isEnabled) {
+        // ถ้าเปิด Enable และยังไม่มีปุ่ม ให้สร้างขึ้นมา
+        if (!existingFab) {
+            const fabHtml = `
+                <div id="lumi-main-fab" class="lumi-fab" title="Open LumiPulse Hub">
+                    <i class="fa-solid fa-heart-pulse"></i> 
+                </div>
+            `;
+            // ใช้ไอคอน FontAwesome รูปหัวใจมีชีพจร (Heart Pulse)
+            $('body').append(fabHtml);
+
+            // ใส่ลูกเล่นตอนคลิกปุ่ม (เดี๋ยวเราค่อยมาทำเมนูเด้งทีหลัง ตอนนี้เอาให้กดได้ก่อน)
+            $('#lumi-main-fab').on('click', function() {
+                console.log("💖 LumiPulse FAB Clicked!");
+                // ใส่ Animation เล็กๆ เวลากด
+                $(this).addClass('clicked');
+                setTimeout(() => { $(this).removeClass('clicked'); }, 200);
+            });
+        }
+    } else {
+        // ถ้าปิด Enable ให้ลบปุ่มทิ้งไป
+        if (existingFab) {
+            existingFab.remove();
+        }
+    }
 }
