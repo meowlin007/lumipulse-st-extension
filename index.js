@@ -4,10 +4,17 @@ const extensionName = "lumipulse-st-extension";
 const defaultSettings = { isEnabled: false };
 let extension_settings = {};
 
+// ตรวจสอบความพร้อมของระบบ SillyTavern
+function checkSillyTavernReady() {
+    return window.SillyTavern && 
+           typeof window.SillyTavern.getContext === 'function' && 
+           window.SillyTavern.getContext().extensionSettings;
+}
+
 jQuery(async () => {
-    const checkInterval = setInterval(() => {
-        if (window.SillyTavern && window.SillyTavern.getContext().extensionSettings) {
-            clearInterval(checkInterval);
+    const bootInterval = setInterval(() => {
+        if (checkSillyTavernReady()) {
+            clearInterval(bootInterval);
             initLumiPulse();
         }
     }, 1000);
@@ -22,7 +29,8 @@ function initLumiPulse() {
     extension_settings = context.extensionSettings;
 
     createSettingsUI();
-    toggleLumiFab(extension_settings[extensionName].isEnabled);
+    // รันครั้งแรกเพื่อเช็คว่าต้องโชว์ปุ่มไหม
+    refreshFabDisplay();
 }
 
 function createSettingsUI() {
@@ -50,22 +58,24 @@ function createSettingsUI() {
             const isChecked = $(this).prop('checked');
             extension_settings[extensionName].isEnabled = isChecked;
             SillyTavern.getContext().saveSettingsDebounced();
-            toggleLumiFab(isChecked);
+            refreshFabDisplay();
         });
 }
 
-function toggleLumiFab(isEnabled) {
-    $('#lumi-main-fab').remove();
-    
+function refreshFabDisplay() {
+    const isEnabled = extension_settings[extensionName].isEnabled;
+    $('#lumi-main-fab').remove(); // เคลียร์ของเก่า
+
     if (isEnabled) {
+        // ใช้ไอคอน fa-wand-magic-sparkles (ไม้คฑามีประกาย)
         const fabHtml = `
             <div id="lumi-main-fab" class="lumi-fab">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
             </div>`;
         $('body').append(fabHtml);
         
-        $('#lumi-main-fab').on('click', () => {
-            toastr.info('LumiPulse Hub is coming soon! ✨');
+        $('#lumi-main-fab').off('click').on('click', () => {
+            toastr.info('🌸 LumiPulse Hub กําลังเตรียมเปิดให้บริการเร็วๆ นี้!');
         });
     }
 }
