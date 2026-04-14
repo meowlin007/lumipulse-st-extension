@@ -1,7 +1,40 @@
 "use strict";
 
 const extensionName = "lumipulse-st-extension";
+const defaultSettings = { 
+    isEnabled: false,
+    fabPos: { top: '40%', right: '20px' } // เก็บตำแหน่งปุ่ม
+};
 let extension_settings = {};
+
+// 1. สไตล์ปุ่มแบบ Vector & Y2K
+const style = document.createElement('style');
+style.innerHTML = `
+    .lumi-fab {
+        position: fixed !important;
+        width: 60px !important;
+        height: 60px !important;
+        background: linear-gradient(135deg, #FFD1DC 0%, #FFB6C1 100%) !important;
+        border: 3px solid #FFFFFF !important;
+        border-radius: 50% !important;
+        display: none;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 2147483647 !important;
+        box-shadow: 0 4px 15px rgba(255, 182, 193, 0.8) !important;
+        cursor: grab !important;
+        touch-action: none !important; /* ป้องกันจอเลื่อนขณะลากปุ่ม */
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+    .lumi-fab.active { display: flex !important; }
+    .lumi-fab:active { cursor: grabbing !important; transform: scale(0.9) !important; }
+    .lumi-fab i { 
+        color: white !important; 
+        font-size: 24px !important; 
+        text-shadow: 0 0 8px rgba(255,255,255,0.6) !important; 
+    }
+`;
+document.head.appendChild(style);
 
 jQuery(async () => {
     const boot = setInterval(() => {
@@ -15,17 +48,13 @@ jQuery(async () => {
 function initLumiPulse() {
     const context = SillyTavern.getContext();
     if (!context.extensionSettings[extensionName]) {
-        context.extensionSettings[extensionName] = { isEnabled: false };
+        context.extensionSettings[extensionName] = JSON.parse(JSON.stringify(defaultSettings));
         context.saveSettingsDebounced();
     }
     extension_settings = context.extensionSettings;
 
     createSettingsUI();
-
-    // ถ้าเคยเปิดไว้แล้ว ให้เสกปุ่มตอนเข้าเว็บเลย
-    if (extension_settings[extensionName].isEnabled) {
-        spawnLumiButton();
-    }
+    createFab();
 }
 
 function createSettingsUI() {
@@ -44,62 +73,62 @@ function createSettingsUI() {
     </div>`;
 
     $('#extensions_settings').append(settingsHtml);
-
     $('#lumi_enable_toggle')
         .prop('checked', extension_settings[extensionName].isEnabled)
         .on('change', function () {
             const enabled = $(this).prop('checked');
             extension_settings[extensionName].isEnabled = enabled;
             SillyTavern.getContext().saveSettingsDebounced();
-            
-            if (enabled) {
-                toastr.success("🌸 กำลังเสกปุ่ม...");
-                spawnLumiButton();
-            } else {
-                $('#lumi-main-fab').remove();
-            }
+            enabled ? $('#lumi-main-fab').addClass('active') : $('#lumi-main-fab').removeClass('active');
         });
 }
 
-// 🪄 ฟังก์ชันเสกปุ่ม (รอบนี้เอาไว้ "กลางจอ" หนีขอบล่างมือถือ)
-function spawnLumiButton() {
-    // ลบของเก่าออกก่อน
-    $('#lumi-main-fab').remove();
+function createFab() {
+    if ($('#lumi-main-fab').length) return;
 
-    // สร้างปุ่มใหม่ โดยให้ลอยอยู่กลางจอ (top: 40%) 
-    const btnHtml = `
-        <div id="lumi-main-fab" style="
-            position: fixed !important;
-            top: 40% !important;   /* <--- จุดเปลี่ยน! ให้ลอยตรงกลางจอค่อนไปข้างบนนิดๆ */
-            right: 20px !important;
-            width: 60px !important;
-            height: 60px !important;
-            background: linear-gradient(135deg, #FFB6C1, #FF69B4) !important;
-            border: 3px solid white !important;
-            border-radius: 50% !important;
-            color: white !important;
-            font-size: 30px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            z-index: 2147483647 !important; /* ทะลุทุกเลเยอร์ */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
-            cursor: pointer !important;
-            user-select: none !important;
-        ">💖</div>
-    `;
-    
-    // แปะลงหน้าจอด้วย jQuery แบบเดียวกับที่สร้างเมนู
-    $('body').append(btnHtml);
+    const pos = extension_settings[extensionName].fabPos;
+    const fab = $(`<div id="lumi-main-fab" class="lumi-fab ${extension_settings[extensionName].isEnabled ? 'active' : ''}">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </div>`);
 
-    // ดักจับการกดปุ่ม
-    $('#lumi-main-fab').on('click', function() {
-        toastr.info("💖 เย้! คุณมายด์กดปุ่มได้แล้วววว!");
-        
-        // ลูกเล่นปุ่มเด้งดึ๋งเวลากด
-        $(this).css('transform', 'scale(0.8)');
-        setTimeout(() => {
-            $(this).css('transform', 'scale(1)');
-        }, 150);
+    fab.css({ top: pos.top, right: pos.right });
+    $('body').append(fab);
+
+    // ระบบลากปุ่ม (Draggable)
+    let isDragging = false;
+    fab.on('touchstart mousedown', function(e) {
+        isDragging = false;
+        const startY = e.pageY || e.originalEvent.touches[0].pageY;
+        const startX = e.pageX || e.originalEvent.touches[0].pageX;
+        const offset = fab.offset();
+
+        $(document).on('touchmove mousemove', function(me) {
+            isDragging = true;
+            const moveY = me.pageY || me.originalEvent.touches[0].pageY;
+            const moveX = me.pageX || me.originalEvent.touches[0].pageX;
+            
+            const newTop = moveY - (fab.height() / 2);
+            const newRight = $(window).width() - moveX - (fab.width() / 2);
+
+            fab.css({ top: newTop, right: newRight, left: 'auto' });
+        });
+    });
+
+    $(document).on('touchend mouseup', function() {
+        if (isDragging) {
+            // เซฟตำแหน่งหลังลากเสร็จ
+            extension_settings[extensionName].fabPos = {
+                top: fab.css('top'),
+                right: fab.css('right')
+            };
+            SillyTavern.getContext().saveSettingsDebounced();
+        }
+        $(document).off('touchmove mousemove');
+    });
+
+    fab.on('click', function(e) {
+        if (!isDragging) {
+            toastr.success("🌸 ยินดีต้อนรับสู่ LumiPulse Hub ค่ะ!");
+        }
     });
 }
