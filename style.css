@@ -1,38 +1,33 @@
 /* ปุ่มกดหลัก LumiPulse */
 .lumi-fab {
     position: fixed;
-    bottom: 85px;
+    bottom: 85px; /* ตำแหน่งเหนือก้นจอเล็กน้อย */
     right: 20px;
     width: 55px;
     height: 55px;
-    background: linear-gradient(135deg, #FFD1DC, #FFB6C1); /* ชมพูพาสเทลไล่เฉด */
+    background: linear-gradient(135deg, #FFB6C1, #FF69B4); /* ชมพูเข้มขึ้นนิดนึงให้ปุ่มเด่น */
     border-radius: 50%;
-    border: 3px solid #FFFFFF;
-    box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+    border: 3px solid #FFF0F5;
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.5); /* เงาสีชมพู */
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 1000;
-    font-size: 24px;
-    transition: transform 0.2s;
+    z-index: 9999; /* ให้อยู่บนสุดจริงๆ */
+    color: white; /* สีของไอคอน FontAwesome */
+    font-size: 26px; /* ขนาดไอคอน */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Animation แบบนุ่มนวล */
 }
 
+/* เอฟเฟกต์ตอนเอาเมาส์ชี้ (หรือเอานิ้วแตะค้าง) */
 .lumi-fab:hover {
-    transform: scale(1.1);
+    transform: scale(1.1) translateY(-3px); /* ขยายและลอยขึ้นนิดนึง */
+    box-shadow: 0 6px 20px rgba(255, 105, 180, 0.7);
+    background: linear-gradient(135deg, #FFC0CB, #FF1493); /* เปลี่ยนสีให้สว่างขึ้นตอนชี้ */
 }
 
-/* หน้าต่างเมนูหลัก (ตอนกดเปิด) */
-.lumi-panel {
-    display: none; /* เริ่มต้นให้ซ่อนไว้ก่อน */
-    position: fixed;
-    bottom: 150px;
-    right: 20px;
-    width: 280px;
-    background: #FFF5F7;
-    border-radius: 20px;
-    border: 2px solid #FFD1DC;
-    padding: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    z-index: 1001;
+/* เอฟเฟกต์ตอนกดปุ่มจริงๆ (ถูกควบคุมด้วยคลาส .clicked ใน JS) */
+.lumi-fab.clicked {
+    transform: scale(0.9); /* หดตัวลงตอนกด */
+    box-shadow: 0 2px 10px rgba(255, 105, 180, 0.4);
 }
