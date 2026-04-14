@@ -20,11 +20,9 @@ function initLumiPulse() {
         context.saveSettingsDebounced();
     }
     extension_settings = context.extensionSettings;
-
-    injectStyles(); // ยัด CSS สำหรับ Hub เข้าไป
+    injectStyles();
     createSettingsUI();
-    createHubUI(); // สร้างหน้าต่าง Hub รอไว้
-    
+    createHubUI();
     if (extension_settings[extensionName].isEnabled) spawnLumiButton();
 }
 
@@ -35,28 +33,27 @@ function injectStyles() {
     style.innerHTML = `
         @keyframes lumiFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .lumi-floating { animation: lumiFloat 3s ease-in-out infinite; }
-        
-        /* สไตล์ของหน้าต่าง Hub */
         #lumi-hub-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 192, 203, 0.2); backdrop-filter: blur(8px);
-            z-index: 2147483646; display: none; align-items: center; justify-content: center;
+            background: rgba(255, 192, 203, 0.1); backdrop-filter: blur(4px);
+            z-index: 2147483646; display: none;
         }
         .lumi-hub-window {
-            width: 320px; background: #FFF5F7; border: 3px solid #FFB6C1;
-            border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
-            position: relative; font-family: sans-serif; text-align: center;
+            position: fixed; width: 300px; background: #FFF5F7; 
+            border: 3px solid #FFB6C1; border-radius: 20px; padding: 15px;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+            text-align: center; z-index: 2147483647;
         }
-        .lumi-hub-header { color: #ff85a2; font-weight: bold; font-size: 20px; margin-bottom: 15px; }
-        .lumi-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .lumi-hub-header { color: #ff85a2; font-weight: bold; font-size: 18px; margin-bottom: 12px; }
+        .lumi-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .lumi-menu-item {
-            background: white; border: 2px solid #FFD1DC; padding: 15px 10px;
-            border-radius: 15px; cursor: pointer; transition: 0.2s; color: #ff85a2;
+            background: white; border: 2px solid #FFD1DC; padding: 12px 5px;
+            border-radius: 12px; cursor: pointer; transition: 0.2s; color: #ff85a2; font-size: 14px;
         }
         .lumi-menu-item:hover { background: #FFD1DC; transform: scale(1.05); }
-        .lumi-menu-item i { font-size: 24px; display: block; margin-bottom: 5px; }
+        .lumi-menu-item i { font-size: 20px; display: block; margin-bottom: 4px; }
         .lumi-close-btn { 
-            position: absolute; top: -10px; right: -10px; width: 35px; height: 35px;
+            position: absolute; top: -8px; right: -8px; width: 30px; height: 30px;
             background: #FF85A2; color: white; border-radius: 50%; display: flex;
             align-items: center; justify-content: center; cursor: pointer; border: 2px solid white;
         }
@@ -66,28 +63,20 @@ function injectStyles() {
 
 function createHubUI() {
     if ($('#lumi-hub-overlay').length > 0) return;
-    const hubHtml = `
-        <div id="lumi-hub-overlay">
-            <div class="lumi-hub-window">
+    const html = `
+        <div id="lumi-hub-overlay" onclick="if(event.target.id === 'lumi-hub-overlay') $('#lumi-hub-overlay').fadeOut()">
+            <div id="lumi-hub-window" class="lumi-hub-window">
                 <div class="lumi-close-btn" onclick="$('#lumi-hub-overlay').fadeOut()">×</div>
-                <div class="lumi-hub-header">🌸 LumiPulse Hub 🌸</div>
+                <div class="lumi-hub-header">🌸 LumiPulse Hub</div>
                 <div class="lumi-menu-grid">
-                    <div class="lumi-menu-item" onclick="toastr.info('Diary Coming Soon!')">
-                        <i class="fa-solid fa-book-heart"></i><span>Diary</span>
-                    </div>
-                    <div class="lumi-menu-item" onclick="toastr.info('Phone Coming Soon!')">
-                        <i class="fa-solid fa-mobile-retro"></i><span>Phone</span>
-                    </div>
-                    <div class="lumi-menu-item" onclick="toastr.info('Forum Coming Soon!')">
-                        <i class="fa-solid fa-users-rectangle"></i><span>Forum</span>
-                    </div>
-                    <div class="lumi-menu-item" onclick="$('#lumi-hub-overlay').fadeOut()">
-                        <i class="fa-solid fa-circle-xmark"></i><span>Close</span>
-                    </div>
+                    <div class="lumi-menu-item" onclick="toastr.info('Diary Soon!')"><i class="fa-solid fa-book-heart"></i>Diary</div>
+                    <div class="lumi-menu-item" onclick="toastr.info('Phone Soon!')"><i class="fa-solid fa-mobile-retro"></i>Phone</div>
+                    <div class="lumi-menu-item" onclick="toastr.info('Forum Soon!')"><i class="fa-solid fa-users-rectangle"></i>Forum</div>
+                    <div class="lumi-menu-item" onclick="$('#lumi-hub-overlay').fadeOut()"><i class="fa-solid fa-circle-xmark"></i>Close</div>
                 </div>
             </div>
         </div>`;
-    $('body').append(hubHtml);
+    $('body').append(html);
 }
 
 function spawnLumiButton() {
@@ -101,28 +90,43 @@ function spawnLumiButton() {
         background: url('${btnUrl}') no-repeat center !important;
         background-size: contain !important; z-index: 2147483647 !important;
         cursor: move !important; touch-action: none !important;
-        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)) !important; transition: transform 0.2s ease;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)) !important;
     `;
     document.body.appendChild(fab);
 
     let isDragging = false, offset = { x: 0, y: 0 };
+
     fab.addEventListener('touchstart', (e) => {
         isDragging = false; fab.classList.remove('lumi-floating');
-        const touch = e.touches[0];
-        offset.x = touch.clientX - fab.getBoundingClientRect().left;
-        offset.y = touch.clientY - fab.getBoundingClientRect().top;
+        const t = e.touches[0];
+        offset.x = t.clientX - fab.getBoundingClientRect().left;
+        offset.y = t.clientY - fab.getBoundingClientRect().top;
     }, { passive: true });
 
     fab.addEventListener('touchmove', (e) => {
-        isDragging = true; const touch = e.touches[0];
-        let x = touch.clientX - offset.x, y = touch.clientY - offset.y;
+        isDragging = true; const t = e.touches[0];
+        let x = t.clientX - offset.x, y = t.clientY - offset.y;
         x = Math.max(0, Math.min(x, window.innerWidth - 60));
         y = Math.max(0, Math.min(y, window.innerHeight - 60));
         fab.style.left = x + 'px'; fab.style.top = y + 'px'; fab.style.right = 'auto';
     }, { passive: false });
 
     fab.addEventListener('touchend', () => {
-        if (!isDragging) $('#lumi-hub-overlay').css('display', 'flex').hide().fadeIn();
+        if (!isDragging) {
+            // คำนวณตำแหน่ง Hub ให้เด้งออกมาใกล้ๆ ปุ่ม
+            const rect = fab.getBoundingClientRect();
+            const hub = $('#lumi-hub-window');
+            let hubX = rect.left - 120; // ให้เมนูอยู่กลางๆ ปุ่มในแนวนอน
+            let hubY = rect.top - 220;  // ให้เมนูเด้งขึ้นด้านบนปุ่ม
+
+            // ป้องกันไม่ให้เมนูทะลุขอบจอ
+            if (hubX < 10) hubX = 10;
+            if (hubX + 300 > window.innerWidth) hubX = window.innerWidth - 310;
+            if (hubY < 10) hubY = rect.bottom + 10; // ถ้าข้างบนไม่มีที่ ให้เด้งลงข้างล่างแทน
+
+            hub.css({ left: hubX + 'px', top: hubY + 'px' });
+            $('#lumi-hub-overlay').fadeIn(200);
+        }
         fab.classList.add('lumi-floating');
         isDragging = false;
     });
