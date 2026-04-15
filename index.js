@@ -200,4 +200,5 @@ function createSettingsUI() {
 function createContentModal() {
     if ($('#lumi-modal-overlay').length > 0) return;
     $('body').append(`<div id="lumi-modal-overlay" class="lumi-modal-overlay"><div class="lumi-modal-box"><div class="lumi-modal-header"><span id="lumi-modal-title"></span><div class="lumi-modal-close" onclick="$('#lumi-modal-overlay').fadeOut(250)">×</div></div><div id="lumi-modal-body" class="lumi-modal-body"></div></div></div>`);
-}
+         }
+    
