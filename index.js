@@ -7,6 +7,9 @@ const iconDiary = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconPhone = "https://file.garden/ad59q6JMmVnp7v1-/lumi-phone-icon.png";
 const iconForum = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png";
 
+// Vector Heart SVG String
+const heartSVG = `<svg viewBox="0 0 32 32" fill="#ffb6c1" xmlns="http://www.w3.org/2000/svg"><path d="M16 28.5L14.1 26.75C7.2 20.5 2.7 16.45 2.7 11.5C2.7 7.45 5.85 4.3 9.9 4.3C12.15 4.3 14.35 5.35 15.8 7C17.25 5.35 19.45 4.3 21.7 4.3C25.75 4.3 28.9 7.45 28.9 11.5C28.9 16.45 24.4 20.5 17.5 26.75L16 28.5Z"/></svg>`;
+
 jQuery(async () => {
     const boot = setInterval(() => {
         if (window.SillyTavern && SillyTavern.getContext) {
@@ -26,9 +29,7 @@ function initLumiPulse() {
     injectStyles();
     createSettingsUI();
     if (extension_settings[extensionName].isEnabled) spawnLumiButton();
-    
-    // ระบบ Click Heart Effect ทั่วทั้งหน้าจอ
-    document.addEventListener('click', (e) => spawnHeartEffect(e));
+    document.addEventListener('mousedown', (e) => spawnHeartEffect(e));
 }
 
 function injectStyles() {
@@ -39,76 +40,76 @@ function injectStyles() {
         @import url('https://fonts.googleapis.com/css2?family=Mitr:wght@300;400&display=swap');
         
         @keyframes lumiPop {
-            0% { opacity: 0; transform: scale(0.5) translateY(20px); }
+            0% { opacity: 0; transform: scale(0.6) translateY(30px); }
             100% { opacity: 1; transform: scale(1) translateY(0); }
         }
         @keyframes lumiFloat {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+            50% { transform: translateY(-10px); }
         }
-        @keyframes heartUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-50px) scale(1.5) rotate(20deg); }
+        @keyframes heartRise {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -100px) scale(1.8) rotate(15deg); }
         }
 
-        /* หัวใจเวลากด */
-        .lumi-click-heart {
+        .lumi-vector-heart {
             position: fixed; z-index: 2147483647; pointer-events: none;
-            color: #ffb6c1; font-size: 20px; animation: heartUp 0.8s ease-out forwards;
+            width: 25px; height: 25px; animation: heartRise 0.9s ease-out forwards;
+            filter: drop-shadow(0 0 5px rgba(255,182,193,0.8));
         }
 
         #lumi-main-fab {
             position: fixed !important; z-index: 2147483647 !important;
             width: 50px; height: 50px; cursor: move; touch-action: none;
             background: url('${btnUrl}') no-repeat center; background-size: contain;
-            filter: drop-shadow(0 5px 15px rgba(255,182,193,0.5));
+            filter: drop-shadow(0 5px 15px rgba(255,182,193,0.6));
         }
         .lumi-floating { animation: lumiFloat 3s ease-in-out infinite; }
 
-        /* เมนูทรงแคปซูลนุ่มๆ */
         .lumi-menu-container {
             position: fixed; z-index: 2147483646; display: none;
-            background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px);
-            border-radius: 40px; padding: 25px 30px; border: 1.5px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 20px 50px rgba(255,182,193,0.3);
+            background: rgba(255, 255, 255, 0.96); /* เพิ่มความเข้มกันจาง */
+            backdrop-filter: blur(25px); border-radius: 45px; padding: 30px;
+            border: 2px solid rgba(255, 182, 193, 0.5);
+            box-shadow: 0 25px 60px rgba(255, 182, 193, 0.4);
             font-family: 'Mitr', sans-serif; font-weight: 300;
         }
 
-        .lumi-menu-grid { display: flex; gap: 25px; align-items: center; justify-content: center; }
+        .lumi-menu-grid { display: flex; gap: 30px; align-items: center; justify-content: center; }
 
         .lumi-menu-item {
             display: flex; flex-direction: column; align-items: center;
-            gap: 10px; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            gap: 12px; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             animation: lumiPop 0.5s backwards;
         }
-        .lumi-menu-item:hover { transform: translateY(-8px); }
+        .lumi-menu-item:hover { transform: translateY(-10px) scale(1.05); }
 
-        .lumi-menu-icon { width: 55px; height: 55px; object-fit: contain; }
+        .lumi-menu-icon { width: 60px; height: 60px; object-fit: contain; }
 
-        .lumi-menu-text { font-size: 13px; color: #ff85a2; letter-spacing: 0.5px; }
+        .lumi-menu-text { font-size: 14px; color: #ff85a2; letter-spacing: 0.5px; opacity: 0.9; }
 
-        /* ตัวอักษร Lumipulse ด้านล่าง */
         .lumi-branding {
-            margin-top: 20px; font-size: 11px; color: #ffb6c1;
-            text-transform: uppercase; letter-spacing: 3px; text-align: center;
-            opacity: 0.8; font-weight: 400;
+            margin-top: 25px; font-size: 12px; color: #ffb6c1;
+            text-transform: uppercase; letter-spacing: 4px; text-align: center;
+            font-weight: 300;
         }
 
-        .lumi-menu-item:nth-child(1) { animation-delay: 0.1s; }
-        .lumi-menu-item:nth-child(2) { animation-delay: 0.2s; }
-        .lumi-menu-item:nth-child(3) { animation-delay: 0.3s; }
+        .lumi-menu-item:nth-child(1) { animation-delay: 0.05s; }
+        .lumi-menu-item:nth-child(2) { animation-delay: 0.12s; }
+        .lumi-menu-item:nth-child(3) { animation-delay: 0.19s; }
     `;
     document.head.appendChild(style);
 }
 
 function spawnHeartEffect(e) {
     const heart = document.createElement('div');
-    heart.className = 'lumi-click-heart';
-    heart.innerHTML = '❤️';
-    heart.style.left = (e.clientX - 10) + 'px';
-    heart.style.top = (e.clientY - 10) + 'px';
+    heart.className = 'lumi-vector-heart';
+    heart.innerHTML = heartSVG;
+    heart.style.left = e.clientX + 'px';
+    heart.style.top = e.clientY + 'px';
     document.body.appendChild(heart);
-    setTimeout(() => heart.remove(), 800);
+    setTimeout(() => heart.remove(), 900);
 }
 
 function spawnLumiButton() {
@@ -135,10 +136,10 @@ function spawnLumiButton() {
         const rect = fab.getBoundingClientRect();
         const menuEl = $(menu);
         let left = rect.left - (menuEl.outerWidth() / 2) + (rect.width / 2);
-        let top = rect.top - menuEl.outerHeight() - 30;
+        let top = rect.top - menuEl.outerHeight() - 35;
         if (left < 15) left = 15;
         if (left + menuEl.outerWidth() > window.innerWidth) left = window.innerWidth - menuEl.outerWidth() - 15;
-        if (top < 15) top = rect.bottom + 30;
+        if (top < 15) top = rect.bottom + 35;
         menuEl.css({ left: left + 'px', top: top + 'px' });
     };
 
@@ -163,9 +164,9 @@ function spawnLumiButton() {
         isDragging = false;
     });
 
-    $(document).off('click', '#lumi-diary').on('click', '#lumi-diary', () => toastr.success('🌸 Diary Modules Accessing...'));
-    $(document).off('click', '#lumi-phone').on('click', '#lumi-phone', () => toastr.success('🌸 Character Phone Opening...'));
-    $(document).off('click', '#lumi-forum').on('click', '#lumi-forum', () => toastr.success('🌸 University Forum Entering...'));
+    $(document).off('click', '#lumi-diary').on('click', '#lumi-diary', () => toastr.success('🌸 Diary Modules...'));
+    $(document).off('click', '#lumi-phone').on('click', '#lumi-phone', () => toastr.success('🌸 Character Phone...'));
+    $(document).off('click', '#lumi-forum').on('click', '#lumi-forum', () => toastr.success('🌸 University Forum...'));
 }
 
 function createSettingsUI() {
