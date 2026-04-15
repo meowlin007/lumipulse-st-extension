@@ -9,7 +9,7 @@ const iconDiary = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconPhone = "https://file.garden/ad59q6JMmVnp7v1-/lumi-phone-icon.png";
 const iconForum = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png";
 
-const svgHeart = `<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 28.2s-10.5-6.3-13.2-11.4c-2-3.8-.7-8.4 3.3-10.2 3.1-1.4 6.5-.4 8.4 2.2 1.9-2.6 5.3-3.6 8.4-2.2 4 1.8 5.3 6.4 3.3 10.2-2.7 5.1-13.2 11.4-13.2 11.4z" fill="#FFB6C1" stroke="#FFB6C1" stroke-width="1"/></svg>`;
+const svgHeart = `<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 28.2s-10.5-6.3-13.2-11.4c-2-3.8-.7-8.4 3.3-10.2 3.1-1.4 6.5-.4 8.4 2.2 1.9-2.6 5.3-3.6 8.4-2.2 4 1.8 5.3 6.4 3.3 10.2-2.7 5.1-13.2 11.4-13.2 11.4z" fill="#FFB6C1" stroke="#FFB6C1" stroke-width="1" stroke-linejoin="round"/></svg>`;
 const svgSettings = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
 
 jQuery(async () => {
@@ -52,7 +52,6 @@ function injectStyles() {
         .lumi-vector-heart { position: fixed; z-index: 2147483647; pointer-events: none; width: 30px; height: 30px; animation: heartRise 0.8s ease-out forwards; filter: drop-shadow(0 0 5px #FFB6C1); }
         #lumi-main-fab { position: fixed !important; z-index: 2147483647 !important; width: 50px; height: 50px; cursor: move; touch-action: none; background: url('${btnUrl}') no-repeat center; background-size: contain; filter: drop-shadow(0 5px 15px rgba(255,182,193,0.5)); }
         .lumi-floating { animation: lumiFloat 3s ease-in-out infinite; }
-        
         .lumi-menu-container { position: fixed; z-index: 2147483646; display: none; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(25px); border-radius: 45px; padding: 30px; border: 2px solid rgba(255, 182, 193, 0.4); box-shadow: 0 25px 60px rgba(255, 182, 193, 0.3); font-family: 'Mitr', sans-serif; font-weight: 300; }
         .lumi-menu-grid { display: flex; gap: 25px; align-items: center; justify-content: center; }
         .lumi-menu-item { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; transition: 0.3s; }
@@ -79,7 +78,6 @@ function injectStyles() {
         .post-author { font-weight: 400; color: #444; font-size: 15px; }
         .post-content { font-size: 14px; color: #666; line-height: 1.6; }
         .post-footer { margin-top: 12px; color: #ffb6c1; font-size: 13px; display: flex; gap: 15px; }
-        
         .lumi-loader-wrap { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 100px; }
         .lumi-loader { width: 45px; height: 45px; border: 3px solid #FFF0F3; border-top-color: #ff85a2; border-radius: 50%; animation: spin 1s infinite linear; }
     `;
@@ -97,15 +95,24 @@ function spawnHeartEffect(e) {
 }
 
 async function requestAIGeneration(topic, npcs, includeRandom) {
-    const prompt = `[Task: Forum Simulation] Topic: "${topic}". NPCs: [${npcs.join(", ")}]. Generate 4 realistic social posts. Return ONLY JSON Array: [{"author": "Name", "content": "Text", "likes": number, "time": "5m ago"}]`;
+    const prompt = `[Task: Forum Simulation] Topic: "${topic}". Current NPCs: [${npcs.join(", ")}]. Generate 4 social media posts. ${includeRandom ? "Invent background NPCs if needed." : ""} Return ONLY JSON Array: [{"author": "Name", "content": "Post text", "likes": 12, "time": "5m ago"}]`;
+    
     try {
-        const response = await fetch('/api/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': SillyTavern.getContext().csrfToken },
-            body: JSON.stringify({ prompt, model_role: "assistant", max_context_length: 2000, max_gen_length: 600, stop: ["\n\n"] })
-        });
-        const data = await response.json();
-        const jsonMatch = (data.generated_text || data.text || "").match(/\[.*\]/s);
+        const context = SillyTavern.getContext();
+        // 🔥 เปลี่ยนมาใช้ระบบ Generate ภายในของ ST แทนการ Fetch ตรงๆ เพื่อเลี่ยง 404
+        let result = "";
+        if (typeof window.generateRaw === 'function') {
+            result = await window.generateRaw(prompt, true);
+        } else {
+            const response = await fetch('/api/backends/chat-completions/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': context.csrfToken },
+                body: JSON.stringify({ prompt, max_context: 2000, max_gen: 600 })
+            });
+            const data = await response.json();
+            result = data.choices[0].message.content || data.generated_text || "";
+        }
+        const jsonMatch = result.match(/\[.*\]/s);
         return jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     } catch (e) { return []; }
 }
@@ -158,18 +165,9 @@ function renderForumUI() {
                 renderForumUI();
             });
         } else {
-            body.append(`<div style="font-size:11px; color:#ffb6c1; text-align:center; margin-bottom:15px; letter-spacing:1px;">TOPIC: ${s.forumTopic.toUpperCase()}</div>`);
+            body.append(`<div style="font-size:11px; color:#ffb6c1; text-align:center; margin-bottom:15px;">TOPIC: ${s.forumTopic.toUpperCase()}</div>`);
             s.forumData.forEach(p => {
-                body.append(`
-                    <div class="forum-post">
-                        <div class="post-header">
-                            <div class="post-avatar">${p.author.charAt(0)}</div>
-                            <div style="display:flex; flex-direction:column;"><span class="post-author">${p.author}</span><span style="font-size:10px; color:#CCC;">${p.time}</span></div>
-                        </div>
-                        <div class="post-content">${p.content}</div>
-                        <div class="post-footer">❤️ ${p.likes} Likes</div>
-                    </div>
-                `);
+                body.append(`<div class="forum-post"><div class="post-header"><div class="post-avatar">${p.author.charAt(0)}</div><div style="display:flex; flex-direction:column;"><span class="post-author">${p.author}</span><span style="font-size:10px; color:#CCC;">${p.time}</span></div></div><div class="post-content">${p.content}</div><div class="post-footer">❤️ ${p.likes} Likes</div></div>`);
             });
         }
     }
@@ -184,14 +182,7 @@ function spawnLumiButton() {
 
     const menu = document.createElement('div');
     menu.className = 'lumi-menu-container';
-    menu.innerHTML = `
-        <div class="lumi-menu-grid">
-            <div class="lumi-menu-item" id="lumi-diary"><img src="${iconDiary}" class="lumi-menu-icon"><span class="lumi-menu-text">Diary</span></div>
-            <div class="lumi-menu-item" id="lumi-phone"><img src="${iconPhone}" class="lumi-menu-icon"><span class="lumi-menu-text">Phone</span></div>
-            <div class="lumi-menu-item" id="lumi-forum"><img src="${iconForum}" class="lumi-menu-icon"><span class="lumi-menu-text">Forum</span></div>
-        </div>
-        <div class="lumi-branding">Lumipulse</div>
-    `;
+    menu.innerHTML = `<div class="lumi-menu-grid"><div class="lumi-menu-item" id="lumi-diary"><img src="${iconDiary}" class="lumi-menu-icon"><span class="lumi-menu-text">Diary</span></div><div class="lumi-menu-item" id="lumi-phone"><img src="${iconPhone}" class="lumi-menu-icon"><span class="lumi-menu-text">Phone</span></div><div class="lumi-menu-item" id="lumi-forum"><img src="${iconForum}" class="lumi-menu-icon"><span class="lumi-menu-text">Forum</span></div></div><div class="lumi-branding">Lumipulse</div>`;
     document.body.appendChild(menu);
 
     let isDrag = false, offset = { x: 0, y: 0 };
@@ -214,22 +205,9 @@ function spawnLumiButton() {
 
 function createContentModal() {
     if ($('#lumi-modal-overlay').length > 0) return;
-    const html = `
-        <div id="lumi-modal-overlay" class="lumi-modal-overlay" onclick="if(event.target.id==='lumi-modal-overlay')$(this).fadeOut(200)">
-            <div class="lumi-modal-box">
-                <div class="lumi-modal-header">
-                    <div class="lumi-modal-opt" title="New Topic">${svgSettings}</div>
-                    <span id="lumi-modal-title"></span>
-                    <div class="lumi-modal-close" onclick="$('#lumi-modal-overlay').fadeOut(200)">×</div>
-                </div>
-                <div id="lumi-modal-body" class="lumi-modal-body"></div>
-            </div>
-        </div>`;
+    const html = `<div id="lumi-modal-overlay" class="lumi-modal-overlay" onclick="if(event.target.id==='lumi-modal-overlay')$(this).fadeOut(200)"><div class="lumi-modal-box"><div class="lumi-modal-header"><div class="lumi-modal-opt">${svgSettings}</div><span id="lumi-modal-title"></span><div class="lumi-modal-close" onclick="$('#lumi-modal-overlay').fadeOut(200)">×</div></div><div id="lumi-modal-body" class="lumi-modal-body"></div></div></div>`;
     $('body').append(html);
-    $('.lumi-modal-opt').on('click', () => {
-        extension_settings[extensionName].isForumInitialized = false;
-        renderForumUI();
-    });
+    $('.lumi-modal-opt').on('click', () => { extension_settings[extensionName].isForumInitialized = false; renderForumUI(); });
 }
 
 function createSettingsUI() {
@@ -242,10 +220,7 @@ function createSettingsUI() {
         if(extension_settings[extensionName].isEnabled) { spawnLumiButton(); createContentModal(); } else { $('#lumi-main-fab, .lumi-menu-container, #lumi-modal-overlay').remove(); }
     });
     $(document).on('click', '#lumi-reset', () => { 
-        extension_settings[extensionName].isForumInitialized = false; 
-        extension_settings[extensionName].forumTopic = "";
-        extension_settings[extensionName].forumData = [];
-        SillyTavern.getContext().saveSettingsDebounced(); 
-        toastr.success("ล้างข้อมูลฟอรั่มทั้งหมดแล้ว"); 
+        extension_settings[extensionName].isForumInitialized = false; extension_settings[extensionName].forumTopic = ""; extension_settings[extensionName].forumData = [];
+        SillyTavern.getContext().saveSettingsDebounced(); toastr.success("ล้างข้อมูลฟอรั่มแล้ว"); 
     });
 }
