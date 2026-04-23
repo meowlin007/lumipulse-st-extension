@@ -245,6 +245,72 @@ function spawnHeartEffect(e) {
 // ─────────────────────────────────────────────
 // AI GENERATION
 // ─────────────────────────────────────────────
+async function callSTGenerate(prompt) {
+    try {
+        // วิธีที่ 1: ใช้ ST internal generate (ดีที่สุด ไม่ต้องใช้ CSRF)
+        if (typeof window.generateRaw === 'function') {
+            const result = await window.generateRaw(prompt, true);
+            return parseJSONFromAI(result);
+        }
+
+        // วิธีที่ 2: ใช้ ST's own generation pipeline ผ่าน jQuery trigger
+        // (รองรับ Gemini, OpenAI, Claude ทุกตัว)
+        return await new Promise((resolve) => {
+            const context = SillyTavern.getContext();
+
+            // สร้าง temporary chat message เพื่อ inject prompt
+            const fakeContext = {
+                ...context,
+                chat: [
+                    ...( context.chat || []).slice(-20),
+                    { role: 'user', content: prompt, is_user: true, name: context.name1 || 'User' }
+                ]
+            };
+
+            // ใช้ generateQuietPrompt ซึ่ง ST export ไว้สำหรับ extension
+            if (typeof window.generateQuietPrompt === 'function') {
+                window.generateQuietPrompt(prompt, false, false)
+                    .then(result => resolve(parseJSONFromAI(result)))
+                    .catch(err => {
+                        console.error('[LumiPulse] generateQuietPrompt failed:', err);
+                        toastr.error('AI ไม่ตอบสนอง — ลองใหม่อีกครั้งนะคะ');
+                        resolve(null);
+                    });
+            } else {
+                console.error('[LumiPulse] ไม่พบ generateQuietPrompt หรือ generateRaw');
+                toastr.error('Extension นี้ต้องการ SillyTavern เวอร์ชันล่าสุดค่ะ');
+                resolve(null);
+            }
+        });
+
+    } catch (err) {
+        console.error('[LumiPulse] callSTGenerate error:', err);
+        toastr.error('เกิดข้อผิดพลาด: ' + err.message);
+        return null;
+    }
+}
+
+// แยก JSON ออกจาก response ของ AI
+function parseJSONFromAI(text) {
+    if (!text || typeof text !== 'string') return null;
+
+    // ลอง parse array ก่อน (สำหรับ forum)
+    const arrayMatch = text.match(/\[[\s\S]*\]/);
+    if (arrayMatch) {
+        try { return JSON.parse(arrayMatch[0]); } catch (_) {}
+    }
+
+    // ลอง parse object (สำหรับ diary)
+    const objMatch = text.match(/\{[\s\S]*\}/);
+    if (objMatch) {
+        try { return JSON.parse(objMatch[0]); } catch (_) {}
+    }
+
+    console.warn('[LumiPulse] parseJSONFromAI: ไม่พบ JSON ใน:', text);
+    toastr.warning('AI ตอบกลับผิดรูปแบบ ลองกด Generate ใหม่ค่ะ 🌸');
+    return null;
+}
+
 async function requestAIGeneration(topic, npcs, includeRandom) {
     const npcList = npcs.length > 0 ? npcs.join(', ') : 'ตัวละครในเรื่อง';
     const randomNote = includeRandom ? 'คุณสามารถสร้างชื่อ NPC เสริมที่ไม่มีในรายชื่อได้' : 'ใช้เฉพาะชื่อในรายชื่อที่ให้มาเท่านั้น';
@@ -259,9 +325,11 @@ Each post should feel natural, like real social media. Mix emotional/dramatic/fu
 
 Return ONLY this JSON format:
 [
-  {"author": "ชื่อตัวละคร", "content": "ข้อความโพสต์", "likes": 12, "time": "5m ago"},
-  ...
+  {"author": "ชื่อตัวละคร", "content": "ข้อความโพสต์", "likes": 12, "time": "5m ago"}
 ]`;
+
+    return await callSTGenerate(prompt);
+}
 
     try {
         const context = SillyTavern.getContext();
@@ -723,9 +791,9 @@ function getRecentChatSummary() {
 
 // AI สร้าง diary entry + คะแนนความสัมพันธ์
 async function requestDiaryGeneration() {
-    const charName  = getCharacterName();
-    const userName  = getUserName();
-    const chatLog   = getRecentChatSummary();
+    const charName = getCharacterName();
+    const userName = getUserName();
+    const chatLog  = getRecentChatSummary();
 
     const prompt = `[System: You are roleplaying as ${charName}'s inner voice. Respond ONLY with valid JSON, no explanation, no markdown backticks.]
 
@@ -742,8 +810,11 @@ Return ONLY this JSON (in Thai language):
   "date": "วันที่สมมติ เช่น 'วันอังคาร ต้นเดือนพฤษภา'",
   "affection_score": 65,
   "mood": "อารมณ์ของตัวละครตอนนี้ในคำเดียว เช่น ตื่นเต้น / สับสน / อบอุ่น",
-  "diary": "เนื้อหาไดอารี่ความในใจของตัวละคร 3-5 ประโยค เขียนในมุมมองบุคคลที่ 1 ธรรมชาติ ไม่เป็นทางการ แอบชอบบ้างก็ได้"
+  "diary": "เนื้อหาไดอารี่ความในใจของตัวละคร 3-5 ประโยค เขียนในมุมมองบุคคลที่ 1 ธรรมชาติ ไม่เป็นทางการ"
 }`;
+
+    return await callSTGenerate(prompt);
+}
 
     try {
         const context = SillyTavern.getContext();
