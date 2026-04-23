@@ -688,3 +688,221 @@ function createSettingsUI() {
         toastr.success("ล้างข้อมูลฟอรั่มแล้วค่ะ 🌸");
     });
 }
+
+// ─────────────────────────────────────────────
+// CHARACTER DIARY
+// ─────────────────────────────────────────────
+
+// ระดับความสัมพันธ์ label
+const AFFECTION_LEVELS = [
+    { min: 0,  max: 20,  label: "แปลกหน้า",      color: "#CCC",     emoji: "😶" },
+    { min: 20, max: 40,  label: "รู้จักกัน",       color: "#FFD1DC",  emoji: "🙂" },
+    { min: 40, max: 60,  label: "เพื่อน",          color: "#FFB6C1",  emoji: "😊" },
+    { min: 60, max: 80,  label: "สนิทกัน",         color: "#FF85A2",  emoji: "🥰" },
+    { min: 80, max: 101, label: "ใกล้ชิดมาก",      color: "#FF4D79",  emoji: "💖" },
+];
+
+function getAffectionLevel(score) {
+    return AFFECTION_LEVELS.find(l => score >= l.min && score < l.max) || AFFECTION_LEVELS[0];
+}
+
+// ดึงชื่อตัวละครหลัก (บอท) จาก context
+function getCharacterName() {
+    const ctx = SillyTavern.getContext();
+    return ctx.name2 || ctx.characterId || "ตัวละคร";
+}
+
+// ดึงชื่อ user
+function getUserName() {
+    const ctx = SillyTavern.getContext();
+    return ctx.name1 || "ผู้เล่น";
+}
+
+// ดึงแชทล่าสุดมาสรุป
+function getRecentChatSummary() {
+    const chat = SillyTavern.getContext().chat || [];
+    // เอา 30 ข้อความล่าสุด แล้วรวมเป็น text
+    return chat.slice(-30).map(m => {
+        const role = m.is_user ? getUserName() : getCharacterName();
+        return `${role}: ${(m.mes || "").slice(0, 200)}`;
+    }).join("\n");
+}
+
+// AI สร้าง diary entry + คะแนนความสัมพันธ์
+async function requestDiaryGeneration() {
+    const charName  = getCharacterName();
+    const userName  = getUserName();
+    const chatLog   = getRecentChatSummary();
+
+    const prompt = `[System: You are roleplaying as ${charName}'s inner voice. Respond ONLY with valid JSON, no explanation, no markdown backticks.]
+
+You are ${charName}. Based on the conversation log below, write your private diary entry about your feelings toward ${userName}.
+Also score the relationship from 0-100.
+
+Conversation log:
+---
+${chatLog}
+---
+
+Return ONLY this JSON (in Thai language):
+{
+  "date": "วันที่สมมติ เช่น 'วันอังคาร ต้นเดือนพฤษภา'",
+  "affection_score": 65,
+  "mood": "อารมณ์ของตัวละครตอนนี้ในคำเดียว เช่น ตื่นเต้น / สับสน / อบอุ่น",
+  "diary": "เนื้อหาไดอารี่ความในใจของตัวละคร 3-5 ประโยค เขียนในมุมมองบุคคลที่ 1 ธรรมชาติ ไม่เป็นทางการ แอบชอบบ้างก็ได้"
+}`;
+
+    try {
+        const context = SillyTavern.getContext();
+        let result = "";
+
+        if (typeof window.generateRaw === 'function') {
+            result = await window.generateRaw(prompt, true);
+        } else {
+            const response = await fetch('/api/backends/chat-completions/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': context.csrfToken
+                },
+                body: JSON.stringify({
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: 600,
+                    temperature: 0.85
+                })
+            });
+
+            if (!response.ok) {
+                toastr.error(`AI ไม่ตอบสนอง (${response.status})`);
+                return null;
+            }
+
+            const data = await response.json();
+            result = data?.choices?.[0]?.message?.content
+                  || data?.generated_text
+                  || "";
+        }
+
+        const jsonMatch = result.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            console.warn('[LumiPulse Diary] ไม่พบ JSON:', result);
+            toastr.warning("AI ตอบกลับผิดรูปแบบ ลองกด Generate ใหม่ค่ะ");
+            return null;
+        }
+        return JSON.parse(jsonMatch[0]);
+
+    } catch (err) {
+        console.error('[LumiPulse Diary] Error:', err);
+        toastr.error("เกิดข้อผิดพลาด — เช็ค console");
+        return null;
+    }
+}
+
+// Render หน้า Diary
+function renderDiaryUI() {
+    const s        = extension_settings[extensionName];
+    const body     = $('#lumi-modal-body');
+    const charName = getCharacterName();
+
+    $('#lumi-modal-title').text(`📖 ${charName}'s Diary`);
+    $('.lumi-modal-opt').hide();
+    body.empty();
+
+    // ── ถ้ายังไม่มีข้อมูล หรือ reset ──
+    if (!s.diaryData) {
+        body.html(`
+            <div class="lumi-setup">
+                <img src="${iconDiary}" style="width:75px;" alt="diary">
+                <div style="color:#ff85a2; font-size:16px; line-height:1.6;">
+                    อ่านความในใจของ<br>
+                    <b style="font-weight:400;">${escapeHtml(charName)}</b> ที่มีต่อคุณ
+                </div>
+                <div style="font-size:12px; color:#ffb6c1; max-width:260px; line-height:1.6; text-align:center;">
+                    AI จะวิเคราะห์บทสนทนาล่าสุด แล้วเขียนเป็นบันทึกความในใจของตัวละคร
+                </div>
+                <button id="btn-gen-diary" class="lumi-btn-gen">✨ Generate Diary</button>
+            </div>
+        `);
+        $('#btn-gen-diary').on('click', () => startDiaryGeneration());
+        return;
+    }
+
+    // ── แสดงผล Diary ──
+    const d      = s.diaryData;
+    const level  = getAffectionLevel(d.affection_score || 0);
+    const score  = Math.max(0, Math.min(100, d.affection_score || 0));
+
+    body.html(`
+        <div class="lumi-diary-wrap">
+
+            <!-- Header: ชื่อ + วันที่ + อารมณ์ -->
+            <div class="lumi-diary-header">
+                <div class="lumi-diary-avatar">${escapeHtml(charName.charAt(0).toUpperCase())}</div>
+                <div>
+                    <div class="lumi-diary-charname">${escapeHtml(charName)}</div>
+                    <div class="lumi-diary-date">${escapeHtml(d.date || '')} · ${level.emoji} ${escapeHtml(d.mood || '')}</div>
+                </div>
+            </div>
+
+            <!-- Affection Bar -->
+            <div class="lumi-affection-wrap">
+                <div class="lumi-affection-label">
+                    <span>ความสัมพันธ์</span>
+                    <span style="color:${level.color}; font-weight:400;">${level.emoji} ${level.label}</span>
+                </div>
+                <div class="lumi-affection-track">
+                    <div class="lumi-affection-fill" style="width:${score}%; background:${level.color};"></div>
+                </div>
+                <div class="lumi-affection-score">${score} / 100</div>
+            </div>
+
+            <!-- Diary Text -->
+            <div class="lumi-diary-paper">
+                <div class="lumi-diary-lines"></div>
+                <div class="lumi-diary-text">${escapeHtml(d.diary || '')}</div>
+            </div>
+
+            <!-- Regenerate -->
+            <div style="text-align:center; margin-top:18px; padding-bottom:20px;">
+                <button id="btn-regen-diary" class="lumi-btn-gen" style="padding:8px 28px; font-size:12px;">
+                    🔄 Generate ใหม่
+                </button>
+            </div>
+
+        </div>
+    `);
+
+    // animate bar
+    setTimeout(() => {
+        $('.lumi-affection-fill').css('width', score + '%');
+    }, 100);
+
+    $('#btn-regen-diary').on('click', () => startDiaryGeneration());
+}
+
+// Loading state → call AI → render result
+function startDiaryGeneration() {
+    const s    = extension_settings[extensionName];
+    const body = $('#lumi-modal-body');
+
+    body.html(`
+        <div class="lumi-loader-wrap">
+            <div class="lumi-loader"></div>
+            <div style="color:#ff85a2;">กำลังอ่านความในใจ...</div>
+            <div style="font-size:11px; color:#ffb6c1; margin-top:5px;">🌸 รอสักครู่นะคะ</div>
+        </div>
+    `);
+
+    requestDiaryGeneration().then(data => {
+        if (!data) {
+            // fail → กลับหน้า setup
+            s.diaryData = null;
+            SillyTavern.getContext().saveSettingsDebounced();
+            renderDiaryUI();
+            return;
+        }
+        s.diaryData = data;
+        SillyTavern.getContext().saveSettingsDebounced();
+        renderDiaryUI();
+    });
+}
