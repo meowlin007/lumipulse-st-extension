@@ -114,43 +114,31 @@ function parseJSONFromAI(text) {
 
 async function callSTGenerate(prompt) {
     try {
-        // ลองทุก function ที่ ST versions ต่างๆ อาจใช้
-        const candidates = [
-            'generateRaw',
-            'generateQuietPrompt', 
-            'generate',
-            'sendGenerationRequest',
-            'getGeneratingApi',
-        ];
+        const ctx = SillyTavern.getContext();
 
-        // หาตัวที่มีอยู่จริง แล้วแจ้งใน toastr ด้วย
-        const found = candidates.filter(n => typeof window[n] === 'function');
-        
-        if (found.length === 0) {
-            // ไม่เจอเลย — ลอง SillyTavern.getContext() แทน
-            const ctx = SillyTavern.getContext();
-            const ctxFns = Object.keys(ctx).filter(k => typeof ctx[k] === 'function' && k.toLowerCase().includes('gen'));
-            toastr.warning('ไม่พบ generate function — context has: ' + (ctxFns.join(', ') || 'none'));
-            return null;
-        }
-
-        toastr.info('พบ: ' + found.join(', '), 'LumiPulse Debug', { timeOut: 5000 });
-
-        // ลองใช้ตัวแรกที่เจอ
-        if (typeof window.generateRaw === 'function') {
-            const result = await window.generateRaw(prompt, true);
+        // ใช้จาก context โดยตรง (staging เก็บไว้ใน context ไม่ใช่ window)
+        if (typeof ctx.generateQuietPrompt === 'function') {
+            const result = await ctx.generateQuietPrompt(prompt, false, false);
             return parseJSONFromAI(result);
         }
+
+        if (typeof ctx.generateRaw === 'function') {
+            const result = await ctx.generateRaw(prompt, true);
+            return parseJSONFromAI(result);
+        }
+
+        // fallback: window (ST เวอร์ชันเก่า)
         if (typeof window.generateQuietPrompt === 'function') {
             const result = await window.generateQuietPrompt(prompt, false, false);
             return parseJSONFromAI(result);
         }
-        if (typeof window.generate === 'function') {
-            const result = await window.generate(prompt);
+
+        if (typeof window.generateRaw === 'function') {
+            const result = await window.generateRaw(prompt, true);
             return parseJSONFromAI(result);
         }
 
-        toastr.error('ยังเรียก generate ไม่ได้ — แจ้งชื่อที่เห็นใน toastr ให้ด้วยนะคะ');
+        toastr.error('หา generate function ไม่เจอเลยค่ะ');
         return null;
 
     } catch (err) {
