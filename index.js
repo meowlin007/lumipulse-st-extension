@@ -6,7 +6,8 @@ const defaultSettings = {
     forumTopic: "",
     isForumInitialized: false,
     includeRandomNPCs: true,
-    forumData: []
+    forumData: [],
+    diaryData: null
 };
 let extension_settings = {};
 
