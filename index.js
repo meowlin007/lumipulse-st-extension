@@ -473,4 +473,345 @@ function renderForumUI() {
 
         } else {
             body.append(`
-      
+                <div style="font-size:11px; color:#ffb6c1; text-align:center; margin-bottom:15px; letter-spacing:2px;">
+                    TOPIC: ${escapeHtml(s.forumTopic.toUpperCase())}
+                </div>
+            `);
+            s.forumData.forEach((p, i) => {
+                const delay   = i * 0.08;
+                const initial = (p.author || '?').charAt(0).toUpperCase();
+                body.append(`
+                    <div class="forum-post" style="animation-delay:${delay}s">
+                        <div class="post-header">
+                            <div class="post-avatar">${initial}</div>
+                            <div style="display:flex;flex-direction:column;">
+                                <span class="post-author">${escapeHtml(p.author || 'Unknown')}</span>
+                                <span style="font-size:10px;color:#CCC;">${escapeHtml(p.time || 'just now')}</span>
+                            </div>
+                        </div>
+                        <div class="post-content">${escapeHtml(p.content || '')}</div>
+                        <div class="post-footer">❤️ ${p.likes || 0} Likes</div>
+                    </div>
+                `);
+            });
+            body.append(`
+                <div style="text-align:center; margin-top:10px; padding-bottom:20px;">
+                    <button id="btn-refresh-forum" class="lumi-btn-gen" style="padding:8px 30px; font-size:12px;">
+                        🔄 Refresh Posts
+                    </button>
+                </div>
+            `);
+            $('#btn-refresh-forum').on('click', () => {
+                extension_settings[extensionName].forumData = [];
+                SillyTavern.getContext().saveSettingsDebounced();
+                renderForumUI();
+            });
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════
+// DIARY UI
+// ═══════════════════════════════════════════════
+const AFFECTION_LEVELS = [
+    { min: 0,  max: 20,  label: "แปลกหน้า",   color: "#CCC",    emoji: "😶" },
+    { min: 20, max: 40,  label: "รู้จักกัน",    color: "#FFD1DC", emoji: "🙂" },
+    { min: 40, max: 60,  label: "เพื่อน",       color: "#FFB6C1", emoji: "😊" },
+    { min: 60, max: 80,  label: "สนิทกัน",      color: "#FF85A2", emoji: "🥰" },
+    { min: 80, max: 101, label: "ใกล้ชิดมาก",   color: "#FF4D79", emoji: "💖" },
+];
+
+function getAffectionLevel(score) {
+    return AFFECTION_LEVELS.find(l => score >= l.min && score < l.max) || AFFECTION_LEVELS[0];
+}
+
+function renderDiaryUI() {
+    const s        = extension_settings[extensionName];
+    const body     = $('#lumi-modal-body');
+    const charName = getCharacterName();
+
+    $('#lumi-modal-title').text(`📖 ${charName}'s Diary`);
+    $('.lumi-modal-opt').hide();
+    body.empty();
+
+    if (!s.diaryData) {
+        body.html(`
+            <div class="lumi-setup">
+                <img src="${iconDiary}" style="width:75px;" alt="diary">
+                <div style="color:#ff85a2; font-size:16px; line-height:1.6;">
+                    อ่านความในใจของ<br>
+                    <b style="font-weight:400;">${escapeHtml(charName)}</b> ที่มีต่อคุณ
+                </div>
+                <div style="font-size:12px; color:#ffb6c1; max-width:260px; line-height:1.6; text-align:center;">
+                    AI จะวิเคราะห์บทสนทนาล่าสุด แล้วเขียนเป็นบันทึกความในใจของตัวละคร
+                </div>
+                <button id="btn-gen-diary" class="lumi-btn-gen">✨ Generate Diary</button>
+            </div>
+        `);
+        $('#btn-gen-diary').on('click', () => startDiaryGeneration());
+        return;
+    }
+
+    const d     = s.diaryData;
+    const score = Math.max(0, Math.min(100, d.affection_score || 0));
+    const level = getAffectionLevel(score);
+
+    body.html(`
+        <div class="lumi-diary-wrap">
+            <div class="lumi-diary-header">
+                <div class="lumi-diary-avatar">${escapeHtml(charName.charAt(0).toUpperCase())}</div>
+                <div>
+                    <div class="lumi-diary-charname">${escapeHtml(charName)}</div>
+                    <div class="lumi-diary-date">${escapeHtml(d.date || '')} · ${level.emoji} ${escapeHtml(d.mood || '')}</div>
+                </div>
+            </div>
+
+            <div class="lumi-affection-wrap">
+                <div class="lumi-affection-label">
+                    <span>ความสัมพันธ์</span>
+                    <span style="color:${level.color}; font-weight:400;">${level.emoji} ${level.label}</span>
+                </div>
+                <div class="lumi-affection-track">
+                    <div class="lumi-affection-fill" style="background:${level.color};"></div>
+                </div>
+                <div class="lumi-affection-score">${score} / 100</div>
+            </div>
+
+            <div class="lumi-diary-paper">
+                <div class="lumi-diary-lines"></div>
+                <div class="lumi-diary-text">${escapeHtml(d.diary || '')}</div>
+            </div>
+
+            <div style="text-align:center; margin-top:18px; padding-bottom:20px;">
+                <button id="btn-regen-diary" class="lumi-btn-gen" style="padding:8px 28px; font-size:12px;">
+                    🔄 Generate ใหม่
+                </button>
+            </div>
+        </div>
+    `);
+
+    setTimeout(() => {
+        $('.lumi-affection-fill').css('width', score + '%');
+    }, 100);
+
+    $('#btn-regen-diary').on('click', () => startDiaryGeneration());
+}
+
+function startDiaryGeneration() {
+    const s    = extension_settings[extensionName];
+    const body = $('#lumi-modal-body');
+
+    body.html(`
+        <div class="lumi-loader-wrap">
+            <div class="lumi-loader"></div>
+            <div style="color:#ff85a2;">กำลังอ่านความในใจ...</div>
+            <div style="font-size:11px; color:#ffb6c1; margin-top:5px;">🌸 รอสักครู่นะคะ</div>
+        </div>
+    `);
+
+    requestDiaryGeneration().then(data => {
+        if (!data) {
+            s.diaryData = null;
+            SillyTavern.getContext().saveSettingsDebounced();
+            renderDiaryUI();
+            return;
+        }
+        s.diaryData = data;
+        SillyTavern.getContext().saveSettingsDebounced();
+        renderDiaryUI();
+    });
+}
+
+// ═══════════════════════════════════════════════
+// FAB BUTTON
+// ═══════════════════════════════════════════════
+function spawnLumiButton() {
+    $('#lumi-main-fab, .lumi-menu-container').remove();
+
+    const fab = document.createElement('div');
+    fab.id = 'lumi-main-fab';
+    fab.className = 'lumi-floating';
+    fab.style.top   = '45%';
+    fab.style.right = '20px';
+    document.body.appendChild(fab);
+
+    const menu = document.createElement('div');
+    menu.className = 'lumi-menu-container';
+    menu.innerHTML = `
+        <div class="lumi-menu-grid">
+            <div class="lumi-menu-item" id="lumi-diary">
+                <img src="${iconDiary}" class="lumi-menu-icon" alt="diary">
+                <span class="lumi-menu-text">Diary</span>
+            </div>
+            <div class="lumi-menu-item" id="lumi-phone">
+                <img src="${iconPhone}" class="lumi-menu-icon" alt="phone">
+                <span class="lumi-menu-text">Phone</span>
+            </div>
+            <div class="lumi-menu-item" id="lumi-forum">
+                <img src="${iconForum}" class="lumi-menu-icon" alt="forum">
+                <span class="lumi-menu-text">Forum</span>
+            </div>
+        </div>
+        <div class="lumi-branding">Lumipulse</div>
+    `;
+    document.body.appendChild(menu);
+
+    function updateMenuPos() {
+        const r = fab.getBoundingClientRect();
+        const m = $(menu);
+        let l = r.left - (m.outerWidth() / 2) + (r.width / 2);
+        let t = r.top - m.outerHeight() - 15;
+        if (l < 10) l = 10;
+        if (l + m.outerWidth() > window.innerWidth - 10) l = window.innerWidth - m.outerWidth() - 10;
+        if (t < 10) t = r.bottom + 15;
+        m.css({ left: l + 'px', top: t + 'px' });
+    }
+
+    // Mouse drag (Desktop)
+    let isDragging = false;
+    let mouseOffset = { x: 0, y: 0 };
+
+    fab.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        isDragging = false;
+        fab.classList.remove('lumi-floating');
+        const r = fab.getBoundingClientRect();
+        mouseOffset.x = e.clientX - r.left;
+        mouseOffset.y = e.clientY - r.top;
+
+        function onMouseMove(ev) {
+            isDragging = true;
+            $(menu).fadeOut(100);
+            let x = Math.max(0, Math.min(ev.clientX - mouseOffset.x, window.innerWidth  - 50));
+            let y = Math.max(0, Math.min(ev.clientY - mouseOffset.y, window.innerHeight - 50));
+            fab.style.left  = x + 'px';
+            fab.style.top   = y + 'px';
+            fab.style.right = 'auto';
+            updateMenuPos();
+        }
+
+        function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup',   onMouseUp);
+            fab.classList.add('lumi-floating');
+            if (!isDragging) { updateMenuPos(); $(menu).fadeToggle(300); }
+            isDragging = false;
+        }
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup',   onMouseUp);
+    });
+
+    // Touch drag (Mobile)
+    let isTouchDrag = false;
+    let touchOffset = { x: 0, y: 0 };
+
+    fab.addEventListener('touchstart', (e) => {
+        isTouchDrag = false;
+        fab.classList.remove('lumi-floating');
+        const t = e.touches[0];
+        const r = fab.getBoundingClientRect();
+        touchOffset.x = t.clientX - r.left;
+        touchOffset.y = t.clientY - r.top;
+    }, { passive: true });
+
+    fab.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        isTouchDrag = true;
+        $(menu).fadeOut(100);
+        const t = e.touches[0];
+        let x = Math.max(0, Math.min(t.clientX - touchOffset.x, window.innerWidth  - 50));
+        let y = Math.max(0, Math.min(t.clientY - touchOffset.y, window.innerHeight - 50));
+        fab.style.left  = x + 'px';
+        fab.style.top   = y + 'px';
+        fab.style.right = 'auto';
+        updateMenuPos();
+    }, { passive: false });
+
+    fab.addEventListener('touchend', () => {
+        fab.classList.add('lumi-floating');
+        if (!isTouchDrag) { updateMenuPos(); $(menu).fadeToggle(300); }
+        isTouchDrag = false;
+    });
+
+    $(document)
+        .off('click', '#lumi-diary').on('click', '#lumi-diary', () => openLumiModal('diary'))
+        .off('click', '#lumi-phone').on('click', '#lumi-phone', () => openLumiModal('phone'))
+        .off('click', '#lumi-forum').on('click', '#lumi-forum', () => openLumiModal('forum'));
+}
+
+// ═══════════════════════════════════════════════
+// MODAL SHELL
+// ═══════════════════════════════════════════════
+function createContentModal() {
+    if ($('#lumi-modal-overlay').length > 0) return;
+    $('body').append(`
+        <div id="lumi-modal-overlay" class="lumi-modal-overlay">
+            <div class="lumi-modal-box">
+                <div class="lumi-modal-header">
+                    <div class="lumi-modal-opt">${svgSettings}</div>
+                    <span id="lumi-modal-title"></span>
+                    <div class="lumi-modal-close">×</div>
+                </div>
+                <div id="lumi-modal-body" class="lumi-modal-body"></div>
+            </div>
+        </div>
+    `);
+
+    $('#lumi-modal-overlay').on('click', function(e) {
+        if (e.target.id === 'lumi-modal-overlay') $(this).fadeOut(200);
+    });
+    $(document).off('click', '.lumi-modal-close').on('click', '.lumi-modal-close', () => {
+        $('#lumi-modal-overlay').fadeOut(200);
+    });
+    $('.lumi-modal-opt').on('click', () => {
+        extension_settings[extensionName].isForumInitialized = false;
+        extension_settings[extensionName].forumData = [];
+        SillyTavern.getContext().saveSettingsDebounced();
+        renderForumUI();
+    });
+}
+
+// ═══════════════════════════════════════════════
+// SETTINGS PANEL
+// ═══════════════════════════════════════════════
+function createSettingsUI() {
+    $('#extensions_settings').append(`
+        <div class="inline-drawer">
+            <div class="inline-drawer-toggle inline-drawer-header">
+                <b style="color:#ff85a2; font-family:'Mitr'; font-weight:300;">🌸 LumiPulse Hub</b>
+                <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+            </div>
+            <div class="inline-drawer-content" style="font-family:'Mitr'; font-weight:300; display:flex; flex-direction:column; gap:10px; padding:15px 0;">
+                <label class="checkbox_label">
+                    <input id="lumi_enable_toggle" type="checkbox" />
+                    <span>เปิดใช้งาน LumiPulse</span>
+                </label>
+                <button id="lumi-reset" class="menu_button">🗑️ Reset All Data</button>
+                <div style="font-size:11px; color:#ffb6c1; margin-top:5px; line-height:1.5;">
+                    v1.2 · 🌸 Forum · 📖 Diary · 📱 Phone (soon)
+                </div>
+            </div>
+        </div>
+    `);
+
+    $('#lumi_enable_toggle').prop('checked', extension_settings[extensionName].isEnabled);
+
+    $(document).on('change', '#lumi_enable_toggle', function() {
+        const enabled = $(this).prop('checked');
+        extension_settings[extensionName].isEnabled = enabled;
+        SillyTavern.getContext().saveSettingsDebounced();
+        if (enabled) { spawnLumiButton(); createContentModal(); }
+        else { $('#lumi-main-fab, .lumi-menu-container, #lumi-modal-overlay').remove(); }
+    });
+
+    $(document).on('click', '#lumi-reset', () => {
+        const s = extension_settings[extensionName];
+        s.isForumInitialized = false;
+        s.forumTopic         = "";
+        s.forumData          = [];
+        s.diaryData          = null;
+        SillyTavern.getContext().saveSettingsDebounced();
+        toastr.success("ล้างข้อมูลทั้งหมดแล้วค่ะ 🌸");
+    });
+}
