@@ -114,26 +114,48 @@ function parseJSONFromAI(text) {
 
 async function callSTGenerate(prompt) {
     try {
-        // วิธีที่ 1: generateRaw (ST เวอร์ชันใหม่)
+        // ลองทุก function ที่ ST versions ต่างๆ อาจใช้
+        const candidates = [
+            'generateRaw',
+            'generateQuietPrompt', 
+            'generate',
+            'sendGenerationRequest',
+            'getGeneratingApi',
+        ];
+
+        // หาตัวที่มีอยู่จริง แล้วแจ้งใน toastr ด้วย
+        const found = candidates.filter(n => typeof window[n] === 'function');
+        
+        if (found.length === 0) {
+            // ไม่เจอเลย — ลอง SillyTavern.getContext() แทน
+            const ctx = SillyTavern.getContext();
+            const ctxFns = Object.keys(ctx).filter(k => typeof ctx[k] === 'function' && k.toLowerCase().includes('gen'));
+            toastr.warning('ไม่พบ generate function — context has: ' + (ctxFns.join(', ') || 'none'));
+            return null;
+        }
+
+        toastr.info('พบ: ' + found.join(', '), 'LumiPulse Debug', { timeOut: 5000 });
+
+        // ลองใช้ตัวแรกที่เจอ
         if (typeof window.generateRaw === 'function') {
             const result = await window.generateRaw(prompt, true);
             return parseJSONFromAI(result);
         }
-
-        // วิธีที่ 2: generateQuietPrompt (รองรับ Gemini ทุก backend)
         if (typeof window.generateQuietPrompt === 'function') {
             const result = await window.generateQuietPrompt(prompt, false, false);
             return parseJSONFromAI(result);
         }
+        if (typeof window.generate === 'function') {
+            const result = await window.generate(prompt);
+            return parseJSONFromAI(result);
+        }
 
-        // ไม่พบทั้งคู่
-        console.error('[LumiPulse] ไม่พบ generateRaw หรือ generateQuietPrompt');
-        toastr.error('ต้องการ SillyTavern เวอร์ชันล่าสุดค่ะ');
+        toastr.error('ยังเรียก generate ไม่ได้ — แจ้งชื่อที่เห็นใน toastr ให้ด้วยนะคะ');
         return null;
 
     } catch (err) {
         console.error('[LumiPulse] callSTGenerate error:', err);
-        toastr.error('เกิดข้อผิดพลาด: ' + err.message);
+        toastr.error('Error: ' + err.message, 'LumiPulse', { timeOut: 8000 });
         return null;
     }
 }
