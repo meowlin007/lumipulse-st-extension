@@ -322,15 +322,7 @@ function openLumiModal(type) {
     if (type === 'forum') {
         renderForumUI();
     } else if (type === 'diary') {
-        $('#lumi-modal-title').text('📖 Diary');
-        $('#lumi-modal-body').html(`
-            <div class="lumi-coming-soon">
-                <img src="${iconDiary}" alt="diary">
-                <div>Character Diary</div>
-                <div style="font-size:12px; opacity:0.6;">Coming Soon 🌸</div>
-            </div>
-        `);
-        $('.lumi-modal-opt').hide();
+        renderDiaryUI();
     } else if (type === 'phone') {
         $('#lumi-modal-title').text('📱 Phone');
         $('#lumi-modal-body').html(`
