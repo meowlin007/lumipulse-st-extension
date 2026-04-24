@@ -28,35 +28,34 @@ const defaultSettings = {
 
 let extension_settings = {};
 
-// ✅ ลิงก์รูปภาพเมนู (ตามคำขอ)
 const btnUrl       = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
 const iconDiary    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconSettings = "https://file.garden/ad59q6JMmVnp7v1-/setting-icon.png";
 
-// ✅ SVG Vectors ทั้งหมด (แทนอิโมจิ)
-const svgHeart    = `<svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF69B4"/></svg>`;
+// ✅ SVG Vectors (ปรับขนาดให้เป็นมาตรฐาน 16x16)
+const svgHeart    = `<svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF69B4"/></svg>`;
 const svgPin      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1-1v-5h2v-2l-2-2z"/></svg>`;
 const svgStar     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
-const svgLock     = `<svg viewBox="0 0 24 24" fill="none" stroke="#ff85a2" stroke-width="2" width="20" height="20"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
-const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-const svgBack     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
-const svgPlus     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+const svgLock     = `<svg viewBox="0 0 24 24" fill="none" stroke="#ff85a2" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+const svgBack     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
+const svgPlus     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
 const svgChevron  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>`;
 const svgCalendar = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
 const svgMapPin   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
 const svgUser     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-const svgBook     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
-const svgTag      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`;
+const svgBook     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+const svgTag      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`;
 const svgMood     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`;
 
 // ═══════════════════════════════════════════════
-// THEME SYSTEM
+// THEME SYSTEM (✅ ปรับสีตัวอักษรเข้มขึ้น)
 // ═══════════════════════════════════════════════
 const themes = {
-    pink: { name: 'Pink Pastel', primary: '#FFB6C1', secondary: '#FF69B4', bg: '#FFF0F5', card: '#FFFBFC', text: '#555', border: '#FFE8EE' },
-    purple: { name: 'Purple Dream', primary: '#E6D5F0', secondary: '#9B7ED9', bg: '#F5F0FA', card: '#FAF7FC', text: '#555', border: '#E8D8F0' },
-    ocean: { name: 'Ocean Blue', primary: '#B6D7F0', secondary: '#4A9FD9', bg: '#F0F7FA', card: '#F7FBFC', text: '#555', border: '#D8E8F0' },
-    mint: { name: 'Mint Fresh', primary: '#B6F0D7', secondary: '#4AD99A', bg: '#F0FAF5', card: '#F7FCFA', text: '#555', border: '#D8F0E8' }
+    pink: { name: 'Pink Pastel', primary: '#FFB6C1', secondary: '#FF69B4', bg: '#FFF0F5', card: '#FFFBFC', text: '#4A4A4A', border: '#FFE8EE' },
+    purple: { name: 'Purple Dream', primary: '#E6D5F0', secondary: '#9B7ED9', bg: '#F5F0FA', card: '#FAF7FC', text: '#4A4A4A', border: '#E8D8F0' },
+    ocean: { name: 'Ocean Blue', primary: '#B6D7F0', secondary: '#4A9FD9', bg: '#F0F7FA', card: '#F7FBFC', text: '#4A4A4A', border: '#D8E8F0' },
+    mint: { name: 'Mint Fresh', primary: '#B6F0D7', secondary: '#4AD99A', bg: '#F0FAF5', card: '#F7FCFA', text: '#4A4A4A', border: '#D8F0E8' }
 };
 
 function applyTheme(themeName) {
@@ -111,7 +110,7 @@ function injectStyles() {
     s.id = 'lumi-styles';
     s.innerHTML = `
         @import url('https://fonts.googleapis.com/css2?family=Mitr:wght@200;300;400;500&display=swap');
-        :root { --lumi-primary: #FFB6C1; --lumi-secondary: #FF69B4; --lumi-bg: #FFF0F5; --lumi-card: #FFFBFC; --lumi-text: #555; --lumi-border: #FFE8EE; --lumi-glass: rgba(255, 255, 255, 0.9); }
+        :root { --lumi-primary: #FFB6C1; --lumi-secondary: #FF69B4; --lumi-bg: #FFF0F5; --lumi-card: #FFFBFC; --lumi-text: #4A4A4A; --lumi-border: #FFE8EE; --lumi-glass: rgba(255, 255, 255, 0.9); --lumi-danger: #E57373; --lumi-danger-hover: #FF5252; }
         
         @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
         @keyframes heartFloat { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -100px) scale(1.5); } }
@@ -155,10 +154,10 @@ function injectStyles() {
         .lumi-gen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .lumi-form { background: var(--lumi-bg); border: 1px solid var(--lumi-border); border-radius: 16px; padding: 15px; margin-bottom: 15px; }
-        .lumi-input { width: 100%; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 10px; color: var(--lumi-primary); font-family: 'Mitr'; outline: none; box-sizing: border-box; }
+        .lumi-input { width: 100%; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 10px; color: var(--lumi-text); font-family: 'Mitr'; outline: none; box-sizing: border-box; }
         .lumi-label { font-size: 12px; color: #666; margin-bottom: 6px; display: block; font-weight: 400; }
         .lumi-radio-group { display: flex; gap: 8px; margin-bottom: 10px; }
-        .lumi-radio-label { flex: 1; text-align: center; padding: 8px; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; cursor: pointer; font-size: 12px; color: #666; transition: 0.2s; }
+        .lumi-radio-label { flex: 1; text-align: center; padding: 8px; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; cursor: pointer; font-size: 12px; color: var(--lumi-text); transition: 0.2s; }
         .lumi-radio-label:has(input:checked) { background: var(--lumi-primary); color: white; border-color: var(--lumi-primary); }
         .lumi-radio-label input { display: none; }
 
@@ -182,11 +181,15 @@ function injectStyles() {
         .lumi-char-badge { background: var(--lumi-primary); color: white; font-weight: 500; }
         .lumi-text { font-size: 13px; color: var(--lumi-text); line-height: 1.6; white-space: pre-wrap; margin: 8px 0; }
         .lumi-actions { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px dashed var(--lumi-border); padding-top: 8px; }
+        
+        /* ✅ ปุ่ม Action Colors */
         .lumi-act { background: none; border: none; cursor: pointer; color: var(--lumi-primary); opacity: 0.6; transition: 0.2s; padding: 4px; }
         .lumi-act:hover { opacity: 1; color: var(--lumi-secondary); }
         .lumi-act.active { opacity: 1; color: #FFD700; }
+        .lumi-act.danger { color: var(--lumi-danger); } /* ✅ สีแดงพาสเทลนิ่มนวล */
+        .lumi-act.danger:hover { color: var(--lumi-danger-hover); opacity: 1; }
 
-        .lumi-set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #666; }
+        .lumi-set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: var(--lumi-text); }
         .lumi-set-row select, .lumi-set-row input[type="number"] { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 8px; padding: 5px 8px; color: var(--lumi-primary); font-family: 'Mitr'; outline: none; }
 
         .lumi-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 999999; font-family: 'Mitr'; font-size: 13px; color: var(--lumi-secondary); border: 1px solid var(--lumi-border); animation: popIn 0.3s; pointer-events: none; }
@@ -203,7 +206,7 @@ function injectStyles() {
 }
 
 // ═══════════════════════════════════════════════
-// 4. FAB BUTTON (✅ รูปไอคอนใหญ่ 40px)
+// 4. FAB BUTTON
 // ═══════════════════════════════════════════════
 function spawnLumiButton() {
     $('#lumi-fab, .lumi-menu').remove();
@@ -266,7 +269,7 @@ function createModal() {
 function openModal() { $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200); renderDashboard(); }
 function openSettingsModal() { $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200); renderSettings(); }
 
-// 📊 Dashboard (✅ SVG แทนอิโมจิ + ฟิลเตอร์)
+// 📊 Dashboard (✅ SVG 16px + ฟิลเตอร์)
 function renderDashboard() {
     const ctx = SillyTavern.getContext();
     const currentBotId = ctx.characterId;
@@ -335,7 +338,7 @@ function renderTimelineContent(byDate, sortedDates) {
     bindEvents();
 }
 
-// ✅ การ์ดแสดง Mood + Tags + SVG
+// ✅ การ์ดแสดงผล (SVG 16px + สีตัวอักษรเข้ม)
 function renderCard(m, index) {
     const showSecret = extension_settings[extensionName].diary.display.showSecretSystem;
     const isLocked = showSecret && checkUnlock(m) === false;
@@ -389,7 +392,7 @@ function renderGeneratorForm() {
     $('#btn-run-gen').on('click', generateBatchMemories);
 }
 
-// ⚙️ Settings (✅ SVG แทนอิโมจิ)
+// ⚙️ Settings
 function renderSettings() {
     $('#lumi-title').text("Settings");
     const s = extension_settings[extensionName];
@@ -442,7 +445,7 @@ function renderSettings() {
 }
 
 // ═══════════════════════════════════════════════
-// 6. AI BATCH GENERATION (✅ Prompt ปรับให้เจนหลายอันต่อตัวละคร)
+// 6. AI BATCH GENERATION (✅ แก้ไขบั๊ก Scan All)
 // ═══════════════════════════════════════════════
 async function generateBatchMemories() {
     const mode = $('input[name="gen-mode"]:checked').val();
@@ -469,7 +472,17 @@ async function generateBatchMemories() {
 async function callAIBatch(mode, count) {
     const ctx = SillyTavern.getContext();
     const allChat = ctx.chat || [];
-    let chatSlice = mode === 'latest' ? allChat.slice(-count) : mode === 'first' ? allChat.slice(0, count) : allChat;
+    let chatSlice;
+    
+    // ✅ แก้ไข: ถ้าเลือก All Chat ให้จำกัดที่ 200 ข้อความล่าสุด เพื่อไม่ให้ AI ค้าง
+    if (mode === 'all') {
+        chatSlice = allChat.length > 200 ? allChat.slice(-200) : allChat;
+    } else if (mode === 'latest') {
+        chatSlice = allChat.slice(-count);
+    } else {
+        chatSlice = allChat.slice(0, count);
+    }
+
     const charsInChat = [...new Set(chatSlice.filter(m=>m.name && !m.is_user).map(m=>m.name))];
     const charContext = charsInChat.length > 0 ? `Characters present: ${charsInChat.join(', ')}` : `Character: ${ctx.name2}`;
     const chatLog = chatSlice.map((m, i) => `[${m.is_user ? 'User' : (m.name || 'NPC')}]: ${m.mes.slice(0, 50)}`).join('\n');
@@ -534,7 +547,7 @@ async function onNewChat() {
 }
 
 // ═══════════════════════════════════════════════
-// 8. HELPERS & UTILS
+// 8. HELPERS & UTILS (✅ แก้ไขระบบตรวจสอบชื่อ/เนื้อหาซ้ำ)
 // ═══════════════════════════════════════════════
 function loadMemories(filter = {}) {
     let mem = [...(extension_settings[extensionName].memories || [])];
@@ -543,12 +556,29 @@ function loadMemories(filter = {}) {
     return mem.sort((a,b) => (b.meta.isPinned?1:0) - (a.meta.isPinned?1:0) || new Date(b.timestamp) - new Date(a.timestamp));
 }
 
+// ✅ ฟังก์ชันตรวจสอบและบันทึก
 function saveMemory(entry) {
     const s = extension_settings[extensionName];
+    
+    // 1. ตรวจสอบชื่อตัวละคร: ถ้าคล้ายกับชื่อที่มีอยู่แล้ว (>80%) ให้ใช้ชื่อเก่าทันที
     const existingChars = [...new Set(s.memories.map(m => m.character))];
-    entry.character = findMatchingCharName(entry.character, existingChars);
-    const isDuplicate = s.memories.some(m => m.character === entry.character && similarityScore(m.content.diary, entry.content.diary) > 90);
-    if (isDuplicate) return;
+    const matchedName = findMatchingCharName(entry.character, existingChars);
+    if (matchedName !== entry.character) {
+        console.log(`[LumiPulse] Name normalized: "${entry.character}" -> "${matchedName}"`);
+        entry.character = matchedName;
+    }
+
+    // 2. ตรวจสอบเนื้อหาซ้ำ: เฉพาะกับตัวละครตัวนี้เท่านั้น (ไม่เช็คกับตัวละครอื่น)
+    const isDuplicate = s.memories.some(m => 
+        m.character === entry.character && 
+        similarityScore(m.content.diary, entry.content.diary) > 85 // เกณฑ์ 85%
+    );
+
+    if (isDuplicate) {
+        console.log('[LumiPulse] Duplicate content skipped for:', entry.character);
+        return; // ไม่บันทึกถ้าซ้ำ
+    }
+
     s.memories.unshift(entry);
     if (s.memories.length > s.diary.storage.max) s.memories = s.memories.slice(0, s.diary.storage.max);
     SillyTavern.getContext().saveSettingsDebounced();
@@ -583,8 +613,8 @@ function findMatchingCharName(newName, existingNames) { for (const name of exist
 // ═══════════════════════════════════════════════
 // EDIT & LINK FUNCTIONS
 // ═══════════════════════════════════════════════
-function editMemoryInline(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; const card = $(`.lumi-card[data-id="${id}"]`); card.find('.lumi-text').html(`<textarea class="lumi-edit-textarea" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--lumi-border);border-radius:10px;font-family:'Mitr';font-size:13px;resize:vertical;color:var(--lumi-text);background:var(--lumi-card)">${mem.content.diary}</textarea><div style="margin-top:8px;display:flex;gap:8px"><button class="lumi-btn-save" style="flex:1;background:var(--lumi-primary);color:white;border:none;padding:8px;border-radius:8px;cursor:pointer">Save</button><button class="lumi-btn-cancel" style="flex:1;background:#FFE0E0;color:var(--lumi-secondary);border:none;padding:8px;border-radius:8px;cursor:pointer">Cancel</button></div>`); card.find('.lumi-btn-save').on('click', function() { mem.content.diary = card.find('.lumi-edit-textarea').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboardContent(); showToast('Memory updated!'); }); card.find('.lumi-btn-cancel').on('click', function() { renderDashboardContent(); }); }
-function editMemoryModal(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; $('#lumi-title').text('Edit Memory'); $('#lumi-body').html(`<div style="padding:15px;"><div class="lumi-form"><label class="lumi-label">Character</label><input type="text" id="edit-char" value="${mem.character}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Date (RP)</label><input type="text" id="edit-date" value="${mem.content.rp_date||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Location</label><input type="text" id="edit-loc" value="${mem.content.rp_location||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Tags (comma separated)</label><input type="text" id="edit-tags" value="${(mem.content.rp_tags||[]).join(', ')}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Diary Content</label><textarea id="edit-diary" class="lumi-input" style="min-height:150px;resize:vertical">${mem.content.diary}</textarea></div><div style="display:flex;gap:10px"><button id="btn-save-edit" class="lumi-gen-btn" style="flex:2">Save Changes</button><button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:#FFE0E0;color:var(--lumi-secondary);text-align:center;cursor:pointer">Cancel</button></div></div>`); $('#btn-save-edit').on('click', function() { mem.character = $('#edit-char').val(); mem.content.rp_date = $('#edit-date').val(); mem.content.rp_location = $('#edit-loc').val(); mem.content.rp_tags = $('#edit-tags').val().split(',').map(t=>t.trim()).filter(t=>t); mem.content.diary = $('#edit-diary').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); showToast('Memory updated!'); }); $('#btn-cancel-edit').on('click', function() { renderDashboard(); }); }
+function editMemoryInline(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; const card = $(`.lumi-card[data-id="${id}"]`); card.find('.lumi-text').html(`<textarea class="lumi-edit-textarea" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--lumi-border);border-radius:10px;font-family:'Mitr';font-size:13px;resize:vertical;color:var(--lumi-text);background:var(--lumi-card)">${mem.content.diary}</textarea><div style="margin-top:8px;display:flex;gap:8px"><button class="lumi-btn-save" style="flex:1;background:var(--lumi-primary);color:white;border:none;padding:8px;border-radius:8px;cursor:pointer">Save</button><button class="lumi-btn-cancel" style="flex:1;background:var(--lumi-bg);color:var(--lumi-danger);border:none;padding:8px;border-radius:8px;cursor:pointer">Cancel</button></div>`); card.find('.lumi-btn-save').on('click', function() { mem.content.diary = card.find('.lumi-edit-textarea').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboardContent(); showToast('Memory updated!'); }); card.find('.lumi-btn-cancel').on('click', function() { renderDashboardContent(); }); }
+function editMemoryModal(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; $('#lumi-title').text('Edit Memory'); $('#lumi-body').html(`<div style="padding:15px;"><div class="lumi-form"><label class="lumi-label">Character</label><input type="text" id="edit-char" value="${mem.character}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Date (RP)</label><input type="text" id="edit-date" value="${mem.content.rp_date||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Location</label><input type="text" id="edit-loc" value="${mem.content.rp_location||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Tags (comma separated)</label><input type="text" id="edit-tags" value="${(mem.content.rp_tags||[]).join(', ')}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Diary Content</label><textarea id="edit-diary" class="lumi-input" style="min-height:150px;resize:vertical">${mem.content.diary}</textarea></div><div style="display:flex;gap:10px"><button id="btn-save-edit" class="lumi-gen-btn" style="flex:2">Save Changes</button><button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:var(--lumi-bg);color:var(--lumi-danger);text-align:center;cursor:pointer">Cancel</button></div></div>`); $('#btn-save-edit').on('click', function() { mem.character = $('#edit-char').val(); mem.content.rp_date = $('#edit-date').val(); mem.content.rp_location = $('#edit-loc').val(); mem.content.rp_tags = $('#edit-tags').val().split(',').map(t=>t.trim()).filter(t=>t); mem.content.diary = $('#edit-diary').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); showToast('Memory updated!'); }); $('#btn-cancel-edit').on('click', function() { renderDashboard(); }); }
 function linkToChat(memoryId) { const mem = extension_settings[extensionName].memories.find(m => m.id === memoryId); if (!mem || mem.meta.refIndex === undefined) { showToast('No chat reference found'); return; } $('#lumi-overlay').fadeOut(); setTimeout(() => { const msgElement = $(`#chat [data-message-index="${mem.meta.refIndex}"]`); if (msgElement.length) { msgElement[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); msgElement.css('background', 'rgba(255,182,193,0.4)'); msgElement.css('transition', 'background 0.3s'); setTimeout(() => msgElement.css('background', ''), 3000); showToast('Jumped to message #' + (mem.meta.refIndex + 1)); } }, 300); }
 
 function createMemoryEntry(res, type, ctx, wm, refText, messageIndex) {
