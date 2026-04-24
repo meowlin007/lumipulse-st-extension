@@ -191,6 +191,38 @@ function injectStyles() {
         #lumi-panel .menu_button { width: 100%; margin-bottom: 5px; background: linear-gradient(135deg, #FFB6C1, #FF69B4); color: white; border: none; border-radius: 8px; padding: 8px; font-family: 'Mitr'; }
 
         @media (max-width: 768px) { .lumi-menu-grid { grid-template-columns: repeat(2, 1fr); } }
+        /* Animations */
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+@keyframes slideIn { 
+    from { opacity: 0; transform: translateX(-20px); } 
+    to { opacity: 1; transform: translateX(0); } 
+}
+@keyframes popIn { 
+    0% { opacity: 0; transform: scale(0.9); } 
+    100% { opacity: 1; transform: scale(1); } 
+}
+
+/* Card Hover Effects */
+.lumi-card { 
+    transition: transform 0.2s, box-shadow 0.2s; 
+}
+.lumi-card:hover { 
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 20px rgba(255,105,180,0.15); 
+}
+
+/* Timeline Date Header */
+.lumi-timeline-date {
+    background: linear-gradient(135deg, var(--lumi-bg, #FFF0F5), white);
+    border-left: 3px solid var(--lumi-primary, #FFB6C1);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 20px 0 15px;
+    animation: slideIn 0.4s ease;
+}
     `;
     document.head.appendChild(s);
 }
@@ -290,35 +322,54 @@ function openSettingsModal() {
 
 // 📊 Dashboard (Stats + Filters + Diary + Gen Button)
 function renderDashboard() {
-    $('#lumi-title').text("Memories");
-    
     const ctx = SillyTavern.getContext();
     const currentBotId = ctx.characterId;
     const currentBotName = ctx.name2 || "Unknown Bot";
     
-    // 🆕 แสดงชื่อบอทที่กำลังดู
-    $('#lumi-title').html(`${currentBotName} <span style="font-size:12px;color:#999">| Memories</span>`);
+    // 🆕 Load saved theme & layout
+    const savedTheme = extension_settings[extensionName]._internal.theme || 'pink';
+    const savedLayout = extension_settings[extensionName]._internal.layout || 'comfortable';
+    applyTheme(savedTheme);
+    applyLayout(savedLayout);
     
-    // Get all bots for filter
-    const bots = ctx.characters ? Object.values(ctx.characters).map(c => ({ id: c.avatar || c.id, name: c.name })) : [];
-    
-    // 🆕 Filter เฉพาะบอทปัจจุบัน
     const mems = loadMemories({ botId: currentBotId });
     const charsInBot = [...new Set(mems.map(m => m.character))].filter(c => c);
     
+    // 🆕 Group by RP Date
+    const byDate = {};
+    mems.forEach(m => {
+        const date = m.content.rp_date || 'Unknown Date';
+        if (!byDate[date]) byDate[date] = [];
+        byDate[date].push(m);
+    });
+    
+    const sortedDates = Object.keys(byDate).sort();
+    
     $('#lumi-body').html(`
-        <div class="lumi-stats-bar">
+        <div style="background:linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary));padding:20px;border-radius:16px;margin-bottom:15px;box-shadow:0 4px 15px rgba(255,105,180,0.2);animation:slideIn 0.3s ease;">
+            <div style="font-size:11px;color:rgba(255,255,255,0.9);margin-bottom:4px">📖 Memories of</div>
+            <div style="font-size:18px;color:white;font-weight:500">${currentBotName}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">${mems.length} memories · ${charsInBot.length} characters</div>
+        </div>
+        
+        <div class="lumi-stats-bar" style="animation:fadeIn 0.4s ease 0.1s both;">
             <div class="lumi-stat"><b>${mems.length}</b><span>Total</span></div>
             <div class="lumi-stat"><b>${charsInBot.length}</b><span>Chars</span></div>
             <div class="lumi-stat"><b>${mems.filter(m=>m.meta.isFavorite).length}</b><span>Favs</span></div>
         </div>
         
-        <div style="background:#FFF0F5;padding:10px 14px;border-radius:12px;margin-bottom:12px;border:1px solid #FFE8EE;">
-            <div style="font-size:11px;color:#999;margin-bottom:4px">Viewing memories for:</div>
-            <div style="font-size:14px;color:#ff69b4;font-weight:500">${currentBotName}</div>
+        <div style="display:flex;gap:8px;margin-bottom:15px;animation:fadeIn 0.4s ease 0.2s both;">
+            <select id="lumi-theme-select" class="lumi-filter-select" style="flex:1">
+                ${Object.entries(themes).map(([k,v]) => `<option value="${k}" ${k===savedTheme?'selected':''}>${v.name}</option>`).join('')}
+            </select>
+            <select id="lumi-layout-select" class="lumi-filter-select" style="flex:1">
+                <option value="compact" ${savedLayout==='compact'?'selected':''}>Compact</option>
+                <option value="comfortable" ${savedLayout==='comfortable'?'selected':''}>Comfortable</option>
+                <option value="spacious" ${savedLayout==='spacious'?'selected':''}>Spacious</option>
+            </select>
         </div>
         
-        <div class="lumi-action-row">
+        <div class="lumi-action-row" style="animation:fadeIn 0.4s ease 0.3s both;">
             <div class="lumi-filters">
                 <select id="lumi-char-filter" class="lumi-filter-select">
                     <option value="">All Characters</option>
@@ -329,12 +380,35 @@ function renderDashboard() {
         </div>
         
         <div id="gen-form-container" style="display:none;margin-bottom:15px;"></div>
-        <div id="lumi-content"></div>
+        
+        <div id="lumi-content">
+            ${sortedDates.length === 0 ? `
+                <div style="text-align:center;padding:60px 20px;animation:fadeIn 0.5s ease;">
+                    <div style="font-size:64px;margin-bottom:16px;opacity:0.3">📭</div>
+                    <div style="font-size:16px;color:#999;margin-bottom:8px">No memories yet</div>
+                    <div style="font-size:13px;color:#ccc;margin-bottom:24px">Start creating memories with ${currentBotName}!</div>
+                    <button class="lumi-gen-btn" onclick="$('#btn-open-gen').click()" style="margin:0 auto;display:inline-flex">
+                        ${svgPlus} Create First Memory
+                    </button>
+                </div>
+            ` : ''}
+        </div>
     `);
     
-    // Bind Character Filter Only (removed bot filter)
-    $('#lumi-char-filter').on('change', function() { renderDashboardContent(); });
+    // Bind events
+    $('#lumi-theme-select').on('change', function() {
+        extension_settings[extensionName]._internal.theme = $(this).val();
+        applyTheme($(this).val());
+        SillyTavern.getContext().saveSettingsDebounced();
+    });
     
+    $('#lumi-layout-select').on('change', function() {
+        extension_settings[extensionName]._internal.layout = $(this).val();
+        applyLayout($(this).val());
+        SillyTavern.getContext().saveSettingsDebounced();
+    });
+    
+    $('#lumi-char-filter').on('change', function() { renderDashboardContent(); });
     $('#btn-open-gen').on('click', function() {
         if($('#gen-form-container').is(':visible')) {
             $('#gen-form-container').slideUp(200);
@@ -344,7 +418,67 @@ function renderDashboard() {
         }
     });
     
-    renderDashboardContent();
+    // Render content if has data
+    if (sortedDates.length > 0) {
+        renderTimelineContent(byDate, sortedDates);
+    }
+}
+
+function renderTimelineContent(byDate, sortedDates) {
+    const selectedChar = $('#lumi-char-filter')?.val() || '';
+    let html = '';
+    
+    sortedDates.forEach(date => {
+        let entries = byDate[date];
+        if (selectedChar) {
+            entries = entries.filter(m => m.character === selectedChar);
+        }
+        
+        if (entries.length === 0) return;
+        
+        html += `<div class="lumi-timeline-date">
+            <div style="font-size:13px;color:var(--lumi-secondary, #ff69b4);font-weight:500">📅 ${date}</div>
+        </div>`;
+        
+        entries.forEach((m, idx) => {
+            html += renderCard(m, idx);
+        });
+    });
+    
+    $('#lumi-content').html(html);
+    bindEvents();
+}
+
+function renderCard(m, index) {
+    const showSecret = extension_settings[extensionName].diary.display.showSecretSystem;
+    const isLocked = showSecret && checkUnlock(m) === false;
+    const color = generateColor(m.character);
+    const delay = index * 0.05;
+    
+    let lockOverlay = '';
+    if(isLocked) {
+        lockOverlay = `<div style="position:absolute;inset:0;background:rgba(255,255,255,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;z-index:1;backdrop-filter:blur(5px);">
+            ${svgLock} <div style="font-size:11px;color:var(--lumi-secondary, #ff85a2);margin-top:5px">Locked</div>
+        </div>`;
+    }
+
+    return `
+        <div class="lumi-card" data-id="${m.id}" style="animation:fadeIn 0.4s ease ${delay}s both; ${isLocked?'opacity:0.7;':''}">
+            ${lockOverlay}
+            <div class="lumi-meta">
+                <span class="lumi-badge lumi-char-badge" style="background:${color}">${m.character}</span>
+                <span class="lumi-badge">📍 ${m.content.rp_location||'Unknown'}</span>
+            </div>
+            <div class="lumi-text">${isLocked ? '...' : m.content.diary}</div>
+            <div class="lumi-actions">
+                <button class="lumi-act ${m.meta.isPinned?'active':''}" data-act="pin" title="Pin">${svgPin}</button>
+                <button class="lumi-act ${m.meta.isFavorite?'active':''}" data-act="fav" title="Favorite">${svgStar}</button>
+                <button class="lumi-act" data-act="edit-inline" title="Edit (Inline)">✏️</button>
+                <button class="lumi-act" data-act="edit-modal" title="Edit (Modal)">📝</button>
+                <button class="lumi-act" data-act="link" title="Link to Chat">🔗</button>
+                <button class="lumi-act danger" data-act="del" title="Delete">${svgClose}</button>
+            </div>
+        </div>`;
 }
 
 function renderGeneratorForm() {
@@ -697,8 +831,16 @@ function loadMemories(filter = {}) {
 
 function saveMemory(entry) {
     const s = extension_settings[extensionName];
+    
+    // 🆕 Fuzzy Matching - เช็คว่ามีชื่อที่คล้ายกันไหม
+    const existingChars = [...new Set(s.memories.map(m => m.character))];
+    const matchedName = findMatchingCharName(entry.character, existingChars);
+    entry.character = matchedName;
+    
     s.memories.unshift(entry);
-    if (s.memories.length > s.diary.storage.max) s.memories = s.memories.slice(0, s.diary.storage.max);
+    if (s.memories.length > s.diary.storage.max) {
+        s.memories = s.memories.slice(0, s.diary.storage.max);
+    }
     SillyTavern.getContext().saveSettingsDebounced();
 }
 
@@ -749,12 +891,32 @@ function bindEvents() {
         const mem = extension_settings[extensionName].memories.find(m => m.id === id);
         if(!mem) return;
         
-        if(act === 'pin') { mem.meta.isPinned = !mem.meta.isPinned; }
-        if(act === 'fav') { mem.meta.isFavorite = !mem.meta.isFavorite; }
-        if(act === 'del') { if(confirm('Delete this memory?')) { extension_settings[extensionName].memories = extension_settings[extensionName].memories.filter(m => m.id !== id); } }
-        
-        SillyTavern.getContext().saveSettingsDebounced();
-        renderDashboardContent();
+        if(act === 'pin') { 
+            mem.meta.isPinned = !mem.meta.isPinned; 
+            SillyTavern.getContext().saveSettingsDebounced();
+            renderDashboardContent();
+        }
+        if(act === 'fav') { 
+            mem.meta.isFavorite = !mem.meta.isFavorite; 
+            SillyTavern.getContext().saveSettingsDebounced();
+            renderDashboardContent();
+        }
+        if(act === 'edit-inline') { 
+            editMemoryInline(id); 
+        }
+        if(act === 'edit-modal') { 
+            editMemoryModal(id); 
+        }
+        if(act === 'link') { 
+            linkToChat(id); 
+        }
+        if(act === 'del') { 
+            if(confirm('Delete this memory?')) { 
+                extension_settings[extensionName].memories = extension_settings[extensionName].memories.filter(m => m.id !== id); 
+                SillyTavern.getContext().saveSettingsDebounced();
+                renderDashboardContent();
+            } 
+        }
     });
 }
 
@@ -770,4 +932,208 @@ function createSettingsPanel() {
         </div>
     `);
 }
+
+// ═══════════════════════════════════════════════
+// FUZZY MATCHING & UTILS
+// ═══════════════════════════════════════════════
+
+// Levenshtein Distance สำหรับวัดความคล้ายคลึง
+function levenshteinDistance(str1, str2) {
+    const m = str1.length, n = str2.length;
+    const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+    
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (str1[i-1] === str2[j-1]) dp[i][j] = dp[i-1][j-1];
+            else dp[i][j] = 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+        }
+    }
+    return dp[m][n];
+}
+
+function similarityScore(str1, str2) {
+    const s1 = str1.toLowerCase().trim();
+    const s2 = str2.toLowerCase().trim();
+    const distance = levenshteinDistance(s1, s2);
+    const maxLen = Math.max(s1.length, s2.length);
+    return maxLen === 0 ? 100 : ((maxLen - distance) / maxLen) * 100;
+}
+
+// หาชื่อที่ match (>80% similar)
+function findMatchingCharName(newName, existingNames) {
+    for (const name of existingNames) {
+        if (similarityScore(newName, name) > 80) {
+            return name; // ใช้ชื่อเดิม
+        }
+    }
+    return newName; // ไม่เจอ → ใช้ชื่อใหม่
+}
+
+// ═══════════════════════════════════════════════
+// THEME & LAYOUT SYSTEM
+// ═══════════════════════════════════════════════
+
+const themes = {
+    pink: {
+        name: 'Pink Pastel',
+        primary: '#FFB6C1',
+        secondary: '#FF69B4',
+        bg: '#FFF0F5',
+        card: '#FFFBFC',
+        text: '#555'
+    },
+    purple: {
+        name: 'Purple Dream',
+        primary: '#E6D5F0',
+        secondary: '#9B7ED9',
+        bg: '#F5F0FA',
+        card: '#FAF7FC',
+        text: '#555'
+    },
+    ocean: {
+        name: 'Ocean Blue',
+        primary: '#B6D7F0',
+        secondary: '#4A9FD9',
+        bg: '#F0F7FA',
+        card: '#F7FBFC',
+        text: '#555'
+    },
+    mint: {
+        name: 'Mint Fresh',
+        primary: '#B6F0D7',
+        secondary: '#4AD99A',
+        bg: '#F0FAF5',
+        card: '#F7FCFA',
+        text: '#555'
+    }
+};
+
+const layouts = {
+    compact: { cardPadding: '8px', fontSize: '12px', gap: '6px' },
+    comfortable: { cardPadding: '14px', fontSize: '13px', gap: '10px' },
+    spacious: { cardPadding: '20px', fontSize: '14px', gap: '14px' }
+};
+
+function applyTheme(themeName) {
+    const theme = themes[themeName] || themes.pink;
+    const root = document.documentElement;
+    root.style.setProperty('--lumi-primary', theme.primary);
+    root.style.setProperty('--lumi-secondary', theme.secondary);
+    root.style.setProperty('--lumi-bg', theme.bg);
+    root.style.setProperty('--lumi-card', theme.card);
+    root.style.setProperty('--lumi-text', theme.text);
+}
+
+function applyLayout(layoutName) {
+    const layout = layouts[layoutName] || layouts.comfortable;
+    // CSS variables จะถูกใช้ใน injectStyles
+}
+
+// ═══════════════════════════════════════════════
+// EDIT MEMORY FUNCTIONS
+// ═══════════════════════════════════════════════
+
+function editMemoryInline(id) {
+    const mem = extension_settings[extensionName].memories.find(m => m.id === id);
+    if (!mem) return;
+    
+    const card = $(`.lumi-card[data-id="${id}"]`);
+    const currentText = mem.content.diary;
+    
+    card.find('.lumi-text').html(`
+        <textarea class="lumi-edit-textarea" style="width:100%;min-height:80px;padding:10px;border:1px solid #FFD1DC;border-radius:10px;font-family:'Mitr';font-size:13px;resize:vertical">${currentText}</textarea>
+        <div style="margin-top:8px;display:flex;gap:8px">
+            <button class="lumi-btn-save" style="flex:1;background:#FFB6C1;color:white;border:none;padding:8px;border-radius:8px;cursor:pointer">Save</button>
+            <button class="lumi-btn-cancel" style="flex:1;background:#FFE0E0;color:#ff69b4;border:none;padding:8px;border-radius:8px;cursor:pointer">Cancel</button>
+        </div>
+    `);
+    
+    card.find('.lumi-btn-save').on('click', function() {
+        const newText = card.find('.lumi-edit-textarea').val();
+        mem.content.diary = newText;
+        SillyTavern.getContext().saveSettingsDebounced();
+        renderDashboardContent();
+        showToast('Memory updated!');
+    });
+    
+    card.find('.lumi-btn-cancel').on('click', function() {
+        renderDashboardContent();
+    });
+}
+
+function editMemoryModal(id) {
+    const mem = extension_settings[extensionName].memories.find(m => m.id === id);
+    if (!mem) return;
+    
+    $('#lumi-title').text('Edit Memory');
+    $('#lumi-body').html(`
+        <div style="padding:15px;">
+            <div class="lumi-form">
+                <label class="lumi-label">Character</label>
+                <input type="text" id="edit-char" value="${mem.character}" class="lumi-input">
+            </div>
+            <div class="lumi-form">
+                <label class="lumi-label">Date (RP)</label>
+                <input type="text" id="edit-date" value="${mem.content.rp_date||''}" class="lumi-input">
+            </div>
+            <div class="lumi-form">
+                <label class="lumi-label">Location</label>
+                <input type="text" id="edit-loc" value="${mem.content.rp_location||''}" class="lumi-input">
+            </div>
+            <div class="lumi-form">
+                <label class="lumi-label">Diary Content</label>
+                <textarea id="edit-diary" class="lumi-input" style="min-height:150px;resize:vertical">${mem.content.diary}</textarea>
+            </div>
+            <div style="display:flex;gap:10px">
+                <button id="btn-save-edit" class="lumi-gen-btn" style="flex:2">💾 Save Changes</button>
+                <button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:#FFE0E0;color:#ff69b4;text-align:center;cursor:pointer">Cancel</button>
+            </div>
+        </div>
+    `);
+    
+    $('#btn-save-edit').on('click', function() {
+        mem.character = $('#edit-char').val();
+        mem.content.rp_date = $('#edit-date').val();
+        mem.content.rp_location = $('#edit-loc').val();
+        mem.content.diary = $('#edit-diary').val();
+        SillyTavern.getContext().saveSettingsDebounced();
+        renderDashboard();
+        showToast('Memory updated!');
+    });
+    
+    $('#btn-cancel-edit').on('click', function() {
+        renderDashboard();
+    });
+}
+
+// ═══════════════════════════════════════════════
+// LINK TO CHAT
+// ═══════════════════════════════════════════════
+
+function linkToChat(memoryId) {
+    const mem = extension_settings[extensionName].memories.find(m => m.id === memoryId);
+    if (!mem || mem.meta.refIndex === undefined) {
+        showToast('No chat reference found');
+        return;
+    }
+    
+    // ปิด modal
+    $('#lumi-overlay').fadeOut();
+    
+    // เลื่อนไปข้อความ
+    setTimeout(() => {
+        const msgElement = $(`#chat [data-message-index="${mem.meta.refIndex}"]`);
+        if (msgElement.length) {
+            msgElement[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            msgElement.css('background', 'rgba(255,182,193,0.4)');
+            msgElement.css('transition', 'background 0.3s');
+            setTimeout(() => msgElement.css('background', ''), 3000);
+            showToast('Jumped to message #' + (mem.meta.refIndex + 1));
+        }
+    }, 300);
+}
+
 
