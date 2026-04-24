@@ -783,5 +783,6 @@ function spawnLumiButton() {
     $(document).off("click","#m-forum").on("click","#m-forum",function(){openLumiModal("forum");});
 }
 
-function showToast(m, t) { if(!t)t="info"; if(typeof toastr!=="undefined") toastr[t](m, "LumiPulse"); }
+function showToast(m, t) { if(!t)t="info"; if(typeof toastr!=="undefined") toastr[t](m, "LumiPulse");
+}
 
