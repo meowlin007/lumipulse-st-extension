@@ -28,7 +28,7 @@ const defaultSettings = {
 
 let extension_settings = {};
 
-// Icon Links (สำหรับเมนูหลัก - ตามที่ขอ)
+// Icon Links (สำหรับเมนูหลัก)
 const btnUrl       = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
 const iconDiary    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconSettings = "https://file.garden/ad59q6JMmVnp7v1-/setting-icon.png";
@@ -42,6 +42,36 @@ const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const svgBack     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
 const svgPlus     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
 const svgChevron  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+// ═══════════════════════════════════════════════
+// THEME & LAYOUT SYSTEM (✅ ย้ายมาไว้บนสุด)
+// ═══════════════════════════════════════════════
+const themes = {
+    pink: { name: 'Pink Pastel', primary: '#FFB6C1', secondary: '#FF69B4', bg: '#FFF0F5', card: '#FFFBFC', text: '#555' },
+    purple: { name: 'Purple Dream', primary: '#E6D5F0', secondary: '#9B7ED9', bg: '#F5F0FA', card: '#FAF7FC', text: '#555' },
+    ocean: { name: 'Ocean Blue', primary: '#B6D7F0', secondary: '#4A9FD9', bg: '#F0F7FA', card: '#F7FBFC', text: '#555' },
+    mint: { name: 'Mint Fresh', primary: '#B6F0D7', secondary: '#4AD99A', bg: '#F0FAF5', card: '#F7FCFA', text: '#555' }
+};
+
+const layouts = {
+    compact: { cardPadding: '8px', fontSize: '12px', gap: '6px' },
+    comfortable: { cardPadding: '14px', fontSize: '13px', gap: '10px' },
+    spacious: { cardPadding: '20px', fontSize: '14px', gap: '14px' }
+};
+
+function applyTheme(themeName) {
+    const theme = themes[themeName] || themes.pink;
+    const root = document.documentElement;
+    root.style.setProperty('--lumi-primary', theme.primary);
+    root.style.setProperty('--lumi-secondary', theme.secondary);
+    root.style.setProperty('--lumi-bg', theme.bg);
+    root.style.setProperty('--lumi-card', theme.card);
+    root.style.setProperty('--lumi-text', theme.text);
+}
+
+function applyLayout(layoutName) {
+    // CSS variables จะถูกใช้ใน injectStyles
+}
 
 // ═══════════════════════════════════════════════
 // 2. BOOT SYSTEM
@@ -87,6 +117,8 @@ function injectStyles() {
         
         @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
         @keyframes heartFloat { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -100px) scale(1.5); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 
         /* FAB & Menu */
         #lumi-fab { position: fixed; z-index: 99999; width: 46px; height: 46px; border-radius: 50%;
@@ -191,44 +223,26 @@ function injectStyles() {
         #lumi-panel .menu_button { width: 100%; margin-bottom: 5px; background: linear-gradient(135deg, #FFB6C1, #FF69B4); color: white; border: none; border-radius: 8px; padding: 8px; font-family: 'Mitr'; }
 
         @media (max-width: 768px) { .lumi-menu-grid { grid-template-columns: repeat(2, 1fr); } }
-        /* Animations */
-@keyframes fadeIn { 
-    from { opacity: 0; transform: translateY(10px); } 
-    to { opacity: 1; transform: translateY(0); } 
-}
-@keyframes slideIn { 
-    from { opacity: 0; transform: translateX(-20px); } 
-    to { opacity: 1; transform: translateX(0); } 
-}
-@keyframes popIn { 
-    0% { opacity: 0; transform: scale(0.9); } 
-    100% { opacity: 1; transform: scale(1); } 
-}
+        
+        /* Card Hover Effects */
+        .lumi-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .lumi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255,105,180,0.15); }
 
-/* Card Hover Effects */
-.lumi-card { 
-    transition: transform 0.2s, box-shadow 0.2s; 
-}
-.lumi-card:hover { 
-    transform: translateY(-3px); 
-    box-shadow: 0 8px 20px rgba(255,105,180,0.15); 
-}
-
-/* Timeline Date Header */
-.lumi-timeline-date {
-    background: linear-gradient(135deg, var(--lumi-bg, #FFF0F5), white);
-    border-left: 3px solid var(--lumi-primary, #FFB6C1);
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin: 20px 0 15px;
-    animation: slideIn 0.4s ease;
-}
+        /* Timeline Date Header */
+        .lumi-timeline-date {
+            background: linear-gradient(135deg, var(--lumi-bg, #FFF0F5), white);
+            border-left: 3px solid var(--lumi-primary, #FFB6C1);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 20px 0 15px;
+            animation: slideIn 0.4s ease;
+        }
     `;
     document.head.appendChild(s);
 }
 
 // ═══════════════════════════════════════════════
-// 4. FAB BUTTON
+// 4. FAB BUTTON (✅ เพิ่มบังคับแสดงปุ่ม)
 // ═══════════════════════════════════════════════
 function spawnLumiButton() {
     $('#lumi-fab, .lumi-menu').remove();
@@ -240,10 +254,16 @@ function spawnLumiButton() {
     if (pos) Object.assign(fab.style, pos);
     else { fab.style.top = '50%'; fab.style.right = '20px'; fab.style.transform = 'translateY(-50%)'; }
     document.body.appendChild(fab);
+    
+    // ✅ บังคับแสดงปุ่มทันที
+    setTimeout(() => {
+        fab.style.display = 'flex';
+        fab.style.visibility = 'visible';
+        fab.style.opacity = '1';
+    }, 50);
 
     const menu = document.createElement('div');
     menu.className = 'lumi-menu';
-    // ✅ ใช้ลิงก์ไอคอนตามที่ขอ
     menu.innerHTML = `
         <div class="lumi-menu-grid">
             <div class="lumi-menu-item" id="lumi-open"><img src="${iconDiary}"><span>Diary</span></div>
@@ -326,7 +346,6 @@ function renderDashboard() {
     const currentBotId = ctx.characterId;
     const currentBotName = ctx.name2 || "Unknown Bot";
     
-    // 🆕 Load saved theme & layout
     const savedTheme = extension_settings[extensionName]._internal.theme || 'pink';
     const savedLayout = extension_settings[extensionName]._internal.layout || 'comfortable';
     applyTheme(savedTheme);
@@ -335,7 +354,6 @@ function renderDashboard() {
     const mems = loadMemories({ botId: currentBotId });
     const charsInBot = [...new Set(mems.map(m => m.character))].filter(c => c);
     
-    // 🆕 Group by RP Date
     const byDate = {};
     mems.forEach(m => {
         const date = m.content.rp_date || 'Unknown Date';
@@ -395,7 +413,6 @@ function renderDashboard() {
         </div>
     `);
     
-    // Bind events
     $('#lumi-theme-select').on('change', function() {
         extension_settings[extensionName]._internal.theme = $(this).val();
         applyTheme($(this).val());
@@ -418,7 +435,6 @@ function renderDashboard() {
         }
     });
     
-    // Render content if has data
     if (sortedDates.length > 0) {
         renderTimelineContent(byDate, sortedDates);
     }
@@ -503,7 +519,6 @@ function renderGeneratorForm() {
     $('#btn-run-gen').on('click', generateBatchMemories);
 }
 
-// 📖 Diary Content Rendering (Collapsible Character Groups)
 function renderDashboardContent() {
     const selectedBot = $('#lumi-bot-filter')?.val() || SillyTavern.getContext().characterId;
     const selectedChar = $('#lumi-char-filter')?.val() || '';
@@ -514,7 +529,6 @@ function renderDashboardContent() {
         return; 
     }
 
-    // Group by Character
     const byChar = {};
     mems.forEach(m => { 
         const char = m.character || "Unknown";
@@ -542,7 +556,6 @@ function renderDashboardContent() {
     }
     $('#lumi-content').html(html);
     
-    // Bind collapsible behavior
     $('.lumi-char-banner').on('click', function() {
         const char = $(this).data('char');
         const entries = $(`#entries-${escapeHtml(char).replace(/[^a-zA-Z0-9]/g,'-')}`);
@@ -551,35 +564,6 @@ function renderDashboardContent() {
     });
     
     bindEvents();
-}
-
-function renderCard(m) {
-    const showSecret = extension_settings[extensionName].diary.display.showSecretSystem;
-    const isLocked = showSecret && checkUnlock(m) === false;
-    const color = generateColor(m.character);
-    
-    let lockOverlay = '';
-    if(isLocked) {
-        lockOverlay = `<div style="position:absolute;inset:0;background:rgba(255,255,255,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;z-index:1">
-            ${svgLock} <div style="font-size:11px;color:#ff85a2;margin-top:5px">Locked</div>
-        </div>`;
-    }
-
-    return `
-        <div class="lumi-card ${m.meta.isPinned?'pinned':''}" data-id="${m.id}">
-            ${lockOverlay}
-            <div class="lumi-meta">
-                <span class="lumi-badge lumi-char-badge" style="background:${color}">${m.character}</span>
-                <span class="lumi-badge">📅 ${m.content.rp_date||'?'}</span>
-                <span class="lumi-badge">📍 ${m.content.rp_location||'?'}</span>
-            </div>
-            <div class="lumi-text">${isLocked ? '...' : m.content.diary}</div>
-            <div class="lumi-actions">
-                <button class="lumi-act ${m.meta.isPinned?'active':''}" data-act="pin">${svgPin}</button>
-                <button class="lumi-act ${m.meta.isFavorite?'active':''}" data-act="fav">${svgStar}</button>
-                <button class="lumi-act" data-act="del">${svgClose}</button>
-            </div>
-        </div>`;
 }
 
 // ⚙️ Settings (Full Customization)
@@ -638,7 +622,6 @@ function renderSettings() {
         </div>
     `);
     
-    // Bind Settings Events
     $('#set-en').on('change', function(){ s.isEnabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); showToast($(this).prop('checked')?'Enabled':'Disabled'); });
     $('#set-wm').on('change', function(){ s.diary.worldMode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
     
@@ -660,7 +643,7 @@ function renderSettings() {
 }
 
 // ═══════════════════════════════════════════════
-// 6. AI BATCH GENERATION (Improved Prompt)
+// 6. AI BATCH GENERATION
 // ═══════════════════════════════════════════════
 async function generateBatchMemories() {
     const mode = $('input[name="gen-mode"]:checked').val();
@@ -678,20 +661,18 @@ async function generateBatchMemories() {
         const wm = extension_settings[extensionName].diary.worldMode === 'auto' ? detectWorldMode() : extension_settings[extensionName].diary.worldMode;
         const botId = ctx.characterId;
         
-        // ใน generateBatchMemories()
         results.forEach(res => {
-
-    let charName = res.character || ctx.name2 || "Character";
-    saveMemory({
-        id: 'mem_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-        timestamp: new Date().toISOString(),
-        character: charName,
-        botId: ctx.characterId,  // ✅ ต้องมีบรรทัดนี้!
-        worldMode: wm,
-        content: { ...res },
-        meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
-    });
-});
+            let charName = res.character || ctx.name2 || "Character";
+            saveMemory({
+                id: 'mem_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+                timestamp: new Date().toISOString(),
+                character: charName,
+                botId: botId,
+                worldMode: wm,
+                content: { ...res },
+                meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
+            });
+        });
         
         showToast(`✨ Created ${results.length} memories!`);
         renderDashboard();
@@ -712,14 +693,12 @@ async function callAIBatch(mode, count) {
     const charsInChat = [...new Set(chatSlice.filter(m=>m.name && !m.is_user).map(m=>m.name))];
     const charContext = charsInChat.length > 0 ? `Characters present: ${charsInChat.join(', ')}` : `Character: ${ctx.name2}`;
     
-    /// เปลี่ยนจาก slice(0, 100) เป็น slice(0, 50)
     const chatLog = chatSlice.map((m, i) => {
-    const speaker = m.is_user ? 'User' : (m.name || 'NPC');
-    const text = m.mes.slice(0, 50); // ลดจาก 100 เหลือ 50 ตัวอักษร
-    return `[${speaker}]: ${text}`;
-}).join('\n');
+        const speaker = m.is_user ? 'User' : (m.name || 'NPC');
+        const text = m.mes.slice(0, 50);
+        return `[${speaker}]: ${text}`;
+    }).join('\n');
 
-    // 🆕 More generous prompt - encourages finding memories even in subtle moments
     const prompt = `[System: You are analyzing a roleplay chat to create meaningful diary entries. Be generous in identifying memorable moments.]
 ${charContext}
 
@@ -788,20 +767,17 @@ async function onNewChat() {
             const ctx = SillyTavern.getContext();
             const wm = s.diary.worldMode === 'auto' ? detectWorldMode() : s.diary.worldMode;
             const botId = ctx.characterId;
-            // ใน onNewChat()
             results.forEach(res => {
                 saveMemory({
-        id: 'mem_auto_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-        timestamp: new Date().toISOString(),
-        character: res.character || ctx.name2 || "Character",
-        botId: ctx.characterId,  // ✅ ต้องมีบรรทัดนี้!
-        worldMode: wm,
-        content: { ...res },
-        meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
-    });
-});
-
-
+                    id: 'mem_auto_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+                    timestamp: new Date().toISOString(),
+                    character: res.character || ctx.name2 || "Character",
+                    botId: botId,
+                    worldMode: wm,
+                    content: { ...res },
+                    meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
+                });
+            });
             showToast(`🌸 Auto-generated ${results.length} memory!`);
         }
     }
@@ -813,15 +789,12 @@ async function onNewChat() {
 function loadMemories(filter = {}) {
     let mem = [...(extension_settings[extensionName].memories || [])];
     
-    // 🆕 Filter by botId (สำคัญมาก!)
     if (filter.botId) {
         mem = mem.filter(m => {
-            // เช็คว่า botId ตรงกัน หรือไม่มี botId (ของเก่า)
             return m.botId === filter.botId || !m.botId;
         });
     }
     
-    // Filter by character name
     if (filter.character) {
         mem = mem.filter(m => m.character === filter.character);
     }
@@ -832,7 +805,6 @@ function loadMemories(filter = {}) {
 function saveMemory(entry) {
     const s = extension_settings[extensionName];
     
-    // 🆕 Fuzzy Matching - เช็คว่ามีชื่อที่คล้ายกันไหม
     const existingChars = [...new Set(s.memories.map(m => m.character))];
     const matchedName = findMatchingCharName(entry.character, existingChars);
     entry.character = matchedName;
@@ -936,8 +908,6 @@ function createSettingsPanel() {
 // ═══════════════════════════════════════════════
 // FUZZY MATCHING & UTILS
 // ═══════════════════════════════════════════════
-
-// Levenshtein Distance สำหรับวัดความคล้ายคลึง
 function levenshteinDistance(str1, str2) {
     const m = str1.length, n = str2.length;
     const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
@@ -962,80 +932,18 @@ function similarityScore(str1, str2) {
     return maxLen === 0 ? 100 : ((maxLen - distance) / maxLen) * 100;
 }
 
-// หาชื่อที่ match (>80% similar)
 function findMatchingCharName(newName, existingNames) {
     for (const name of existingNames) {
         if (similarityScore(newName, name) > 80) {
-            return name; // ใช้ชื่อเดิม
+            return name;
         }
     }
-    return newName; // ไม่เจอ → ใช้ชื่อใหม่
-}
-
-// ═══════════════════════════════════════════════
-// THEME & LAYOUT SYSTEM
-// ═══════════════════════════════════════════════
-
-const themes = {
-    pink: {
-        name: 'Pink Pastel',
-        primary: '#FFB6C1',
-        secondary: '#FF69B4',
-        bg: '#FFF0F5',
-        card: '#FFFBFC',
-        text: '#555'
-    },
-    purple: {
-        name: 'Purple Dream',
-        primary: '#E6D5F0',
-        secondary: '#9B7ED9',
-        bg: '#F5F0FA',
-        card: '#FAF7FC',
-        text: '#555'
-    },
-    ocean: {
-        name: 'Ocean Blue',
-        primary: '#B6D7F0',
-        secondary: '#4A9FD9',
-        bg: '#F0F7FA',
-        card: '#F7FBFC',
-        text: '#555'
-    },
-    mint: {
-        name: 'Mint Fresh',
-        primary: '#B6F0D7',
-        secondary: '#4AD99A',
-        bg: '#F0FAF5',
-        card: '#F7FCFA',
-        text: '#555'
-    }
-};
-
-const layouts = {
-    compact: { cardPadding: '8px', fontSize: '12px', gap: '6px' },
-    comfortable: { cardPadding: '14px', fontSize: '13px', gap: '10px' },
-    spacious: { cardPadding: '20px', fontSize: '14px', gap: '14px' }
-};
-
-function applyTheme(themeName) {
-    const theme = themes[themeName] || themes.pink;
-    const root = document.documentElement;
-    root.style.setProperty('--lumi-primary', theme.primary);
-    root.style.setProperty('--lumi-secondary', theme.secondary);
-    root.style.setProperty('--lumi-bg', theme.bg);
-    root.style.setProperty('--lumi-card', theme.card);
-    root.style.setProperty('--lumi-text', theme.text);
-}
-
-function applyLayout(layoutName) {
-    const layout = layouts[layoutName] || layouts.comfortable;
-    // CSS variables จะถูกใช้ใน injectStyles
+    return newName;
 }
 
 // ═══════════════════════════════════════════════
 // EDIT MEMORY FUNCTIONS
 // ═══════════════════════════════════════════════
-
 function editMemoryInline(id) {
     const mem = extension_settings[extensionName].memories.find(m => m.id === id);
     if (!mem) return;
@@ -1112,7 +1020,6 @@ function editMemoryModal(id) {
 // ═══════════════════════════════════════════════
 // LINK TO CHAT
 // ═══════════════════════════════════════════════
-
 function linkToChat(memoryId) {
     const mem = extension_settings[extensionName].memories.find(m => m.id === memoryId);
     if (!mem || mem.meta.refIndex === undefined) {
@@ -1120,10 +1027,8 @@ function linkToChat(memoryId) {
         return;
     }
     
-    // ปิด modal
     $('#lumi-overlay').fadeOut();
     
-    // เลื่อนไปข้อความ
     setTimeout(() => {
         const msgElement = $(`#chat [data-message-index="${mem.meta.refIndex}"]`);
         if (msgElement.length) {
@@ -1136,4 +1041,36 @@ function linkToChat(memoryId) {
     }, 300);
 }
 
+// ═══════════════════════════════════════════════
+// ✅ createMemoryEntry - เพิ่ม botId
+// ═══════════════════════════════════════════════
+function createMemoryEntry(res, type, ctx, wm, refText, messageIndex) {
+    const entry = {
+        id: "mem_" + Date.now(),
+        timestamp: new Date().toISOString(),
+        trigger: type,
+        character: getRPGCharacters(1)[0]?.name || getCharacterName(),
+        characterId: ctx.characterId,
+        worldMode: wm,
+        botId: ctx.characterId,  // ✅ เพิ่มบรรทัดนี้!
+        content: {
+            rp_date: res.rp_date || "วันไม่ทราบแน่ชัด",
+            rp_location: res.rp_location || "สถานที่ปัจจุบัน",
+            rp_weather: res.rp_weather || "บรรยากาศเงียบสงบ",
+            affection_score: res.affection_score || 50,
+            mood: res.mood || "สงบ",
+            diary: res.diary || ""
+        },
+        meta: {
+            isPinned: false, isFavorite: false, isHidden: false,
+            isSecret: res.isSecret || false,
+            unlockCondition: res.isSecret ? { type: 'affection', value: 80 } : null,
+            tags: extractTags(res.diary || ''),
+            referenceText: refText?.slice(0, 100) || "",
+            referencedMessageIndex: res.referencedMessageIndex || messageIndex - 30
+        }
+    };
+    saveMemory(entry);
+    showToast(`บันทึกแล้ว: ${res.rp_date}`);
+}
 
