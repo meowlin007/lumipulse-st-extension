@@ -1,19 +1,47 @@
 "use strict";
 
 const extensionName = "lumipulse-st-extension";
+
 const defaultSettings = {
     isEnabled: true,
-    forumTopic: "", isForumInitialized: false, includeRandomNPCs: true, forumData: [], diaryData: null,
+    forumTopic: "",
+    isForumInitialized: false,
+    includeRandomNPCs: true,
+    forumData: [],
+    diaryData: null,
     memories: [],
-    _internal: { messageCounter: 0, firstChatDate: null, fabPosition: null },
+    _internal: {
+        messageCounter: 0,
+        firstChatDate: null,
+        fabPosition: null,
+        lastView: "timeline"
+    },
     diary: {
-        worldMode: 'auto',
-        autoGen: { enabled: true, triggerType: 'turn_count', turnInterval: 20, emotionKeywords: ['รัก','โกรธ','เสียใจ','ดีใจ','หัวใจ','กลัว'], randomChance: 0.08 },
-        display: { viewMode: 'timeline', showSecret: true, secretUnlockMode: 'ai' },
-        storage: { maxEntries: 40, autoSave: true },
-        generation: { messageRange: 30, useAllMessages: false, startFromIndex: 0 }
+        worldMode: "auto",
+        autoGen: {
+            enabled: true,
+            triggerType: "turn_count",
+            turnInterval: 20,
+            emotionKeywords: ["รัก", "โกรธ", "เสียใจ", "ดีใจ", "หัวใจ", "กลัว"],
+            randomChance: 0.08
+        },
+        display: {
+            viewMode: "timeline",
+            showSecret: true,
+            secretUnlockMode: "ai"
+        },
+        storage: {
+            maxEntries: 40,
+            autoSave: true
+        },
+        generation: {
+            messageRange: 30,
+            useAllMessages: false,
+            startFromIndex: 0
+        }
     }
 };
+
 let extension_settings = {};
 
 // Icon URLs
@@ -22,7 +50,7 @@ const iconDiary = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconPhone = "https://file.garden/ad59q6JMmVnp7v1-/lumi-phone-icon.png";
 const iconForum = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png";
 
-// SVG Icons
+// SVG Icons (Vector - No Emoji)
 const svgHeart = `<svg viewBox="0 0 32 32" fill="none" width="24" height="24"><path d="M16 28.2s-10.5-6.3-13.2-11.4c-2-3.8-.7-8.4 3.3-10.2 3.1-1.4 6.5-.4 8.4 2.2 1.9-2.6 5.3-3.6 8.4-2.2 4 1.8 5.3 6.4 3.3 10.2-2.7 5.1-13.2 11.4-13.2 11.4z" fill="#FFB6C1"/></svg>`;
 const svgSettings = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
 const svgPin = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1-1v-5h2v-2l-2-2z"/></svg>`;
@@ -46,13 +74,12 @@ const svgGear = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const svgUser = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
 
 // ═══════════════════════════════════════════════
-// BOOT & INIT
+// BOOT
 // ═══════════════════════════════════════════════
-jQuery(async () => {
-    const boot = setInterval(() => {
+jQuery(async function () {
+    const boot = setInterval(function () {
         if (window.SillyTavern && SillyTavern.getContext && document.body) {
             clearInterval(boot);
-            console.log("[LumiPulse] Ready. Initializing...");
             initLumiPulse();
         }
     }, 500);
@@ -60,540 +87,1136 @@ jQuery(async () => {
 
 function initLumiPulse() {
     const ctx = SillyTavern.getContext();
-    if (!ctx.extensionSettings[extensionName]) { 
-        ctx.extensionSettings[extensionName] = { ...defaultSettings }; 
-        ctx.saveSettingsDebounced(); 
+    if (!ctx.extensionSettings[extensionName]) {
+        ctx.extensionSettings[extensionName] = JSON.parse(JSON.stringify(defaultSettings));
+        ctx.saveSettingsDebounced();
     }
     extension_settings = ctx.extensionSettings;
     const s = extension_settings[extensionName];
-    if (!s.diary) s.diary = defaultSettings.diary;
+    if (!s.diary) s.diary = JSON.parse(JSON.stringify(defaultSettings.diary));
     if (!s.memories) s.memories = [];
-    if (!s._internal) s._internal = defaultSettings._internal;
-    if (!s._internal.fabPosition) s._internal.fabPosition = { top: '50%', right: '0px', transform: 'translateY(-50%)' };
+    if (!s._internal) s._internal = JSON.parse(JSON.stringify(defaultSettings._internal));
+    if (!s._internal.fabPosition) s._internal.fabPosition = null;
 
     injectStyles();
     createSettingsUI();
-    
+
     if (s.isEnabled) {
-        setTimeout(() => {
+        setTimeout(function () {
             spawnLumiButton();
             createContentModal();
             setupAutoTriggerListener();
-            console.log("[LumiPulse] FAB & Modules Loaded");
         }, 800);
     }
-    document.addEventListener('click', (e) => { if (!e._fromDrag) spawnHeartEffect(e); });
+    document.addEventListener("click", function (e) {
+        if (!e._fromDrag) spawnHeartEffect(e);
+    });
 }
 
 // ═══════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════
 function detectWorldMode() {
-    const chat = SillyTavern.getContext().chat || [], names = new Set();
-    chat.slice(-50).forEach(m => { if (m.name && !m.is_user && !m.is_system) names.add(m.name); });
-    return names.size > 2 ? 'rpg' : 'solo';
+    const chat = SillyTavern.getContext().chat || [];
+    const names = new Set();
+    chat.slice(-50).forEach(function (m) {
+        if (m.name && !m.is_user && !m.is_system) names.add(m.name);
+    });
+    return names.size > 2 ? "rpg" : "solo";
 }
 
-function getRPGCharacters(limit = 10) {
+function getRPGCharacters(limit) {
+    if (!limit) limit = 10;
     const ctx = SillyTavern.getContext();
     const characters = [];
-    const currentChar = ctx.characters?.[ctx.characterId];
+    const currentChar = ctx.characters ? ctx.characters[ctx.characterId] : null;
     if (currentChar) {
-        characters.push({ name: currentChar.name || getCharacterName(), isCurrent: true, color: generateColorFromString(currentChar.name || 'default') });
+        characters.push({
+            name: currentChar.name || getCharacterName(),
+            avatar: currentChar.avatar,
+            isCurrent: true,
+            color: generateColorFromString(currentChar.name || "default")
+        });
     }
     if (ctx.characters) {
-        Object.values(ctx.characters).forEach(char => {
-            if (char.name && char.name !== currentChar?.name && !characters.find(c => c.name === char.name)) {
-                characters.push({ name: char.name, isCurrent: false, color: generateColorFromString(char.name) });
+        Object.values(ctx.characters).forEach(function (char) {
+            if (char.name && char.name !== (currentChar ? currentChar.name : null) && !characters.find(function (c) { return c.name === char.name; })) {
+                characters.push({
+                    name: char.name,
+                    avatar: char.avatar,
+                    isCurrent: false,
+                    color: generateColorFromString(char.name)
+                });
             }
         });
     }
     const chat = ctx.chat || [];
-    chat.slice(-100).forEach(m => {
-        if (m.name && !m.is_user && !m.is_system && !characters.find(c => c.name === m.name)) {
-            characters.push({ name: m.name, isCurrent: false, color: generateColorFromString(m.name) });
+    chat.slice(-100).forEach(function (m) {
+        if (m.name && !m.is_user && !m.is_system && !characters.find(function (c) { return c.name === m.name; })) {
+            characters.push({
+                name: m.name,
+                avatar: null,
+                isCurrent: false,
+                color: generateColorFromString(m.name)
+            });
         }
     });
     return characters.slice(0, limit);
 }
 
 function generateColorFromString(str) {
-    const colors = ['#FFB6C1', '#E6D5F0', '#B6D7F0', '#B6F0D7', '#F0E6B6', '#F0B6D7'];
+    const colors = ["#FFB6C1", "#E6D5F0", "#B6D7F0", "#B6F0D7", "#F0E6B6", "#F0B6D7"];
     let hash = 0;
-    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
     return colors[Math.abs(hash) % colors.length];
 }
 
-function getChatNPCs(limit = 5) {
-    const chat = SillyTavern.getContext().chat || [], names = new Set(), cn = getCharacterName();
-    chat.slice(-40).forEach(m => { if (m.name && !m.is_user && !m.is_system && m.name !== cn) names.add(m.name); });
+function getChatNPCs(limit) {
+    if (!limit) limit = 5;
+    const chat = SillyTavern.getContext().chat || [];
+    const names = new Set();
+    const cn = getCharacterName();
+    chat.slice(-40).forEach(function (m) {
+        if (m.name && !m.is_user && !m.is_system && m.name !== cn) names.add(m.name);
+    });
     return Array.from(names).slice(0, limit);
 }
 
-function getCharacterName() { return SillyTavern.getContext().name2 || "ตัวละคร"; }
-function getUserName() { return SillyTavern.getContext().name1 || "ผู้เล่น"; }
-
-function escapeHtml(t) { 
-    return typeof t === 'string' ? t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;') : ''; 
+function getCharacterName() {
+    const ctx = SillyTavern.getContext();
+    return ctx.name2 || "ตัวละคร";
 }
 
-function formatTime(iso) { 
-    const d = new Date(iso); 
-    return `<LaTex>id_44</LaTex>{String(d.getMinutes()).padStart(2, '0')}`; 
+function getUserName() {
+    const ctx = SillyTavern.getContext();
+    return ctx.name1 || "ผู้เล่น";
 }
 
-function extractTags(t) { 
-    const tags = [], kw = { 'โรแมนติก': ['รัก', 'หัวใจ', 'ชอบ'], 'ดราม่า': ['เสียใจ', 'ร้องไห้'], 'ตลก': ['ขำ', '555'] }, l = t.toLowerCase(); 
-    for (const [k, v] of Object.entries(kw)) if (v.some(w => l.includes(w))) tags.push(`#<LaTex>id_43</LaTex>(`#chat [data-message-index="<LaTex>id_42</LaTex>{messageIndex + 1}`);
+function escapeHtml(t) {
+    if (typeof t !== "string") return "";
+    return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function extractTags(t) {
+    const tags = [];
+    const kw = {
+        "โรแมนติก": ["รัก", "หัวใจ", "ชอบ", "แอบชอบ"],
+        "ดราม่า": ["เสียใจ", "ร้องไห้", "เจ็บปวด"],
+        "ตลก": ["ขำ", "ตลก", "555"],
+        "จุดเปลี่ยน": ["ตัดสินใจ", "เปลี่ยน", "เริ่ม"]
+    };
+    const l = t.toLowerCase();
+    for (const k in kw) {
+        if (kw.hasOwnProperty(k)) {
+            const v = kw[k];
+            for (let i = 0; i < v.length; i++) {
+                if (l.includes(v[i])) {
+                    tags.push("#" + k);
+                    break;
+                }
+            }
+        }
+    }
+    return tags.slice(0, 3);
+}
+
+function checkUnlock(m) {
+    if (!m.meta.isSecret) return true;
+    const c = extension_settings[extensionName].diary.display;
+    if (c.secretUnlockMode === "manual") return false;
+    if (c.secretUnlockMode === "affection") return (m.content.affection_score || 0) >= 80;
+    return (new Date() - new Date(m.timestamp)) / 864e5 >= 3;
+}
+
+function saveMemory(entry) {
+    const s = extension_settings[extensionName];
+    s.memories.unshift(entry);
+    if (s.memories.length > s.diary.storage.maxEntries) {
+        s.memories = s.memories.slice(0, s.diary.storage.maxEntries);
+    }
+    SillyTavern.getContext().saveSettingsDebounced();
+}
+
+function loadMemories(f) {
+    if (!f) f = {};
+    let mem = JSON.parse(JSON.stringify(extension_settings[extensionName].memories || []));
+    if (f.character) mem = mem.filter(function (m) { return m.character === f.character; });
+    if (f.showSecret === false) mem = mem.filter(function (m) { return !m.meta.isSecret || checkUnlock(m); });
+    return mem.sort(function (a, b) {
+        return (b.meta.isPinned === true) - (a.meta.isPinned === true) || new Date(b.timestamp) - new Date(a.timestamp);
+    });
+}
+
+function saveFabPosition(pos) {
+    extension_settings[extensionName]._internal.fabPosition = pos;
+    SillyTavern.getContext().saveSettingsDebounced();
+}
+
+function loadFabPosition() {
+    return extension_settings[extensionName]._internal.fabPosition || null;
+}
+
+function scrollToMessage(messageIndex) {
+    const msgElement = $("#chat [data-message-index=\"" + messageIndex + "\"]");
+    if (msgElement.length) {
+        msgElement[0].scrollIntoView({ behavior: "smooth", block: "center" });
+        msgElement.css("background", "rgba(255,182,193,0.3)");
+        setTimeout(function () { msgElement.css("background", ""); }, 2000);
+        showToast("เลื่อนไปข้อความ #" + (messageIndex + 1));
+    } else {
+        showToast("ไม่พบข้อความที่อ้างอิง", "warning");
+    }
 }
 
 // ═══════════════════════════════════════════════
 // AI CORE
 // ═══════════════════════════════════════════════
 function parseJSON(text) {
-    if (!text || typeof text !== 'string') return null;
-    let m = text.match(/\{[\s\S]*\}/); 
-    if (m) { try { return JSON.parse(m[0]); } catch (e) {} }
-    toastr.warning('AI ตอบกลับผิดรูปแบบ'); 
+    if (!text || typeof text !== "string") return null;
+    let m = text.match(/\{[\s\S]*\}/);
+    if (m) {
+        try {
+            return JSON.parse(m[0]);
+        } catch (e) {}
+    }
+    if (typeof toastr !== "undefined") toastr.warning("AI ตอบกลับผิดรูปแบบ");
     return null;
 }
 
 async function callST(p) {
     try {
-        const ctx = SillyTavern.getContext(); 
+        const ctx = SillyTavern.getContext();
         let res;
-        if (typeof ctx.generateQuietPrompt === 'function') res = await ctx.generateQuietPrompt(p, false, false);
-        else if (typeof ctx.generateRaw === 'function') res = await ctx.generateRaw(p, true);
-        else if (typeof window.generateQuietPrompt === 'function') res = await window.generateQuietPrompt(p, false, false);
-        else if (typeof window.generateRaw === 'function') res = await window.generateRaw(p, true);
-        else { toastr.error('หา generate function ไม่เจอ'); return null; }
+        if (typeof ctx.generateQuietPrompt === "function") res = await ctx.generateQuietPrompt(p, false, false);
+        else if (typeof ctx.generateRaw === "function") res = await ctx.generateRaw(p, true);
+        else if (typeof window.generateQuietPrompt === "function") res = await window.generateQuietPrompt(p, false, false);
+        else if (typeof window.generateRaw === "function") res = await window.generateRaw(p, true);
+        else {
+            if (typeof toastr !== "undefined") toastr.error("หา generate function ไม่เจอ");
+            return null;
+        }
         return parseJSON(res);
-    } catch (e) { console.error(e); toastr.error('AI Error'); return null; }
+    } catch (e) {
+        console.error("[LumiPulse]", e);
+        if (typeof toastr !== "undefined") toastr.error("AI Error: " + e.message);
+        return null;
+    }
 }
 
-async function requestDiaryGen(opt = {}) {
-    const { charName = getCharacterName(), trigger = 'manual', ev = null, linked = [], messageRange = 30 } = opt;
-    const ctx = SillyTavern.getContext(), cc = ctx.characters?.[ctx.characterId] || {};
-    let wm = extension_settings[extensionName].diary.worldMode; 
-    if (wm === 'auto') wm = detectWorldMode();
-    
-    const allChat = ctx.chat || [];
-    const endIndex = allChat.length;
-    const startIndex = Math.max(0, endIndex - messageRange);
-    const chatSlice = allChat.slice(startIndex, endIndex);
-    
-    const chatLog = chatSlice.map(m => `[#<LaTex>id_41</LaTex>{m.is_user ? 'User' : m.name || 'NPC'}: <LaTex>id_40</LaTex>{charName}'s inner voice. Respond ONLY with valid JSON.]
-Profile: <LaTex>id_39</LaTex>{wm === 'rpg' ? 'Group' : 'Solo'} | Others: <LaTex>id_38</LaTex>{chatLog}
+async function requestDiaryGen(opt) {
+    if (!opt) opt = {};
+    const trigger = opt.trigger || "manual";
+    const messageRange = opt.messageRange || 30;
+    const useAllMessages = opt.useAllMessages || false;
+    const startFromIndex = opt.startFromIndex || 0;
+    const ctx = SillyTavern.getContext();
+    const charName = getCharacterName();
+    const userName = getUserName();
+    let wm = extension_settings[extensionName].diary.worldMode;
+    if (wm === "auto") wm = detectWorldMode();
 
-Format: {
-  "rp_date": "วันที่ในเกม เช่น วันขึ้น 15 ค่ำ เดือน 3",
-  "rp_location": "สถานที่ RP",
-  "rp_weather": "สภาพอากาศ",
-  "affection_score": 0-100,
-  "mood": "อารมณ์",
-  "diary": "เนื้อหาไดอารี่ 3-5 ประโยค",
-  "isSecret": true/false,
-  "referencedMessageIndex": <LaTex>id_37</LaTex>(document).on('messageReceived', onNewChat);
-    $(document).on('activeCharacterChanged', () => {
-        extension_settings[extensionName]._internal.messageCounter = 0;
-        if (!extension_settings[extensionName]._internal.firstChatDate) {
-            extension_settings[extensionName]._internal.firstChatDate = new Date().toISOString();
-            SillyTavern.getContext().saveSettingsDebounced();
-        }
-    });
+    const allChat = ctx.chat || [];
+    const endIndex = useAllMessages ? allChat.length : Math.min(startFromIndex + messageRange, allChat.length);
+    const startIndex = useAllMessages ? 0 : Math.max(0, endIndex - messageRange);
+    const chatSlice = allChat.slice(startIndex, endIndex);
+    const chatLog = chatSlice.map(function (m, i) {
+        return "[#" + (startIndex + i + 1) + "] " + (m.is_user ? userName : (m.name || "NPC")) + ": " + (m.mes || "").slice(0, 150);
+    }).join("\n");
+
+    const prompt = "[System: You are " + charName + "'s inner voice. Respond ONLY with valid JSON, no markdown.]\nChat Log:\n" + chatLog + "\n\nWrite a diary entry from " + charName + "'s perspective about feelings toward " + userName + ".\nReturn ONLY this JSON in Thai:\n{\n  \"rp_date\": \"วันที่สมมติ\",\n  \"rp_location\": \"สถานที่\",\n  \"rp_weather\": \"สภาพอากาศ\",\n  \"affection_score\": 65,\n  \"mood\": \"อารมณ์ในคำเดียว\",\n  \"diary\": \"เนื้อหา 3-5 ประโยค มุมมองบุคคลที่ 1\",\n  \"isSecret\": false,\n  \"referencedMessageIndex\": " + startIndex + "\n}";
+    return await callST(prompt);
+}
+
+// ═══════════════════════════════════════════════
+// AUTO-TRIGGER
+// ═══════════════════════════════════════════════
+function setupAutoTriggerListener() {
+    $(document).off("messageReceived", onNewChat).on("messageReceived", onNewChat);
 }
 
 async function onNewChat() {
-    const s = extension_settings[extensionName], cfg = s.diary.autoGen;
+    const s = extension_settings[extensionName];
+    const cfg = s.diary.autoGen;
     if (!cfg.enabled) return;
     s._internal.messageCounter++;
-    const lastMsg = (SillyTavern.getContext().chat?.slice(-1)[0]?.mes || '').toLowerCase();
-    
-    let gen = false, type = 'manual';
-    if (cfg.triggerType === 'turn_count' && s._internal.messageCounter >= cfg.turnInterval) { gen = true; type = 'turn'; s._internal.messageCounter = 0; }
-    else if (cfg.triggerType === 'emotion' && cfg.emotionKeywords.some(k => lastMsg.includes(k))) { gen = true; type = 'emotion'; }
-    else if (cfg.triggerType === 'random' && Math.random() < cfg.randomChance) { gen = true; type = 'random'; }
-    else if (lastMsg.includes('#จำ') || lastMsg.includes('#memory')) { gen = true; type = 'user_tag'; }
-
-    if (gen) {
-        SillyTavern.getContext().saveSettingsDebounced();
-        const ctx = SillyTavern.getContext(), ev = null;
-        const res = await requestDiaryGen({ trigger: type, ev, linkedChars: getChatNPCs(3), messageRange: s.diary.generation.messageRange });
-        if (res) {
-            const entry = {
-                id: "mem_" + Date.now(), timestamp: new Date().toISOString(), trigger: type,
-                character: getRPGCharacters(1)[0]?.name || getCharacterName(),
-                characterId: ctx.characterId, worldMode: s.diary.worldMode === 'auto' ? detectWorldMode() : s.diary.worldMode,
-                content: {
-                    rp_date: res.rp_date || "ไม่ระบุ", rp_location: res.rp_location || "ไม่ระบุ",
-                    rp_weather: res.rp_weather || "ไม่ระบุ", affection_score: res.affection_score || 50,
-                    mood: res.mood || "สงบ", diary: res.diary || ""
-                },
-                meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret || false, tags: extractTags(res.diary || ''), referenceText: "", referencedMessageIndex: res.referencedMessageIndex }
-            };
-            saveMemory(entry);
-            showToast(`บันทึกความทรงจำ: ${res.rp_date}`);
+    const lastMsg = (SillyTavern.getContext().chat ? SillyTavern.getContext().chat.slice(-1)[0].mes : "") || "";
+    const lastMsgLower = lastMsg.toLowerCase();
+    let gen = false;
+    let type = "auto";
+    if (cfg.triggerType === "turn_count" && s._internal.messageCounter >= cfg.turnInterval) {
+        gen = true;
+        type = "turn";
+        s._internal.messageCounter = 0;
+    } else if (cfg.triggerType === "emotion") {
+        for (let i = 0; i < cfg.emotionKeywords.length; i++) {
+            if (lastMsgLower.includes(cfg.emotionKeywords[i])) {
+                gen = true;
+                type = "emotion";
+                break;
+            }
         }
+    } else if (cfg.triggerType === "random" && Math.random() < cfg.randomChance) {
+        gen = true;
+        type = "random";
+    } else if (lastMsgLower.includes("#จำ") || lastMsgLower.includes("#diary")) {
+        gen = true;
+        type = "user_tag";
+    }
+    if (!gen) return;
+    const res = await requestDiaryGen({ trigger: type, messageRange: s.diary.generation.messageRange });
+    if (res) {
+        const ctx = SillyTavern.getContext();
+        let wm = s.diary.worldMode;
+        if (wm === "auto") wm = detectWorldMode();
+        createMemoryEntry(res, type, ctx, wm, ctx.chat ? ctx.chat.slice(-1)[0].mes : "", ctx.chat ? ctx.chat.length : 0);
     }
 }
 
 async function manualGenerate() {
-    const ctx = SillyTavern.getContext(); 
     const s = extension_settings[extensionName].diary;
-    
-    $('#lumi-modal-body').html(`
-        <div style="padding: 16px;">
-            <h4 style="color: #ff85a2; margin-bottom: 16px;">ตั้งค่าการบันทึกความทรงจำ</h4>
-            <div style="margin-bottom: 16px;">
-                <label style="font-size: 12px; color: #666; display: block; margin-bottom: 6px;">จำนวนข้อความให้อ่าน:</label>
-                <input type="range" id="gen-message-range" min="5" max="100" value="${s.generation.messageRange}" style="width: 100%;">
-                <div style="text-align: center; font-size: 11px; color: #ffb6c1;"><span id="range-value"><LaTex>id_36</LaTex>('#gen-message-range').on('input', function() { $('#range-value').text($(this).val()); });
-    $('#gen-cancel').on('click', () => renderDiaryUI());
-    
-    $('#gen-confirm').on('click', async () => {
-        const range = parseInt($('#gen-message-range').val()) || 30;
-        s.generation.messageRange = range;
+    const ctx = SillyTavern.getContext();
+    $("#lumi-modal-body").html(
+        "<div style=\"padding:16px;\">" +
+        "<h4 style=\"color:#ff85a2;margin-bottom:16px;\">ตั้งค่าการบันทึก</h4>" +
+        "<div style=\"margin-bottom:16px;\">" +
+        "<label style=\"font-size:12px;color:#666;display:block;margin-bottom:6px;\">จำนวนข้อความให้อ่าน:</label>" +
+        "<input type=\"range\" id=\"gen-message-range\" min=\"5\" max=\"100\" value=\"" + s.generation.messageRange + "\" style=\"width:100%;\">" +
+        "<div style=\"text-align:center;font-size:11px;color:#ffb6c1;\"><span id=\"range-value\">" + s.generation.messageRange + "</span> ข้อความล่าสุด</div>" +
+        "</div>" +
+        "<div style=\"margin-bottom:16px;\">" +
+        "<label class=\"checkbox_label\" style=\"font-size:12px;color:#666;\">" +
+        "<input type=\"checkbox\" id=\"gen-use-all\"" + (s.generation.useAllMessages ? " checked" : "") + ">" +
+        "<span>อ่านทั้งหมดตั้งแต่เริ่มแชท</span>" +
+        "</label>" +
+        "</div>" +
+        "<div id=\"gen-start-wrap\" style=\"margin-bottom:16px;" + (s.generation.useAllMessages ? "display:none;" : "") + "\">" +
+        "<label style=\"font-size:12px;color:#666;display:block;margin-bottom:6px;\">เริ่มจากข้อความที่:</label>" +
+        "<input type=\"number\" id=\"gen-start-index\" value=\"" + s.generation.startFromIndex + "\" min=\"0\" max=\"" + (ctx.chat ? ctx.chat.length : 0) + "\" class=\"lumi-input\" style=\"width:100%;\">" +
+        "</div>" +
+        "<div style=\"display:flex;gap:10px;margin-top:20px;\">" +
+        "<button id=\"gen-cancel\" class=\"lumi-btn-sm\" style=\"flex:1;\">ยกเลิก</button>" +
+        "<button id=\"gen-confirm\" class=\"lumi-btn-gen\" style=\"flex:2;\">✨ บันทึกความทรงจำ</button>" +
+        "</div>" +
+        "</div>"
+    );
+    $("#gen-message-range").on("input", function () {
+        $("#range-value").text($(this).val());
+    });
+    $("#gen-use-all").on("change", function () {
+        $("#gen-start-wrap").toggle(!$(this).prop("checked"));
+    });
+    $("#gen-cancel").on("click", function () {
+        renderDiaryUI();
+    });
+    $("#gen-confirm").on("click", async function () {
+        const messageRange = parseInt($("#gen-message-range").val()) || 30;
+        const useAllMessages = $("#gen-use-all").prop("checked");
+        const startFromIndex = parseInt($("#gen-start-index").val()) || 0;
+        s.generation.messageRange = messageRange;
+        s.generation.useAllMessages = useAllMessages;
+        s.generation.startFromIndex = startFromIndex;
         SillyTavern.getContext().saveSettingsDebounced();
-        
-        $('#lumi-modal-body').html(`<div style="text-align:center;padding:40px;"><div class="lumi-loader"></div><div style="color:#ff85a2;margin-top:10px;">กำลังบันทึก...</div></div>`);
-        
-        const res = await requestDiaryGen({ trigger: 'manual', linkedChars: getChatNPCs(3), messageRange: range });
+        $("#lumi-modal-body").html("<div style=\"text-align:center;padding:60px 20px;\"><div class=\"lumi-loader\"></div><div style=\"color:#ff85a2;margin-top:16px;\">กำลังบันทึกความทรงจำ...</div></div>");
+        let wm = s.worldMode;
+        if (wm === "auto") wm = detectWorldMode();
+        const res = await requestDiaryGen({ trigger: "manual", messageRange: messageRange, useAllMessages: useAllMessages, startFromIndex: startFromIndex });
         if (res) {
-            const entry = {
-                id: "mem_" + Date.now(), timestamp: new Date().toISOString(), trigger: 'manual',
-                character: getRPGCharacters(1)[0]?.name || getCharacterName(), characterId: ctx.characterId, 
-                worldMode: s.worldMode === 'auto' ? detectWorldMode() : s.worldMode,
-                content: {
-                    rp_date: res.rp_date || "ไม่ระบุ", rp_location: res.rp_location || "ไม่ระบุ",
-                    rp_weather: res.rp_weather || "ไม่ระบุ", affection_score: res.affection_score || 50,
-                    mood: res.mood || "สงบ", diary: res.diary || ""
-                },
-                meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret || false, tags: extractTags(res.diary || ''), referenceText: "", referencedMessageIndex: res.referencedMessageIndex }
-            };
-            saveMemory(entry);
-            showToast('✅ บันทึกความทรงจำเสร็จเรียบร้อยแล้ว', 'success');
-            setTimeout(() => { loadAndRenderTimeline(); }, 1500);
-        } else { 
-            showToast('❌ ไม่สามารถบันทึกได้', 'error');
-            setTimeout(() => renderDiaryUI(), 1000);
+            const ctx2 = SillyTavern.getContext();
+            createMemoryEntry(res, "manual", ctx2, wm, ctx2.chat ? ctx2.chat.slice(-1)[0].mes : "", ctx2.chat ? ctx2.chat.length : 0);
+            showToast("บันทึกความทรงจำเสร็จแล้ว", "success");
+            setTimeout(function () { loadAndRenderTimeline(); }, 1000);
+        } else {
+            showToast("ไม่สามารถบันทึกได้", "error");
+            setTimeout(function () { renderDiaryUI(); }, 1000);
         }
     });
+}
+
+function createMemoryEntry(res, type, ctx, wm, refText, messageIndex) {
+    const entry = {
+        id: "mem_" + Date.now(),
+        timestamp: new Date().toISOString(),
+        trigger: type,
+        character: getRPGCharacters(1)[0] ? getRPGCharacters(1)[0].name : getCharacterName(),
+        characterId: ctx.characterId,
+        worldMode: wm,
+        content: {
+            rp_date: res.rp_date || "วันไม่ทราบแน่ชัด",
+            rp_location: res.rp_location || "สถานที่ปัจจุบัน",
+            rp_weather: res.rp_weather || "บรรยากาศเงียบสงบ",
+            affection_score: res.affection_score || 50,
+            mood: res.mood || "สงบ",
+            diary: res.diary || ""
+        },
+        meta: {
+            isPinned: false,
+            isFavorite: false,
+            isHidden: false,
+            isSecret: res.isSecret || false,
+            unlockCondition: res.isSecret ? { type: "affection", value: 80 } : null,
+            tags: extractTags(res.diary || ""),
+            referenceText: refText ? refText.slice(0, 100) : "",
+            referencedMessageIndex: res.referencedMessageIndex !== undefined ? res.referencedMessageIndex : (messageIndex - 30)
+        }
+    };
+    saveMemory(entry);
+    showToast("บันทึกแล้ว: " + res.rp_date);
 }
 
 // ═══════════════════════════════════════════════
 // STYLES
 // ═══════════════════════════════════════════════
 function injectStyles() {
-    if ($('#lumi-styles').length) return;
-    const s = document.createElement('style'); 
-    s.id = 'lumi-styles';
-    s.innerHTML = `
-        @import url('https://fonts.googleapis.com/css2?family=Mitr:wght@200;300;400;500&display=swap');
-        :root { --lumi-pink-soft: #FFF0F5; --lumi-pink-mid: #FFB6C1; --lumi-pink-bold: #FF69B4; --lumi-glass: rgba(255, 240, 245, 0.88); --lumi-shadow: 0 8px 32px rgba(255, 105, 180, 0.15); }
-        @keyframes lumiPop{0%{opacity:0;transform:scale(.85) translateY(15px)}100%{opacity:1;transform:scale(1) translateY(0)}}
-        @keyframes heartRise{0%{opacity:1;transform:translate(-50%,-50%) scale(.5)}100%{opacity:0;transform:translate(-50%,-80px) scale(1.8)}}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .lumi-vector-heart{position:fixed;z-index:2147483647;pointer-events:none;width:28px;height:28px;animation:heartRise .8s ease-out forwards;filter:drop-shadow(0 0 4px #FFB6C1)}
-        
-        #lumi-main-fab{
-            position:fixed!important; top:50%!important; right:0px!important; transform:translateY(-50%)!important;
-            z-index:2147483647!important; width:48px!important; height:48px!important; border-radius:50%!important;
-            background:var(--lumi-glass) url('${btnUrl}') no-repeat center center!important; 
-            backdrop-filter:blur(10px)!important; -webkit-backdrop-filter:blur(10px)!important;
-            border:2px solid #FFB6C1!important; box-shadow:var(--lumi-shadow)!important;
-            cursor:grab!important; touch-action:none!important; user-select:none!important;
-            display:flex!important; align-items:center!important; justify-content:center!important;
-            transition:transform .2s, box-shadow .2s!important; pointer-events:auto!important;
-            background-size:26px, 100%!important; will-change:transform, left, top!important;
-            -webkit-touch-callout:none!important; -webkit-tap-highlight-color:transparent!important;
-        }
-        #lumi-main-fab:active{transform:scale(0.92)!important; box-shadow:0 3px 10px rgba(255,182,193,0.3)!important; cursor:grabbing!important;}
-        #lumi-main-fab.dragging{transition:none!important;}
-        
-        .lumi-menu-container{position:fixed;z-index:2147483646;display:none;background:rgba(255,255,255,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:24px;padding:20px;border:1.5px solid rgba(255,182,193,0.3);box-shadow:0 15px 40px rgba(255,182,193,0.2);font-family:'Mitr',sans-serif;font-weight:300;min-width:200px}
-        .lumi-menu-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #FFF0F3}
-        .lumi-menu-title{font-size:13px;color:#ff85a2;font-weight:400}
-        .lumi-menu-close{width:24px;height:24px;cursor:pointer;color:#ffb6c1;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .2s}
-        .lumi-menu-close:hover{background:#FFF0F3}
-        .lumi-menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-        .lumi-menu-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:transform .2s;padding:8px}
-        .lumi-menu-item:hover{transform:translateY(-3px)}
-        .lumi-menu-icon{width:32px;height:32px;object-fit:contain}
-        .lumi-menu-text{font-size:10px;color:#ff85a2;text-align:center}
-        .lumi-branding{margin-top:16px;font-size:9px;color:#ffb6c1;text-transform:uppercase;letter-spacing:3px;text-align:center}
-        
-        .lumi-modal-overlay{position:fixed;top:0;left:0;width:100vw;height:100dvh;background:rgba(0,0,0,0.3);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:2147483648;display:none;align-items:center;justify-content:center;animation:fadeIn .3s ease}
-        .lumi-modal-box{width:94%;max-width:480px;height:82vh;background:#fff;border-radius:28px;border:2px solid #FFD1DC;box-shadow:0 20px 50px rgba(255,182,193,0.15);display:flex;flex-direction:column;overflow:hidden;font-family:'Mitr',sans-serif;font-weight:300;animation:lumiPop .35s forwards}
-        .lumi-modal-header{padding:18px 20px;text-align:center;color:#ff85a2;border-bottom:1.5px solid #FFF0F3;position:relative;font-size:15px;font-weight:400;display:flex;align-items:center;justify-content:center;gap:10px}
-        .lumi-modal-back{position:absolute;left:14px;top:16px;width:26px;height:26px;background:#FFF0F3;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ff85a2;transition:background .2s}
-        .lumi-modal-back:hover{background:#FFE0E6}
-        .lumi-modal-close{position:absolute;right:14px;top:16px;width:26px;height:26px;background:#FFF0F3;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ff85a2;transition:background .2s}
-        .lumi-modal-close:hover{background:#FFE0E6}
-        .lumi-modal-body{flex:1;padding:16px;overflow-y:auto;scroll-behavior:smooth}
-        
-        .lumi-btn-gen{background:linear-gradient(135deg,#FFB6C1,#FF85A2);color:#fff;border:none;padding:10px 28px;border-radius:18px;font-family:'Mitr';cursor:pointer;transition:opacity .2s, transform .2s;box-shadow:0 4px 12px rgba(255,133,162,0.2);font-size:13px;font-weight:400}
-        .lumi-btn-gen:hover{opacity:.9;transform:translateY(-1px)}
-        .lumi-loader{width:32px;height:32px;border:3px solid #FFF0F3;border-top-color:#ff85a2;border-radius:50%;animation:spin 1s infinite linear;margin:0 auto}
-        
-        .lumi-timeline-container{padding-bottom:8px}
-        .lumi-timeline-date{font-size:11px;color:#ffb6c1;font-weight:400;padding:8px 0 6px;border-bottom:1px dashed #FFE8EE;margin:12px 0 8px;display:flex;align-items:center;gap:6px}
-        .lumi-memory-card{background:#FFFBFC;border:1px solid #FFE8EE;border-radius:16px;padding:14px;margin-bottom:10px;position:relative;transition:box-shadow .2s,transform .2s}
-        .lumi-memory-card:hover{box-shadow:0 3px 10px rgba(255,182,193,0.1);transform:translateY(-1px)}
-        .lumi-memory-card.pinned{border:1.5px solid #FFD1DC;background:#FFF8FA}
-        .lumi-memory-card.favorite{border-left:3px solid #FFD700}
-        .lumi-memory-card.secret-locked{opacity:0.7;background:#F8F8F8}
-        .lumi-memory-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:5px}
-        .lumi-memory-char{font-weight:400;color:#444;font-size:13px;display:flex;align-items:center;gap:6px}
-        .lumi-char-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-        .lumi-memory-meta{font-size:10px;color:#888;display:flex;gap:6px;flex-wrap:wrap}
-        .lumi-rp-info{background:#FFF0F3;padding:2px 8px;border-radius:8px;color:#ff85a2;font-size:9px;display:inline-flex;align-items:center;gap:3px}
-        .lumi-memory-content{font-size:12px;color:#555;line-height:1.6;margin:8px 0 10px;white-space:pre-wrap}
-        .lumi-memory-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
-        .lumi-tag{font-size:9px;padding:2px 8px;border-radius:10px;background:#FFF0F3;color:#ff85a2}
-        .lumi-memory-actions{display:flex;gap:6px;justify-content:flex-end;border-top:1px solid #FFE8EE;padding-top:8px}
-        .lumi-btn-icon{width:24px;height:24px;border-radius:50%;border:none;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ffb6c1;transition:.2s;padding:0}
-        .lumi-btn-icon:hover{background:#FFF0F3;transform:scale(1.1)}
-        .lumi-btn-icon.active{background:#FFF0F3;color:#FFD700}
-        .lumi-btn-icon.danger:hover{background:#FFE0E0;color:#ff6b6b}
-        
-        .lumi-locked-overlay{position:absolute;inset:0;background:rgba(255,255,255,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:1;border-radius:16px}
-        .lumi-locked-text{font-size:11px;color:#ffb6c1;text-align:center}
-        .lumi-locked-hint{font-size:9px;color:#ccc}
-        
-        .lumi-settings-card{background:#FFF9FA;border:1px solid #FFE8EE;border-radius:16px;padding:14px;margin-bottom:12px}
-        .lumi-settings-card h4{font-size:12px;color:#ff85a2;margin:0 0 10px;font-weight:400;display:flex;align-items:center;gap:6px}
-        .lumi-toggle-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;color:#666}
-        .lumi-toggle{position:relative;width:34px;height:18px;background:#FFE8EE;border-radius:9px;cursor:pointer;transition:.3s}
-        .lumi-toggle.active{background:#FFB6C1}
-        .lumi-toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
-        .lumi-toggle.active::after{left:18px}
-        .lumi-input{width:100%;background:#fff;border:1.5px solid #FFD1DC;border-radius:10px;padding:7px 10px;color:#ff85a2;font-family:'Mitr';font-size:11px;outline:none;box-sizing:border-box}
-        .lumi-input:focus{border-color:#FFB6C1}
-        .lumi-btn-sm{padding:6px 12px;border-radius:10px;border:none;background:#FFF0F3;color:#ff85a2;font-family:'Mitr';font-size:10px;cursor:pointer;margin-right:6px;transition:.2s;display:inline-flex;align-items:center;gap:4px}
-        .lumi-btn-sm:hover{background:#FFE0E6}
-        .lumi-btn-sm.danger{background:#FFE0E0;color:#ff6b6b}
-        
-        .lumi-rpg-columns{display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:12px}
-        .lumi-character-column{background:#FFFBFC;border:1px solid #FFE8EE;border-radius:16px;padding:12px}
-        .lumi-character-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed #FFE8EE}
-        .lumi-character-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0}
-        .lumi-character-name{font-size:13px;color:#444;font-weight:400}
-        .lumi-character-count{font-size:10px;color:#ffb6c1}
-        
-        .lumi-dashboard{padding:16px}
-        .lumi-stats-grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:10px;margin-bottom:16px}
-        .lumi-stat-card{background:#FFF9FA;border:1px solid #FFE8EE;border-radius:12px;padding:12px;text-align:center}
-        .lumi-stat-value{font-size:20px;color:#ff85a2;font-weight:500;margin-bottom:4px}
-        .lumi-stat-label{font-size:10px;color:#888}
-        
-        .lumi-filter-bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
-        .lumi-filter-select, .lumi-filter-search{flex:1;min-width:100px;padding:7px 10px;border:1.5px solid #FFD1DC;border-radius:10px;background:#fff;color:#ff85a2;font-family:'Mitr';font-size:11px;outline:none}
-        .lumi-filter-search{color:#666}
-        .lumi-empty{text-align:center;color:#ffb6c1;padding:30px 20px;font-size:12px;line-height:1.6}
-        .lumi-nav-tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid #FFF0F3;padding-bottom:8px}
-        .lumi-nav-tab{padding:6px 14px;border-radius:12px;background:transparent;color:#ffb6c1;font-family:'Mitr';font-size:11px;cursor:pointer;transition:.2s;border:none}
-        .lumi-nav-tab:hover{background:#FFF0F3}
-        .lumi-nav-tab.active{background:#FFB6C1;color:#fff}
-        .lumi-ref-badge{background:#FFF0F3;padding:2px 6px;border-radius:6px;font-size:9px;color:#ff85a2;cursor:pointer;transition:background .2s}
-        .lumi-ref-badge:hover{background:#FFE0E6}
-        
-        @media(max-width:768px){
-            .lumi-menu-container{width:calc(100vw-30px);right:15px!important}
-            .lumi-modal-box{height:85vh}
-            .lumi-rpg-columns{grid-template-columns:1fr}
-            .lumi-stats-grid{grid-template-columns:1fr}
-        }
-    `;
-    document.head.appendChild(s);
+    if ($("#lumi-styles").length) return;
+    const styleEl = document.createElement("style");
+    styleEl.id = "lumi-styles";
+    styleEl.innerHTML =
+        "@import url('https://fonts.googleapis.com/css2?family=Mitr:wght@200;300;400;500&display=swap');" +
+        ":root{--lumi-pink:#FFB6C1;--lumi-pink-soft:#FFF0F5;--lumi-pink-bold:#FF69B4;--lumi-shadow:0 8px 32px rgba(255,105,180,0.15)}" +
+        "@keyframes lumiPop{0%{opacity:0;transform:scale(.85) translateY(15px)}100%{opacity:1;transform:scale(1) translateY(0)}}" +
+        "@keyframes heartRise{0%{opacity:1;transform:translate(-50%,-50%) scale(.5)}100%{opacity:0;transform:translate(-50%,-80px) scale(1.8)}}" +
+        "@keyframes spin{to{transform:rotate(360deg)}}" +
+        "@keyframes fadeIn{from{opacity:0}to{opacity:1}}" +
+        ".lumi-vector-heart{position:fixed;z-index:2147483647;pointer-events:none;width:28px;height:28px;animation:heartRise .8s ease-out forwards;filter:drop-shadow(0 0 4px #FFB6C1)}" +
+        "#lumi-main-fab{position:fixed!important;z-index:2147483647!important;width:48px!important;height:48px!important;border-radius:50%!important;background:#FFF0F5 url('" + btnUrl + "') no-repeat center center!important;background-size:26px!important;border:2px solid #FFB6C1!important;box-shadow:var(--lumi-shadow)!important;cursor:grab!important;touch-action:none!important;user-select:none!important;display:flex!important;align-items:center!important;justify-content:center!important}#lumi-main-fab:active{cursor:grabbing!important}#lumi-main-fab.dragging{transition:none!important}" +
+        ".lumi-menu-container{position:fixed;z-index:2147483646;display:none;background:rgba(255,255,255,0.97);backdrop-filter:blur(20px);border-radius:20px;padding:16px;border:1.5px solid rgba(255,182,193,0.3);box-shadow:0 10px 30px rgba(255,182,193,0.2);font-family:'Mitr',sans-serif;font-weight:300;min-width:180px}" +
+        ".lumi-menu-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #FFF0F3}" +
+        ".lumi-menu-title{font-size:12px;color:#ff85a2;font-weight:400}" +
+        ".lumi-menu-close{width:22px;height:22px;cursor:pointer;color:#ffb6c1;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .2s}" +
+        ".lumi-menu-close:hover{background:#FFF0F3}" +
+        ".lumi-menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}" +
+        ".lumi-menu-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform .2s;padding:8px;border-radius:12px}" +
+        ".lumi-menu-item:hover{transform:translateY(-3px);background:#FFF0F3}" +
+        ".lumi-menu-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:#ff85a2}" +
+        ".lumi-menu-text{font-size:9px;color:#ff85a2;text-align:center}" +
+        ".lumi-branding{margin-top:12px;font-size:8px;color:#ffb6c1;text-transform:uppercase;letter-spacing:3px;text-align:center}" +
+        ".lumi-modal-overlay{position:fixed;top:0;left:0;width:100vw;height:100dvh;background:rgba(0,0,0,0.3);backdrop-filter:blur(12px);z-index:2147483648;display:none;align-items:center;justify-content:center}" +
+        ".lumi-modal-box{width:94%;max-width:480px;height:82vh;background:#fff;border-radius:24px;border:2px solid #FFD1DC;box-shadow:0 20px 50px rgba(255,182,193,0.15);display:flex;flex-direction:column;overflow:hidden;font-family:'Mitr',sans-serif;font-weight:300;animation:lumiPop .3s forwards}" +
+        ".lumi-modal-header{padding:16px 20px;text-align:center;color:#ff85a2;border-bottom:1.5px solid #FFF0F3;position:relative;font-size:14px;font-weight:400;display:flex;align-items:center;justify-content:center}" +
+        ".lumi-modal-back{position:absolute;left:12px;top:14px;width:26px;height:26px;background:#FFF0F3;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ff85a2}" +
+        ".lumi-modal-close{position:absolute;right:12px;top:14px;width:26px;height:26px;background:#FFF0F3;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ff85a2}" +
+        ".lumi-modal-body{flex:1;padding:16px;overflow-y:auto}" +
+        ".lumi-btn-gen{background:linear-gradient(135deg,#FFB6C1,#FF85A2);color:#fff;border:none;padding:10px 24px;border-radius:16px;font-family:'Mitr';cursor:pointer;transition:opacity .2s;box-shadow:0 4px 12px rgba(255,133,162,0.2);font-size:13px;font-weight:400}" +
+        ".lumi-btn-gen:hover{opacity:.9}" +
+        ".lumi-btn-sm{padding:6px 12px;border-radius:10px;border:none;background:#FFF0F3;color:#ff85a2;font-family:'Mitr';font-size:10px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:4px}" +
+        ".lumi-btn-sm:hover{background:#FFE0E6}" +
+        ".lumi-btn-sm.danger{background:#FFE0E0;color:#ff6b6b}" +
+        ".lumi-btn-icon{width:24px;height:24px;border-radius:50%;border:none;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ffb6c1;transition:.2s;padding:0}" +
+        ".lumi-btn-icon:hover{background:#FFF0F3;transform:scale(1.1)}" +
+        ".lumi-btn-icon.active{background:#FFF0F3;color:#FFD700}" +
+        ".lumi-btn-icon.danger:hover{background:#FFE0E0;color:#ff6b6b}" +
+        ".lumi-loader{width:32px;height:32px;border:3px solid #FFF0F3;border-top-color:#ff85a2;border-radius:50%;animation:spin 1s infinite linear;margin:0 auto}" +
+        ".lumi-nav-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid #FFF0F3;padding-bottom:8px}" +
+        ".lumi-nav-tab{padding:5px 12px;border-radius:10px;background:transparent;color:#ffb6c1;font-family:'Mitr';font-size:10px;cursor:pointer;transition:.2s;border:none}" +
+        ".lumi-nav-tab:hover{background:#FFF0F3}" +
+        ".lumi-nav-tab.active{background:#FFB6C1;color:#fff}" +
+        ".lumi-filter-bar{display:flex;gap:6px;margin-bottom:12px}" +
+        ".lumi-filter-select,.lumi-filter-search{flex:1;padding:6px 10px;border:1.5px solid #FFD1DC;border-radius:10px;background:#fff;color:#ff85a2;font-family:'Mitr';font-size:11px;outline:none}" +
+        ".lumi-filter-search{color:#666}" +
+        ".lumi-timeline-date{font-size:11px;color:#ffb6c1;padding:6px 0;border-bottom:1px dashed #FFE8EE;margin:10px 0 6px;display:flex;align-items:center;gap:5px}" +
+        ".lumi-memory-card{background:#FFFBFC;border:1px solid #FFE8EE;border-radius:14px;padding:12px;margin-bottom:8px;position:relative;transition:box-shadow .2s}" +
+        ".lumi-memory-card.pinned{border:1.5px solid #FFD1DC;background:#FFF8FA}" +
+        ".lumi-memory-card.favorite{border-left:3px solid #FFD700}" +
+        ".lumi-memory-card.secret-locked{opacity:.7;background:#F8F8F8}" +
+        ".lumi-memory-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;flex-wrap:wrap;gap:4px}" +
+        ".lumi-memory-char{font-weight:400;color:#444;font-size:12px;display:flex;align-items:center;gap:5px}" +
+        ".lumi-char-dot{width:7px;height:7px;border-radius:50%;display:inline-block}" +
+        ".lumi-rp-info{background:#FFF0F3;padding:2px 7px;border-radius:8px;color:#ff85a2;font-size:9px;display:inline-flex;align-items:center;gap:3px}" +
+        ".lumi-memory-content{font-size:12px;color:#555;line-height:1.6;margin:7px 0 8px;white-space:pre-wrap}" +
+        ".lumi-memory-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px}" +
+        ".lumi-tag{font-size:9px;padding:2px 7px;border-radius:9px;background:#FFF0F3;color:#ff85a2}" +
+        ".lumi-memory-actions{display:flex;gap:5px;justify-content:flex-end;border-top:1px solid #FFE8EE;padding-top:7px}" +
+        ".lumi-locked-overlay{position:absolute;inset:0;background:rgba(255,255,255,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:1;border-radius:14px}" +
+        ".lumi-locked-text{font-size:11px;color:#ffb6c1}" +
+        ".lumi-locked-hint{font-size:9px;color:#ccc}" +
+        ".lumi-ref-badge{background:#FFF0F3;padding:2px 6px;border-radius:6px;font-size:9px;color:#ff85a2;cursor:pointer}" +
+        ".lumi-ref-badge:hover{background:#FFE0E6}" +
+        ".lumi-settings-card{background:#FFF9FA;border:1px solid #FFE8EE;border-radius:14px;padding:12px;margin-bottom:10px}" +
+        ".lumi-settings-card h4{font-size:12px;color:#ff85a2;margin:0 0 10px;font-weight:400;display:flex;align-items:center;gap:5px}" +
+        ".lumi-input{width:100%;background:#fff;border:1.5px solid #FFD1DC;border-radius:10px;padding:7px 10px;color:#ff85a2;font-family:'Mitr';font-size:11px;outline:none;box-sizing:border-box}" +
+        ".lumi-stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}" +
+        ".lumi-stat-card{background:#FFF9FA;border:1px solid #FFE8EE;border-radius:12px;padding:12px;text-align:center}" +
+        ".lumi-stat-value{font-size:20px;color:#ff85a2;font-weight:500;margin-bottom:3px}" +
+        ".lumi-stat-label{font-size:10px;color:#888}" +
+        ".lumi-rpg-columns{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}" +
+        ".lumi-character-column{background:#FFFBFC;border:1px solid #FFE8EE;border-radius:14px;padding:10px}" +
+        ".lumi-character-header{display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px dashed #FFE8EE}" +
+        ".lumi-character-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;flex-shrink:0}" +
+        ".lumi-character-name{font-size:12px;color:#444;font-weight:400}" +
+        ".lumi-character-count{font-size:9px;color:#ffb6c1}" +
+        ".lumi-empty{text-align:center;color:#ffb6c1;padding:30px 20px;font-size:12px;line-height:1.6}" +
+        ".lumi-toggle-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;color:#666}" +
+        ".lumi-toggle{position:relative;width:32px;height:17px;background:#FFE8EE;border-radius:9px;cursor:pointer;transition:.3s}" +
+        ".lumi-toggle.active{background:#FFB6C1}" +
+        ".lumi-toggle::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,0.1)}" +
+        ".lumi-toggle.active::after{left:17px}" +
+        "#lumi-settings-drawer .inline-drawer-content{font-family:'Mitr',sans-serif;font-weight:300;padding:10px 0}" +
+        "#lumi-settings-drawer .menu_button{background:linear-gradient(135deg,#FFB6C1,#FF85A2);color:white;border:none;border-radius:10px;padding:7px 10px;font-family:'Mitr',sans-serif;font-size:11px;cursor:pointer;width:100%;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:5px}" +
+        "#lumi-settings-drawer .menu_button.danger{background:linear-gradient(135deg,#ff6b6b,#ff4757)}" +
+        "#lumi-settings-drawer .text_pole{background:#FFF9FA;border:1.5px solid #FFD1DC;border-radius:10px;color:#ff85a2;font-family:'Mitr',sans-serif;font-size:11px;padding:5px 8px;outline:none;width:100%}" +
+        "#lumi-settings-drawer .checkbox_label{font-size:12px;color:#aaa}" +
+        "@media(max-width:768px){.lumi-rpg-columns{grid-template-columns:1fr}.lumi-stats-grid{grid-template-columns:1fr}}";
+    document.head.appendChild(styleEl);
 }
 
 // ═══════════════════════════════════════════════
-// HEART & MODAL
+// HEART
 // ═══════════════════════════════════════════════
-function spawnHeartEffect(e) { 
-    const h = document.createElement('div'); 
-    h.className = 'lumi-vector-heart'; 
-    h.innerHTML = svgHeart; 
-    h.style.left = e.clientX + 'px'; 
-    h.style.top = e.clientY + 'px'; 
-    document.body.appendChild(h); 
-    setTimeout(() => h.remove(), 800); 
+function spawnHeartEffect(e) {
+    const h = document.createElement("div");
+    h.className = "lumi-vector-heart";
+    h.innerHTML = svgHeart;
+    h.style.left = e.clientX + "px";
+    h.style.top = e.clientY + "px";
+    document.body.appendChild(h);
+    setTimeout(function () { h.remove(); }, 800);
 }
 
+// ═══════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════
 function openLumiModal(type) {
-    $('.lumi-menu-container').fadeOut(150); 
-    $('#lumi-modal-overlay').css('display', 'flex').hide().fadeIn(250);
-    if (type === 'forum') renderForumUI();
-    else if (type === 'diary') renderDiaryUI();
-    else if (type === 'dashboard') renderDashboard();
-    else if (type === 'settings') renderSettingsModal();
-    else if (type === 'phone') { 
-        $('#lumi-modal-title').text('Phone'); 
-        $('#lumi-modal-body').html('<div class="lumi-empty">Coming Soon</div>'); 
+    $(".lumi-menu-container").fadeOut(150);
+    $("#lumi-modal-overlay").css("display", "flex").hide().fadeIn(250);
+    if (type === "forum") renderForumUI();
+    else if (type === "diary") renderDiaryUI();
+    else if (type === "dashboard") renderDashboard();
+    else if (type === "settings") renderSettingsModal();
+    else if (type === "phone") {
+        $("#lumi-modal-title").text("Phone");
+        $("#lumi-modal-body").html("<div class=\"lumi-empty\">Coming Soon 🌸</div>");
     }
 }
 
 function createContentModal() {
-    if ($('#lumi-modal-overlay').length) return;
-    $('body').append(`<div id="lumi-modal-overlay" class="lumi-modal-overlay"><div class="lumi-modal-box"><div class="lumi-modal-header"><div class="lumi-modal-back" id="lumi-modal-back"><LaTex>id_35</LaTex>{svgClose}</div></div><div id="lumi-modal-body" class="lumi-modal-body"></div></div></div>`);
-    
-    $('#lumi-modal-back').on('click', () => {
-        const s = extension_settings[extensionName].diary;
-        if (s.display.viewMode === 'rpg') { renderRPGView(); } 
-        else { loadAndRenderTimeline(); }
+    if ($("#lumi-modal-overlay").length) return;
+    $("body").append(
+        "<div id=\"lumi-modal-overlay\" class=\"lumi-modal-overlay\">" +
+        "<div class=\"lumi-modal-box\">" +
+        "<div class=\"lumi-modal-header\">" +
+        "<div class=\"lumi-modal-back\" id=\"lumi-modal-back\">" + svgBack + "</div>" +
+        "<span id=\"lumi-modal-title\"></span>" +
+        "<div class=\"lumi-modal-close\">" + svgClose + "</div>" +
+        "</div>" +
+        "<div id=\"lumi-modal-body\" class=\"lumi-modal-body\"></div>" +
+        "</div>" +
+        "</div>"
+    );
+    $("#lumi-modal-back").on("click", function () { loadAndRenderTimeline(); });
+    $("#lumi-modal-overlay").on("click", function (e) {
+        if (e.target.id === "lumi-modal-overlay") $(this).fadeOut(200);
     });
-    
-    $('#lumi-modal-overlay').on('click', function(e) { if (e.target.id === 'lumi-modal-overlay') $(this).fadeOut(200); });
-    $(document).off('click', '.lumi-modal-close').on('click', '.lumi-modal-close', () => $('#lumi-modal-overlay').fadeOut(200));
+    $(document).off("click", ".lumi-modal-close").on("click", ".lumi-modal-close", function () {
+        $("#lumi-modal-overlay").fadeOut(200);
+    });
 }
 
-function renderForumUI() { $('#lumi-modal-title').text('Forum'); $('#lumi-modal-body').html('<div class="lumi-empty">Coming Soon</div>'); }
+// ═══════════════════════════════════════════════
+// FORUM
+// ═══════════════════════════════════════════════
+function renderForumUI() {
+    $("#lumi-modal-title").text("Forum");
+    $("#lumi-modal-body").html("<div class=\"lumi-empty\">Coming Soon 🌸</div>");
+}
 
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
 function renderDashboard() {
-    $('#lumi-modal-title').text('Dashboard');
+    $("#lumi-modal-title").text("Dashboard");
     const mem = extension_settings[extensionName].memories || [];
-    const totalMem = mem.length;
-    const pinnedMem = mem.filter(m => m.meta.isPinned).length;
-    const favoriteMem = mem.filter(m => m.meta.isFavorite).length;
-    const secretMem = mem.filter(m => m.meta.isSecret).length;
-    const characters = [...new Set(mem.map(m => m.character))];
-    
-    $('#lumi-modal-body').html(`
-        <div class="lumi-dashboard">
-            <div class="lumi-stats-grid">
-                <div class="lumi-stat-card"><div class="lumi-stat-value">${totalMem}</div><div class="lumi-stat-label">ทั้งหมด</div></div>
-                <div class="lumi-stat-card"><div class="lumi-stat-value"><LaTex>id_34</LaTex>{favoriteMem}</div><div class="lumi-stat-label">ล้ำค่า</div></div>
-                <div class="lumi-stat-card"><div class="lumi-stat-value"><LaTex>id_33</LaTex>{characters.map(char => {
-                    const count = mem.filter(m => m.character === char).length;
-                    const color = generateColorFromString(char);
-                    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px;color:#666;"><span style="display:flex;align-items:center;gap:6px;"><span class="lumi-char-dot" style="background:${color}"></span>${escapeHtml(char)}</span><span style="color:#ff85a2;">${count}</span></div>`;
-                }).join('')}
-            </div>
-        </div>
-    `);
+    const chars = [];
+    const seen = new Set();
+    for (let i = 0; i < mem.length; i++) {
+        if (!seen.has(mem[i].character)) {
+            seen.add(mem[i].character);
+            chars.push(mem[i].character);
+        }
+    }
+    let statsHtml = "";
+    for (let i = 0; i < chars.length; i++) {
+        const char = chars[i];
+        const count = mem.filter(function (m) { return m.character === char; }).length;
+        const color = generateColorFromString(char);
+        statsHtml += "<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:11px;color:#666;\"><span style=\"display:flex;align-items:center;gap:5px;\"><span class=\"lumi-char-dot\" style=\"background:" + color + "\"></span>" + escapeHtml(char) + "</span><span style=\"color:#ff85a2;\">" + count + "</span></div>";
+    }
+    if (chars.length === 0) statsHtml = "<div style=\"font-size:11px;color:#ccc;text-align:center;\">ยังไม่มีความทรงจำ</div>";
+    $("#lumi-modal-body").html(
+        "<div style=\"padding:16px;\">" +
+        "<div class=\"lumi-stats-grid\">" +
+        "<div class=\"lumi-stat-card\"><div class=\"lumi-stat-value\">" + mem.length + "</div><div class=\"lumi-stat-label\">ความทรงจำทั้งหมด</div></div>" +
+        "<div class=\"lumi-stat-card\"><div class=\"lumi-stat-value\">" + mem.filter(function (m) { return m.meta.isPinned; }).length + "</div><div class=\"lumi-stat-label\">ปักหมุด</div></div>" +
+        "<div class=\"lumi-stat-card\"><div class=\"lumi-stat-value\">" + mem.filter(function (m) { return m.meta.isFavorite; }).length + "</div><div class=\"lumi-stat-label\">ล้ำค่า ⭐</div></div>" +
+        "<div class=\"lumi-stat-card\"><div class=\"lumi-stat-value\">" + mem.filter(function (m) { return m.meta.isSecret; }).length + "</div><div class=\"lumi-stat-label\">ความลับ</div></div>" +
+        "</div>" +
+        "<div class=\"lumi-settings-card\">" +
+        "<h4>ความทรงจำต่อตัวละคร</h4>" + statsHtml +
+        "</div>" +
+        "<div style=\"text-align:center;margin-top:12px;\">" +
+        "<button class=\"lumi-btn-sm\" onclick=\"exportMemories()\">" + svgDownload + " Export JSON</button>" +
+        "</div>" +
+        "</div>"
+    );
 }
 
+// ═══════════════════════════════════════════════
+// SETTINGS MODAL
+// ═══════════════════════════════════════════════
 function renderSettingsModal() {
-    $('#lumi-modal-title').text('Settings');
+    $("#lumi-modal-title").text("Settings");
     const s = extension_settings[extensionName].diary;
     const ag = s.autoGen;
-    
-    $('#lumi-modal-body').html(`
-        <div style="padding: 16px;">
-            <div class="lumi-settings-card">
-                <h4>${svgSettings} ทั่วไป</h4>
-                <div style="margin-bottom: 10px;"><label style="font-size: 11px; color: #666;">โหมดโลก</label><select id="modal-world-mode" class="lumi-input" style="margin-top: 4px;"><option value="auto" <LaTex>id_32</LaTex>{s.worldMode === 'solo' ? 'selected' : ''}>เดี่ยว</option><option value="rpg" <LaTex>id_31</LaTex>{s.display.viewMode === 'timeline' ? 'selected' : ''}>Timeline</option><option value="rpg" <LaTex>id_30</LaTex>{svgRefresh} อัตโนมัติ</h4>
-                <div class="lumi-toggle-row"><span style="font-size: 11px;">เปิดใช้งาน</span><div id="modal-autogen-toggle" class="lumi-toggle <LaTex>id_29</LaTex>{ag.triggerType === 'turn_count' ? 'selected' : ''}>ทุก X ข้อความ</option><option value="emotion" <LaTex>id_28</LaTex>{ag.triggerType === 'random' ? 'selected' : ''}>สุ่ม</option></select></div>
-                <div id="modal-turn-wrap" style="margin-top: 8px; <LaTex>id_27</LaTex>{ag.turnInterval}" min="5" max="100" class="lumi-input" style="width: 60px; margin-left: 6px;"> <span style="font-size: 10px; color: #888;">ข้อความ</span></div>
-            </div>
-            <div style="margin-top: 16px; display: flex; gap: 8px;">
-                <button id="modal-save" class="lumi-btn-gen" style="flex: 2;">💾 บันทึก</button>
-                <button id="modal-reset-fab" class="lumi-btn-sm" style="flex: 1;"><LaTex>id_26</LaTex>('#modal-autogen-toggle').on('click', function() { $(this).toggleClass('active'); });
-    $('#modal-trigger-type').on('change', function() { $('#modal-turn-wrap').toggle($(this).val() === 'turn_count'); });
-    $('#modal-save').on('click', () => {
-        s.worldMode = $('#modal-world-mode').val();
-        s.display.viewMode = $('#modal-view-mode').val();
-        s.autoGen.enabled = $('#modal-autogen-toggle').hasClass('active');
-        s.autoGen.triggerType = $('#modal-trigger-type').val();
-        s.autoGen.turnInterval = parseInt($('#modal-turn-interval').val()) || 20;
-        SillyTavern.getContext().saveSettingsDebounced();
-        showToast('บันทึกการตั้งค่าแล้ว');
-        setTimeout(() => renderDiaryUI(), 500);
+    $("#lumi-modal-body").html(
+        "<div style=\"padding:16px;\">" +
+        "<div class=\"lumi-settings-card\">" +
+        "<h4>" + svgSettings + " ทั่วไป</h4>" +
+        "<div style=\"margin-bottom:8px;\">" +
+        "<label style=\"font-size:11px;color:#666;\">โหมดโลก</label>" +
+        "<select id=\"modal-world-mode\" class=\"lumi-input\" style=\"margin-top:4px;\">" +
+        "<option value=\"auto\"" + (s.worldMode === "auto" ? " selected" : "") + ">อัตโนมัติ</option>" +
+        "<option value=\"solo\"" + (s.worldMode === "solo" ? " selected" : "") + ">เดี่ยว</option>" +
+        "<option value=\"rpg\"" + (s.worldMode === "rpg" ? " selected" : "") + ">RPG</option>" +
+        "</select>" +
+        "</div>" +
+        "<div>" +
+        "<label style=\"font-size:11px;color:#666;\">การแสดงผล</label>" +
+        "<select id=\"modal-view-mode\" class=\"lumi-input\" style=\"margin-top:4px;\">" +
+        "<option value=\"timeline\"" + (s.display.viewMode === "timeline" ? " selected" : "") + ">Timeline</option>" +
+        "<option value=\"rpg\"" + (s.display.viewMode === "rpg" ? " selected" : "") + ">RPG Columns</option>" +
+        "</select>" +
+        "</div>" +
+        "</div>" +
+        "<div class=\"lumi-settings-card\">" +
+        "<h4>" + svgRefresh + " อัตโนมัติ</h4>" +
+        "<div class=\"lumi-toggle-row\">" +
+        "<span>เปิดใช้งาน</span>" +
+        "<div id=\"modal-autogen-toggle\" class=\"lumi-toggle" + (ag.enabled ? " active" : "") + "\"></div>" +
+        "</div>" +
+        "<div>" +
+        "<label style=\"font-size:11px;color:#666;\">ทริกเกอร์</label>" +
+        "<select id=\"modal-trigger-type\" class=\"lumi-input\" style=\"margin-top:4px;\">" +
+        "<option value=\"turn_count\"" + (ag.triggerType === "turn_count" ? " selected" : "") + ">ทุก X ข้อความ</option>" +
+        "<option value=\"emotion\"" + (ag.triggerType === "emotion" ? " selected" : "") + ">คำอารมณ์</option>" +
+        "<option value=\"random\"" + (ag.triggerType === "random" ? " selected" : "") + ">สุ่ม</option>" +
+        "</select>" +
+        "</div>" +
+        "<div id=\"modal-turn-wrap\" style=\"margin-top:8px;" + (ag.triggerType !== "turn_count" ? "display:none;" : "") + "\">" +
+        "<input type=\"number\" id=\"modal-turn-interval\" value=\"" + ag.turnInterval + "\" min=\"5\" max=\"100\" class=\"lumi-input\" style=\"width:60px;\"> <span style=\"font-size:10px;color:#888;\">ข้อความ</span>" +
+        "</div>" +
+        "</div>" +
+        "<div style=\"display:flex;gap:8px;margin-top:14px;\">" +
+        "<button id=\"modal-save\" class=\"lumi-btn-gen\" style=\"flex:2;\">💾 บันทึก</button>" +
+        "<button id=\"modal-reset-fab\" class=\"lumi-btn-sm\" style=\"flex:1;\">" + svgReset + " รีเซ็ตปุ่ม</button>" +
+        "</div>" +
+        "</div>"
+    );
+    $("#modal-autogen-toggle").on("click", function () { $(this).toggleClass("active"); });
+    $("#modal-trigger-type").on("change", function () {
+        $("#modal-turn-wrap").toggle($(this).val() === "turn_count");
     });
-    $('#modal-reset-fab').on('click', () => {
-        const fab = $('#lumi-main-fab');
-        const defaultPos = { top: '50%', right: '0px', left: 'auto', bottom: 'auto', transform: 'translateY(-50%)' };
-        if (fab.length) { fab.css(defaultPos).show(); saveFabPosition(defaultPos); showToast('รีเซ็ตตำแหน่งปุ่มแล้ว'); }
+    $("#modal-save").on("click", function () {
+        s.worldMode = $("#modal-world-mode").val();
+        s.display.viewMode = $("#modal-view-mode").val();
+        s.autoGen.enabled = $("#modal-autogen-toggle").hasClass("active");
+        s.autoGen.triggerType = $("#modal-trigger-type").val();
+        s.autoGen.turnInterval = parseInt($("#modal-turn-interval").val()) || 20;
+        SillyTavern.getContext().saveSettingsDebounced();
+        showToast("บันทึกการตั้งค่าแล้ว", "success");
+        setTimeout(function () { renderDiaryUI(); }, 500);
+    });
+    $("#modal-reset-fab").on("click", function () {
+        saveFabPosition(null);
+        $("#lumi-main-fab, .lumi-menu-container").remove();
+        spawnLumiButton();
+        showToast("รีเซ็ตปุ่มแล้ว");
     });
 }
 
+// ═══════════════════════════════════════════════
+// DIARY UI
+// ═══════════════════════════════════════════════
 function renderDiaryUI() {
-    const s = extension_settings[extensionName], cn = getCharacterName();
-    $('#lumi-modal-title').text(`${cn}'s Memories`);
+    const cn = getCharacterName();
+    $("#lumi-modal-title").text(cn + "'s Memories");
     const chars = getRPGCharacters(10);
-    
-    $('#lumi-modal-body').html(`
-        <div class="lumi-nav-tabs">
-            <button class="lumi-nav-tab active" data-view="timeline">Timeline</button>
-            <button class="lumi-nav-tab" data-view="rpg">RPG View</button>
-            <button class="lumi-nav-tab" data-view="dashboard">Dashboard</button>
-        </div>
-        <div id="lumi-diary-content">
-            <div style="text-align:center;margin-bottom:12px"><button id="lumi-manual-gen" class="lumi-btn-gen">${svgPlus} บันทึกความทรงจำ</button></div>
-            <div class="lumi-filter-bar">
-                <select id="lumi-f-char" class="lumi-filter-select"><option value="">ทุกตัวละคร</option><LaTex>id_25</LaTex>{escapeHtml(c.name)}" style="color: ${c.color}">${escapeHtml(c.name)}</option>`).join('')}</select>
-                <input id="lumi-f-search" class="lumi-filter-search" placeholder="ค้นหา...">
-            </div>
-            <div id="lumi-timeline-panel" class="lumi-timeline-container"></div>
-        </div>
-    `);
-    
+    let charOptions = "<option value=\"\">ทุกตัวละคร</option>";
+    for (let i = 0; i < chars.length; i++) {
+        charOptions += "<option value=\"" + escapeHtml(chars[i].name) + "\">" + escapeHtml(chars[i].name) + "</option>";
+    }
+    $("#lumi-modal-body").html(
+        "<div class=\"lumi-nav-tabs\">" +
+        "<button class=\"lumi-nav-tab active\" data-view=\"timeline\">Timeline</button>" +
+        "<button class=\"lumi-nav-tab\" data-view=\"rpg\">RPG View</button>" +
+        "<button class=\"lumi-nav-tab\" data-view=\"dashboard\">Dashboard</button>" +
+        "</div>" +
+        "<div style=\"text-align:center;margin-bottom:12px;\">" +
+        "<button id=\"lumi-manual-gen\" class=\"lumi-btn-gen\">" + svgPlus + " บันทึกความทรงจำ</button>" +
+        "</div>" +
+        "<div class=\"lumi-filter-bar\">" +
+        "<select id=\"lumi-f-char\" class=\"lumi-filter-select\">" + charOptions + "</select>" +
+        "<input id=\"lumi-f-search\" class=\"lumi-filter-search\" placeholder=\"ค้นหา...\">" +
+        "</div>" +
+        "<div id=\"lumi-timeline-panel\" class=\"lumi-timeline-container\"></div>"
+    );
     loadAndRenderTimeline();
-    $('#lumi-f-char, #lumi-f-search').on('change keyup', () => setTimeout(loadAndRenderTimeline, 200));
-    $('#lumi-manual-gen').on('click', manualGenerate);
-    
-    $('.lumi-nav-tab').on('click', function() {
-        $('.lumi-nav-tab').removeClass('active');
-        $(this).addClass('active');
-        const view = $(this).data('view');
-        if (view === 'timeline') { loadAndRenderTimeline(); }
-        else if (view === 'rpg') { renderRPGView(); }
-        else if (view === 'dashboard') { renderDashboard(); }
+    $("#lumi-f-char, #lumi-f-search").on("change keyup", function () {
+        setTimeout(loadAndRenderTimeline, 200);
     });
+    $("#lumi-manual-gen").on("click", manualGenerate);
+    $(".lumi-nav-tab").on("click", function () {
+        $(".lumi-nav-tab").removeClass("active");
+        $(this).addClass("active");
+        const view = $(this).data("view");
+        if (view === "timeline") loadAndRenderTimeline();
+        else if (view === "rpg") renderRPGView();
+        else if (view === "dashboard") renderDashboard();
+    });
+}
+
+function loadAndRenderTimeline() {
+    const f = { character: $("#lumi-f-char").val() || null, showSecret: extension_settings[extensionName].diary.display.showSecret };
+    const q = ($("#lumi-f-search").val() || "").toLowerCase();
+    let mem = loadMemories(f);
+    if (q) {
+        mem = mem.filter(function (m) {
+            return (m.content.diary || "").toLowerCase().includes(q) || (m.content.mood || "").includes(q);
+        });
+    }
+    const p = $("#lumi-timeline-panel");
+    if (!mem.length) {
+        p.html("<div class=\"lumi-empty\">ยังไม่มีความทรงจำ<br><small>กด \"บันทึกความทรงจำ\" เพื่อเริ่มต้น</small></div>");
+        return;
+    }
+    const grouped = {};
+    for (let i = 0; i < mem.length; i++) {
+        const m = mem[i];
+        const dk = m.content.rp_date || "ไม่ระบุวันที่";
+        if (!grouped[dk]) grouped[dk] = [];
+        grouped[dk].push(m);
+    }
+    let h = "";
+    for (const date in grouped) {
+        if (grouped.hasOwnProperty(date)) {
+            const entries = grouped[date];
+            h += "<div class=\"lumi-timeline-date\">" + svgCalendar + " " + escapeHtml(date) + "</div>";
+            for (let j = 0; j < entries.length; j++) {
+                h += renderMemoryCard(entries[j], false);
+            }
+        }
+    }
+    p.html(h);
+    bindMemoryCardEvents();
 }
 
 function renderRPGView() {
-    const f = { character: $('#lumi-f-char').val() || null, worldMode: null, showSecret: extension_settings[extensionName].diary.display.showSecret };
-    const q = $('#lumi-f-search').val()?.toLowerCase() || '';
+    const f = { character: $("#lumi-f-char").val() || null, showSecret: extension_settings[extensionName].diary.display.showSecret };
     let mem = loadMemories(f);
-    if (q) mem = mem.filter(m => m.content.diary?.toLowerCase().includes(q) || m.content.mood?.includes(q));
-    
     const byChar = {};
-    mem.forEach(m => { if (!byChar[m.character]) byChar[m.character] = []; byChar[m.character].push(m); });
-    
-    const panel = $('#lumi-timeline-panel');
-    if (Object.keys(byChar).length === 0) { panel.html('<div class="lumi-empty">ยังไม่มีความทรงจำ</div>'); return; }
-    
-    let html = '<div class="lumi-rpg-columns">';
-    for (const [char, entries] of Object.entries(byChar)) {
-        const charInfo = getRPGCharacters(20).find(c => c.name === char) || { name: char, color: generateColorFromString(char) };
-        html += `<div class="lumi-character-column"><div class="lumi-character-header"><div class="lumi-character-avatar" style="background: ${charInfo.color}"><LaTex>id_24</LaTex>{escapeHtml(char)}</div><div class="lumi-character-count"><LaTex>id_23</LaTex>{entries.map(m => renderMemoryCard(m, true)).join('')}</div>`;
+    for (let i = 0; i < mem.length; i++) {
+        const m = mem[i];
+        if (!byChar[m.character]) byChar[m.character] = [];
+        byChar[m.character].push(m);
     }
-    html += '</div>';
+    const panel = $("#lumi-timeline-panel");
+    if (!Object.keys(byChar).length) {
+        panel.html("<div class=\"lumi-empty\">ยังไม่มีความทรงจำ</div>");
+        return;
+    }
+    let html = "<div class=\"lumi-rpg-columns\">";
+    for (const char in byChar) {
+        if (byChar.hasOwnProperty(char)) {
+            const entries = byChar[char];
+            const color = generateColorFromString(char);
+            html += "<div class=\"lumi-character-column\">" +
+                "<div class=\"lumi-character-header\">" +
+                "<div class=\"lumi-character-avatar\" style=\"background:" + color + "\">" + escapeHtml(char.charAt(0).toUpperCase()) + "</div>" +
+                "<div><div class=\"lumi-character-name\">" + escapeHtml(char) + "</div><div class=\"lumi-character-count\">" + entries.length + " ความทรงจำ</div></div>" +
+                "</div>";
+            for (let j = 0; j < entries.length; j++) {
+                html += renderMemoryCard(entries[j], true);
+            }
+            html += "</div>";
+        }
+    }
+    html += "</div>";
     panel.html(html);
     bindMemoryCardEvents();
 }
 
-function loadAndRenderTimeline() {
-    const f = { character: $('#lumi-f-char').val() || null, worldMode: null, showSecret: extension_settings[extensionName].diary.display.showSecret };
-    const q = $('#lumi-f-search').val()?.toLowerCase() || '';
-    let mem = loadMemories(f);
-    if (q) mem = mem.filter(m => m.content.diary?.toLowerCase().includes(q) || m.content.mood?.includes(q));
-    const p = $('#lumi-timeline-panel');
-    if (!mem.length) { p.html('<div class="lumi-empty">ยังไม่มีความทรงจำ</div>'); return; }
-    
-    const grouped = {};
-    mem.forEach(m => { const dateKey = m.content.rp_date || 'ไม่ระบุวันที่'; if (!grouped[dateKey]) grouped[dateKey] = []; grouped[dateKey].push(m); });
-    
-    let h = '';
-    for (const [date, entries] of Object.entries(grouped)) {
-        h += `<div class="lumi-timeline-date">${svgCalendar} <LaTex>id_22</LaTex>{svgCalendar} <LaTex>id_21</LaTex>{svgMapPin} <LaTex>id_20</LaTex>{svgCloud} <LaTex>id_19</LaTex>{entry.meta.referencedMessageIndex}">#<LaTex>id_18</LaTex>{t}</span>`).join('');
-    const acts = `<button class="lumi-btn-icon <LaTex>id_17</LaTex>{svgPin}</button><button class="lumi-btn-icon <LaTex>id_16</LaTex>{entry.meta.isFavorite ? svgStarFilled : svgStar}</button><button class="lumi-btn-icon" data-act="ref" title="อ้างอิง"><LaTex>id_15</LaTex>{svgTrash}</button>`;
-    
+function renderMemoryCard(entry, compact) {
+    if (compact === undefined) compact = false;
+    const isLocked = entry.meta.isSecret && !checkUnlock(entry);
+    const color = generateColorFromString(entry.character);
+    const rp = "<span class=\"lumi-rp-info\">" + svgMapPin + " " + escapeHtml(entry.content.rp_location) + "</span><span class=\"lumi-rp-info\">" + svgCloud + " " + escapeHtml(entry.content.rp_weather) + "</span>";
+    const refBadge = entry.meta.referencedMessageIndex !== undefined ? "<span class=\"lumi-ref-badge\" data-msg-index=\"" + entry.meta.referencedMessageIndex + "\">#" + (entry.meta.referencedMessageIndex + 1) + "</span>" : "";
+    let tags = "";
+    if (entry.meta.tags && entry.meta.tags.length) {
+        for (let i = 0; i < entry.meta.tags.length; i++) {
+            tags += "<span class=\"lumi-tag\">" + entry.meta.tags[i] + "</span>";
+        }
+    }
+    const acts = "<button class=\"lumi-btn-icon" + (entry.meta.isPinned ? " active" : "") + "\" data-act=\"pin\">" + svgPin + "</button>" +
+        "<button class=\"lumi-btn-icon" + (entry.meta.isFavorite ? " active" : "") + "\" data-act=\"fav\">" + (entry.meta.isFavorite ? svgStarFilled : svgStar) + "</button>" +
+        "<button class=\"lumi-btn-icon\" data-act=\"ref\">" + svgRef + "</button>" +
+        "<button class=\"lumi-btn-icon danger\" data-act=\"del\">" + svgTrash + "</button>";
     if (isLocked) {
-        return `<div class="lumi-memory-card secret-locked" data-id="<LaTex>id_14</LaTex>{svgLock}<div class="lumi-locked-text">ความทรงจำนี้ยังมองไม่เห็น</div></div><div class="lumi-memory-header"><span class="lumi-memory-char"><span class="lumi-char-dot" style="background:<LaTex>id_13</LaTex>{escapeHtml(entry.character)}</span></div><div class="lumi-memory-meta"><LaTex>id_12</LaTex>{entry.meta.isPinned ? 'pinned' : ''} <LaTex>id_11</LaTex>{entry.id}"><div class="lumi-memory-header"><span class="lumi-memory-char"><span class="lumi-char-dot" style="background:<LaTex>id_10</LaTex>{escapeHtml(entry.character)}</span><div class="lumi-memory-meta"><LaTex>id_9</LaTex>{refBadge}</div></div><div style="font-size:10px;color:#888;margin-bottom:6px"><LaTex>id_8</LaTex>{entry.content.affection_score}</div><div class="lumi-memory-content"><LaTex>id_7</LaTex>{tags}</div><LaTex>id_6</LaTex>{acts}</div>`}</div>`;
+        return "<div class=\"lumi-memory-card secret-locked\" data-id=\"" + entry.id + "\">" +
+            "<div class=\"lumi-locked-overlay\">" + svgLock + "<div class=\"lumi-locked-text\">ความทรงจำนี้ยังมองไม่เห็น</div><div class=\"lumi-locked-hint\">จะเปิดเผยเมื่อถึงเวลา...</div></div>" +
+            "<div class=\"lumi-memory-header\"><span class=\"lumi-memory-char\"><span class=\"lumi-char-dot\" style=\"background:" + color + "\"></span>" + escapeHtml(entry.character) + "</span></div>" +
+            "</div>";
+    }
+    return "<div class=\"lumi-memory-card" + (entry.meta.isPinned ? " pinned" : "") + (entry.meta.isFavorite ? " favorite" : "") + "\" data-id=\"" + entry.id + "\">" +
+        "<div class=\"lumi-memory-header\">" +
+        "<span class=\"lumi-memory-char\"><span class=\"lumi-char-dot\" style=\"background:" + color + "\"></span>" + escapeHtml(entry.character) + "</span>" +
+        "<div style=\"display:flex;gap:4px;align-items:center;flex-wrap:wrap;\">" + (compact ? "" : rp) + " " + refBadge + "</div>" +
+        "</div>" +
+        "<div style=\"font-size:10px;color:#888;margin-bottom:5px;\">" + escapeHtml(entry.content.mood) + " · ❤️ " + entry.content.affection_score + "</div>" +
+        "<div class=\"lumi-memory-content\">" + escapeHtml(entry.content.diary) + "</div>" +
+        "<div class=\"lumi-memory-tags\">" + tags + "</div>" +
+        (compact ? "" : "<div class=\"lumi-memory-actions\">" + acts + "</div>") +
+        "</div>";
 }
 
 function bindMemoryCardEvents() {
-    <LaTex>id_5</LaTex>(this).closest('.lumi-memory-card').data('id')); });
-    <LaTex>id_4</LaTex>(this).closest('.lumi-memory-card').data('id')); });
-    <LaTex>id_3</LaTex>(this).closest('.lumi-memory-card').data('id')); });
-    <LaTex>id_2</LaTex>(this).closest('.lumi-memory-card').data('id')); });
-    <LaTex>id_1</LaTex>(this).data('msg-index'); if (idx !== undefined) scrollToMessage(idx); });
+    $(".lumi-btn-icon[data-act=\"pin\"]").off("click").on("click", function (e) {
+        e.stopPropagation();
+        togglePin($(this).closest(".lumi-memory-card").data("id"));
+    });
+    $(".lumi-btn-icon[data-act=\"fav\"]").off("click").on("click", function (e) {
+        e.stopPropagation();
+        toggleFavorite($(this).closest(".lumi-memory-card").data("id"));
+    });
+    $(".lumi-btn-icon[data-act=\"ref\"]").off("click").on("click", function (e) {
+        e.stopPropagation();
+        showRef($(this).closest(".lumi-memory-card").data("id"));
+    });
+    $(".lumi-btn-icon[data-act=\"del\"]").off("click").on("click", function (e) {
+        e.stopPropagation();
+        delMem($(this).closest(".lumi-memory-card").data("id"));
+    });
+    $(".lumi-ref-badge").off("click").on("click", function (e) {
+        e.stopPropagation();
+        scrollToMessage($(this).data("msg-index"));
+    });
 }
 
-function togglePin(id) { const s = extension_settings[extensionName], m = s.memories.find(x => x.id === id); if (m) { m.meta.isPinned = !m.meta.isPinned; SillyTavern.getContext().saveSettingsDebounced(); loadAndRenderTimeline(); } }
-function toggleFavorite(id) { const s = extension_settings[extensionName], m = s.memories.find(x => x.id === id); if (m) { m.meta.isFavorite = !m.meta.isFavorite; if (m.meta.isFavorite && !m.meta.tags.includes('#ล้ำค่า')) m.meta.tags.push('#ล้ำค่า'); else m.meta.tags = m.meta.tags.filter(t => t !== '#ล้ำค่า'); SillyTavern.getContext().saveSettingsDebounced(); loadAndRenderTimeline(); showToast(m.meta.isFavorite ? '⭐ เพิ่มเป็นล้ำค่า' : 'เอาออก'); } }
-function showRef(id) { const m = extension_settings[extensionName].memories.find(x => x.id === id); if (m && m.meta.referencedMessageIndex !== undefined) scrollToMessage(m.meta.referencedMessageIndex); }
-function delMem(id) { if (confirm('ลบความทรงจำนี้?')) { const s = extension_settings[extensionName]; s.memories = s.memories.filter(x => x.id !== id); SillyTavern.getContext().saveSettingsDebounced(); loadAndRenderTimeline(); } }
-function exportMemories() { const data = JSON.stringify(extension_settings[extensionName].memories, null, 2); const blob = new Blob([data], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download
+function togglePin(id) {
+    const s = extension_settings[extensionName];
+    const m = s.memories.find(function (x) { return x.id === id; });
+    if (m) {
+        m.meta.isPinned = !m.meta.isPinned;
+        SillyTavern.getContext().saveSettingsDebounced();
+        loadAndRenderTimeline();
+    }
+}
+
+function toggleFavorite(id) {
+    const s = extension_settings[extensionName];
+    const m = s.memories.find(function (x) { return x.id === id; });
+    if (m) {
+        m.meta.isFavorite = !m.meta.isFavorite;
+        if (m.meta.isFavorite && !m.meta.tags.includes("#ล้ำค่า")) m.meta.tags.push("#ล้ำค่า");
+        else m.meta.tags = m.meta.tags.filter(function (t) { return t !== "#ล้ำค่า"; });
+        SillyTavern.getContext().saveSettingsDebounced();
+        loadAndRenderTimeline();
+        showToast(m.meta.isFavorite ? "⭐ เพิ่มเป็นความทรงจำล้ำค่า" : "เอาออกจากรายการล้ำค่า");
+    }
+}
+
+function showRef(id) {
+    const m = extension_settings[extensionName].memories.find(function (x) { return x.id === id; });
+    if (m && m.meta.referencedMessageIndex !== undefined) scrollToMessage(m.meta.referencedMessageIndex);
+    else if (m) showToast(m.meta.referenceText || "ไม่มีข้อมูล");
+}
+
+function delMem(id) {
+    if (confirm("ลบความทรงจำนี้?")) {
+        const s = extension_settings[extensionName];
+        s.memories = s.memories.filter(function (x) { return x.id !== id; });
+        SillyTavern.getContext().saveSettingsDebounced();
+        loadAndRenderTimeline();
+    }
+}
+
+function exportMemories() {
+    const data = JSON.stringify(extension_settings[extensionName].memories, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "lumipulse-memories-" + new Date().toISOString().split("T")[0] + ".json";
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("Export สำเร็จ", "success");
+}
+
+// ═══════════════════════════════════════════════
+// SETTINGS PANEL (Extension drawer)
+// ═══════════════════════════════════════════════
+function createSettingsUI() {
+    if ($("#lumi-settings-drawer").length) return;
+    const s = extension_settings[extensionName].diary;
+    const ag = s.autoGen;
+    $("#extensions_settings").append(
+        "<div id=\"lumi-settings-drawer\" class=\"inline-drawer\">" +
+        "<div class=\"inline-drawer-toggle inline-drawer-header\">" +
+        "<b style=\"color:#ff85a2;font-family:'Mitr';font-weight:300;\">LumiPulse</b>" +
+        "<div class=\"inline-drawer-icon fa-solid fa-circle-chevron-down down\"></div>" +
+        "</div>" +
+        "<div class=\"inline-drawer-content\" style=\"display:none;\">" +
+        "<div style=\"margin-bottom:10px;\">" +
+        "<label class=\"checkbox_label\">" +
+        "<input id=\"lumi_enable_toggle\" type=\"checkbox\"" + (extension_settings[extensionName].isEnabled ? " checked" : "") + " />" +
+        "<span>เปิดใช้งาน</span>" +
+        "</label>" +
+        "</div>" +
+        "<div style=\"margin-bottom:8px;\">" +
+        "<label style=\"font-size:11px;color:#888;\">โหมดโลก</label>" +
+        "<select id=\"lumi_world_mode\" class=\"text_pole\">" +
+        "<option value=\"auto\"" + (s.worldMode === "auto" ? " selected" : "") + ">อัตโนมัติ</option>" +
+        "<option value=\"solo\"" + (s.worldMode === "solo" ? " selected" : "") + ">เดี่ยว</option>" +
+        "<option value=\"rpg\"" + (s.worldMode === "rpg" ? " selected" : "") + ">RPG</option>" +
+        "</select>" +
+        "</div>" +
+        "<div style=\"margin-bottom:8px;\">" +
+        "<label class=\"checkbox_label\">" +
+        "<input id=\"lumi_autogen_toggle\" type=\"checkbox\"" + (ag.enabled ? " checked" : "") + " />" +
+        "<span>เจนอัตโนมัติ</span>" +
+        "</label>" +
+        "</div>" +
+        "<div style=\"margin-top:12px;border-top:1px solid #333;padding-top:10px;\">" +
+        "<button id=\"lumi_reset_fab\" class=\"menu_button\" style=\"margin-bottom:4px;\">" + svgReset + " รีเซ็ตปุ่มลอย</button>" +
+        "<button id=\"lumi_export\" class=\"menu_button\" style=\"margin-bottom:4px;\">" + svgDownload + " Export JSON</button>" +
+        "<button id=\"lumi_clear_memories\" class=\"menu_button danger\">" + svgTrash + " ล้างทั้งหมด</button>" +
+        "</div>" +
+        "</div>" +
+        "</div>"
+    );
+    $("#lumi_enable_toggle").on("change", function () {
+        extension_settings[extensionName].isEnabled = $(this).prop("checked");
+        SillyTavern.getContext().saveSettingsDebounced();
+        if (extension_settings[extensionName].isEnabled) {
+            setTimeout(function () {
+                spawnLumiButton();
+                createContentModal();
+                setupAutoTriggerListener();
+            }, 500);
+        } else {
+            $("#lumi-main-fab, .lumi-menu-container, #lumi-modal-overlay").remove();
+            $(document).off("messageReceived", onNewChat);
+        }
+    });
+    $("#lumi_world_mode").on("change", function () {
+        extension_settings[extensionName].diary.worldMode = $(this).val();
+        SillyTavern.getContext().saveSettingsDebounced();
+    });
+    $("#lumi_autogen_toggle").on("change", function () {
+        extension_settings[extensionName].diary.autoGen.enabled = $(this).prop("checked");
+        SillyTavern.getContext().saveSettingsDebounced();
+    });
+    $("#lumi_reset_fab").on("click", function () {
+        saveFabPosition(null);
+        $("#lumi-main-fab, .lumi-menu-container").remove();
+        spawnLumiButton();
+        showToast("รีเซ็ตปุ่มแล้ว");
+    });
+    $("#lumi_export").on("click", function () { exportMemories(); });
+    $("#lumi_clear_memories").on("click", function () {
+        if (confirm("ล้างความทรงจำทั้งหมด?")) {
+            extension_settings[extensionName].memories = [];
+            SillyTavern.getContext().saveSettingsDebounced();
+            showToast("ล้างแล้ว");
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════
+// FAB BUTTON - Drag System (Fixed)
+// ═══════════════════════════════════════════════
+function spawnLumiButton() {
+    $("#lumi-main-fab, .lumi-menu-container").remove();
+    if (!document.body) {
+        setTimeout(spawnLumiButton, 800);
+        return;
+    }
+
+    const fab = document.createElement("div");
+    fab.id = "lumi-main-fab";
+    const pos = loadFabPosition();
+    if (pos) {
+        fab.style.top = pos.top || "auto";
+        fab.style.left = pos.left || "auto";
+        fab.style.right = pos.right || "auto";
+        fab.style.bottom = pos.bottom || "auto";
+        fab.style.transform = pos.transform || "none";
+    } else {
+        fab.style.top = "50%";
+        fab.style.right = "0px";
+        fab.style.transform = "translateY(-50%)";
+    }
+    document.body.appendChild(fab);
+
+    const menu = document.createElement("div");
+    menu.className = "lumi-menu-container";
+    menu.innerHTML =
+        "<div class=\"lumi-menu-header\">" +
+        "<span class=\"lumi-menu-title\">LumiPulse</span>" +
+        "<div class=\"lumi-menu-close\" id=\"lumi-menu-close\">" + svgClose + "</div>" +
+        "</div>" +
+        "<div class=\"lumi-menu-grid\">" +
+        "<div class=\"lumi-menu-item\" id=\"lumi-diary\"><div class=\"lumi-menu-icon\">" + svgCalendar + "</div><span class=\"lumi-menu-text\">Memories</span></div>" +
+        "<div class=\"lumi-menu-item\" id=\"lumi-settings\"><div class=\"lumi-menu-icon\">" + svgGear + "</div><span class=\"lumi-menu-text\">Settings</span></div>" +
+        "<div class=\"lumi-menu-item\" id=\"lumi-dashboard\"><div class=\"lumi-menu-icon\">" + svgChart + "</div><span class=\"lumi-menu-text\">Stats</span></div>" +
+        "<div class=\"lumi-menu-item\" id=\"lumi-forum\"><div class=\"lumi-menu-icon\">" + svgMenu + "</div><span class=\"lumi-menu-text\">Forum</span></div>" +
+        "<div class=\"lumi-menu-item\" id=\"lumi-phone\"><div class=\"lumi-menu-icon\">" + svgUser + "</div><span class=\"lumi-menu-text\">Phone</span></div>" +
+        "</div>" +
+        "<div class=\"lumi-branding\">LumiPulse</div>";
+    document.body.appendChild(menu);
+
+    function updateMenuPos() {
+        const r = fab.getBoundingClientRect();
+        const m = $(menu);
+        let l = r.left - (m.outerWidth() / 2) + (r.width / 2);
+        let t = r.top - m.outerHeight() - 10;
+        if (l < 10) l = 10;
+        if (l + m.outerWidth() > window.innerWidth - 10) l = window.innerWidth - m.outerWidth() - 10;
+        if (t < 10) t = r.bottom + 10;
+        m.css({ left: l + "px", top: t + "px" });
+    }
+
+    let isDragging = false;
+    let hasMoved = false;
+    let dragStart = { x: 0, y: 0 };
+    let offset = { x: 0, y: 0 };
+    let currentPos = { x: 0, y: 0 };
+    const TH = 8;
+
+    // Mouse Drag
+    fab.addEventListener("mousedown", function (e) {
+        if (e.button === 2) return;
+        e.preventDefault();
+        isDragging = false;
+        hasMoved = false;
+        fab.classList.add("dragging");
+        const rect = fab.getBoundingClientRect();
+        offset.x = e.clientX - rect.left;
+        offset.y = e.clientY - rect.top;
+        dragStart.x = e.clientX;
+        dragStart.y = e.clientY;
+        currentPos.x = rect.left;
+        currentPos.y = rect.top;
+
+        function onMove(ev) {
+            const dist = Math.hypot(ev.clientX - dragStart.x, ev.clientY - dragStart.y);
+            if (dist > TH && !hasMoved) {
+                hasMoved = true;
+                isDragging = true;
+                $(menu).fadeOut(50);
+                fab.style.transform = "none";
+                fab.style.right = "auto";
+                fab.style.bottom = "auto";
+            }
+            if (!isDragging) return;
+            currentPos.x = Math.max(0, Math.min(ev.clientX - offset.x, window.innerWidth - 48));
+            currentPos.y = Math.max(0, Math.min(ev.clientY - offset.y, window.innerHeight - 48));
+            fab.style.left = currentPos.x + "px";
+            fab.style.top = currentPos.y + "px";
+        }
+
+        function onUp(ev) {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+            fab.classList.remove("dragging");
+            if (!hasMoved) {
+                updateMenuPos();
+                $(menu).fadeToggle(150);
+            } else {
+                saveFabPosition({
+                    top: currentPos.y + "px",
+                    left: currentPos.x + "px",
+                    right: "auto",
+                    bottom: "auto",
+                    transform: "none"
+                });
+            }
+            isDragging = false;
+            hasMoved = false;
+        }
+
+        document.addEventListener("mousemove", onMove);
+        document.addEventListener("mouseup", onUp);
+    }, { passive: false });
+
+    // Touch Drag
+    let isTouchDrag = false;
+    let hasTouchMoved = false;
+
+    fab.addEventListener("touchstart", function (e) {
+        e.preventDefault();
+        isTouchDrag = false;
+        hasTouchMoved = false;
+        fab.classList.add("dragging");
+        const touch = e.touches[0];
+        const rect = fab.getBoundingClientRect();
+        offset.x = touch.clientX - rect.left;
+        offset.y = touch.clientY - rect.top;
+        dragStart.x = touch.clientX;
+        dragStart.y = touch.clientY;
+        currentPos.x = rect.left;
+        currentPos.y = rect.top;
+    }, { passive: false });
+
+    fab.addEventListener("touchmove", function (e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const dist = Math.hypot(touch.clientX - dragStart.x, touch.clientY - dragStart.y);
+        if (dist > TH && !hasTouchMoved) {
+            hasTouchMoved = true;
+            isTouchDrag = true;
+            $(menu).fadeOut(50);
+            fab.style.transform = "none";
+            fab.style.right = "auto";
+            fab.style.bottom = "auto";
+        }
+        if (!isTouchDrag) return;
+        currentPos.x = Math.max(0, Math.min(touch.clientX - offset.x, window.innerWidth - 48));
+        currentPos.y = Math.max(0, Math.min(touch.clientY - offset.y, window.innerHeight - 48));
+        fab.style.left = currentPos.x + "px";
+        fab.style.top = currentPos.y + "px";
+    }, { passive: false });
+
+    fab.addEventListener("touchend", function (e) {
+        e.preventDefault();
+        fab.classList.remove("dragging");
+        if (!hasTouchMoved) {
+            updateMenuPos();
+            $(menu).fadeToggle(150);
+        } else {
+            saveFabPosition({
+                top: currentPos.y + "px",
+                left: currentPos.x + "px",
+                right: "auto",
+                bottom: "auto",
+                transform: "none"
+            });
+        }
+        isTouchDrag = false;
+        hasTouchMoved = false;
+    }, { passive: false });
+
+    // Menu Clicks
+    $(document).off("click", "#lumi-diary").on("click", "#lumi-diary", function () { openLumiModal("diary"); });
+    $(document).off("click", "#lumi-settings").on("click", "#lumi-settings", function () { openLumiModal("settings"); });
+    $(document).off("click", "#lumi-dashboard").on("click", "#lumi-dashboard", function () { openLumiModal("dashboard"); });
+    $(document).off("click", "#lumi-forum").on("click", "#lumi-forum", function () { openLumiModal("forum"); });
+    $(document).off("click", "#lumi-phone").on("click", "#lumi-phone", function () { openLumiModal("phone"); });
+    $(document).off("click", "#lumi-menu-close").on("click", "#lumi-menu-close", function () { $(menu).fadeOut(150); });
+}
+
+function showToast(m, t) {
+    if (!t) t = "info";
+    if (typeof toastr !== "undefined") toastr[t](m, "LumiPulse");
+}
+
