@@ -572,12 +572,12 @@ async function callAIBatch(mode, count) {
     const charsInChat = [...new Set(chatSlice.filter(m=>m.name && !m.is_user).map(m=>m.name))];
     const charContext = charsInChat.length > 0 ? `Characters present: ${charsInChat.join(', ')}` : `Character: ${ctx.name2}`;
     
-    // 🆕 Improved chat log format for better AI understanding
+    /// เปลี่ยนจาก slice(0, 100) เป็น slice(0, 50)
     const chatLog = chatSlice.map((m, i) => {
-        const speaker = m.is_user ? 'User' : (m.name || 'NPC');
-        const text = m.mes.slice(0, 100);
-        return `[${speaker}]: ${text}`;
-    }).join('\n');
+    const speaker = m.is_user ? 'User' : (m.name || 'NPC');
+    const text = m.mes.slice(0, 50); // ลดจาก 100 เหลือ 50 ตัวอักษร
+    return `[${speaker}]: ${text}`;
+}).join('\n');
 
     // 🆕 More generous prompt - encourages finding memories even in subtle moments
     const prompt = `[System: You are analyzing a roleplay chat to create meaningful diary entries. Be generous in identifying memorable moments.]
