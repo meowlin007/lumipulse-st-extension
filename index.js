@@ -12,8 +12,15 @@ const defaultSettings = {
     diary: {
         worldMode: 'auto',
         display: { 
-            secretMode: 'ai', // ai, time, affection, off
-            showSecretSystem: true // Toggle to disable secret system entirely
+            secretMode: 'ai', 
+            showSecretSystem: true 
+        },
+        autoGen: {
+            enabled: true,
+            triggerType: 'turn_count',
+            turnInterval: 20,
+            emotionKeywords: ['รัก','โกรธ','เสียใจ','ดีใจ','หัวใจ','กลัว'],
+            randomChance: 0.08
         },
         storage: { max: 100 }
     }
@@ -24,10 +31,9 @@ let extension_settings = {};
 // Icon Links (สำหรับเมนูหลัก)
 const btnUrl    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
 const iconDiary = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
-const iconPhone = "https://file.garden/ad59q6JMmVnp7v1-/lumi-phone-icon.png";
 const iconForum = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png";
 
-// SVG Vectors (สำหรับปุ่มภายในระบบ)
+// SVG Vectors (สำหรับปุ่มภายในระบบ & เมนู)
 const svgHeart    = `<svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF69B4"/></svg>`;
 const svgPin      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1-1v-5h2v-2l-2-2z"/></svg>`;
 const svgStar     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
@@ -36,6 +42,7 @@ const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const svgBack     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
 const svgSettings = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
 const svgPlus     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+const svgDiary    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
 
 // ═══════════════════════════════════════════════
 // 2. BOOT SYSTEM
@@ -63,6 +70,7 @@ function initLumiPulse() {
         setTimeout(() => {
             spawnLumiButton();
             createModal();
+            setupAutoTriggerListener();
         }, 500);
     }
 }
@@ -81,7 +89,7 @@ function injectStyles() {
         @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
         @keyframes heartFloat { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -100px) scale(1.5); } }
 
-        /* FAB */
+        /* FAB & Menu */
         #lumi-fab { position: fixed; z-index: 99999; width: 46px; height: 46px; border-radius: 50%;
             background: var(--lumi-glass) url('${btnUrl}') no-repeat center center;
             background-size: 24px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.8);
@@ -89,15 +97,13 @@ function injectStyles() {
             transition: transform 0.2s; }
         #lumi-fab:active { transform: scale(0.9); cursor: grabbing; }
 
-        /* Menu */
         .lumi-menu { position: fixed; z-index: 99998; display: none; background: rgba(255,255,255,0.98);
             backdrop-filter: blur(15px); border-radius: 20px; padding: 15px; border: 1px solid rgba(255,182,193,0.3);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-family: 'Mitr'; min-width: 200px; }
-        .lumi-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .lumi-menu-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; opacity: 0.8; transition: 0.2s; padding: 8px; border-radius: 12px; }
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-family: 'Mitr'; min-width: 180px; }
+        .lumi-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .lumi-menu-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; opacity: 0.85; transition: 0.2s; padding: 8px; border-radius: 12px; }
         .lumi-menu-item:hover { opacity: 1; background: #FFF0F5; }
-        .lumi-menu-item svg { width: 24px; height: 24px; color: #ff85a2; }
-        .lumi-menu-item img { width: 28px; height: 28px; object-fit: contain; }
+        .lumi-menu-item svg, .lumi-menu-item img { width: 28px; height: 28px; object-fit: contain; color: #ff85a2; }
         .lumi-menu-item span { font-size: 10px; color: #666; }
 
         /* Modal */
@@ -111,13 +117,23 @@ function injectStyles() {
         .lumi-body { flex: 1; overflow-y: auto; padding: 15px; background: #fff; }
 
         /* Dashboard & Stats */
-        .lumi-stats-bar { display: flex; gap: 10px; margin-bottom: 15px; background: #FFF9FA; padding: 10px; border-radius: 14px; border: 1px solid #FFE8EE; }
+        .lumi-stats-bar { display: flex; gap: 10px; margin-bottom: 15px; background: #FFF9FA; padding: 12px; border-radius: 14px; border: 1px solid #FFE8EE; }
         .lumi-stat { flex: 1; text-align: center; }
-        .lumi-stat b { display: block; font-size: 16px; color: #ff69b4; }
+        .lumi-stat b { display: block; font-size: 18px; color: #ff69b4; font-weight: 500; }
         .lumi-stat span { font-size: 10px; color: #999; }
         
         .lumi-action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .lumi-gen-btn { background: linear-gradient(135deg, #FFB6C1, #FF69B4); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; gap: 6px; }
+        .lumi-gen-btn { background: linear-gradient(135deg, #FFB6C1, #FF69B4); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        .lumi-gen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Generator Form */
+        .lumi-form { background: #FFF9FA; border: 1px solid #FFE8EE; border-radius: 16px; padding: 15px; margin-bottom: 15px; }
+        .lumi-input { width: 100%; background: #fff; border: 1px solid #FFD1DC; border-radius: 10px; padding: 10px; color: #ff85a2; font-family: 'Mitr'; outline: none; box-sizing: border-box; }
+        .lumi-label { font-size: 12px; color: #666; margin-bottom: 6px; display: block; font-weight: 400; }
+        .lumi-radio-group { display: flex; gap: 8px; margin-bottom: 10px; }
+        .lumi-radio-label { flex: 1; text-align: center; padding: 8px; background: #fff; border: 1px solid #FFD1DC; border-radius: 10px; cursor: pointer; font-size: 12px; color: #666; transition: 0.2s; }
+        .lumi-radio-label:has(input:checked) { background: #FFB6C1; color: white; border-color: #FFB6C1; }
+        .lumi-radio-label input { display: none; }
 
         /* Cards */
         .lumi-card { background: #FFFBFC; border: 1px solid #FFE8EE; border-radius: 16px; padding: 14px; margin-bottom: 12px; position: relative; transition: 0.2s; }
@@ -134,14 +150,14 @@ function injectStyles() {
         .lumi-act:hover { opacity: 1; color: #ff69b4; }
         .lumi-act.active { opacity: 1; color: #FFD700; }
 
-        /* Generator Form */
-        .lumi-form { background: #FFF9FA; border: 1px solid #FFE8EE; border-radius: 16px; padding: 15px; margin-bottom: 20px; }
-        .lumi-input { width: 100%; background: #fff; border: 1px solid #FFD1DC; border-radius: 10px; padding: 10px; color: #ff85a2; font-family: 'Mitr'; outline: none; box-sizing: border-box; }
-        .lumi-label { font-size: 12px; color: #666; margin-bottom: 6px; display: block; }
-
         /* RPG Grouping */
         .lumi-group-head { font-size: 14px; color: #ff69b4; margin: 20px 0 10px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
         .lumi-group-line { flex: 1; height: 1px; background: #FFE8EE; }
+        .lumi-avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 500; }
+
+        /* Settings */
+        .lumi-set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #666; }
+        .lumi-set-row select, .lumi-set-row input[type="number"] { background: #fff; border: 1px solid #FFD1DC; border-radius: 8px; padding: 5px 8px; color: #ff85a2; font-family: 'Mitr'; outline: none; }
 
         /* Toast */
         .lumi-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 999999; font-family: 'Mitr'; font-size: 13px; color: #ff69b4; border: 1px solid #FFE8EE; animation: popIn 0.3s; pointer-events: none; }
@@ -173,7 +189,7 @@ function spawnLumiButton() {
     menu.className = 'lumi-menu';
     menu.innerHTML = `
         <div class="lumi-menu-grid">
-            <div class="lumi-menu-item" id="lumi-open"><img src="${iconDiary}"><span>Diary</span></div>
+            <div class="lumi-menu-item" id="lumi-open">${svgDiary}<span>Diary</span></div>
             <div class="lumi-menu-item" id="lumi-set">${svgSettings}<span>Settings</span></div>
         </div>`;
     document.body.appendChild(menu);
@@ -267,7 +283,6 @@ function renderDashboard() {
         <div id="lumi-content"></div>
     `);
     
-    // Toggle Generator Form
     $('#btn-open-gen').on('click', function() {
         if($('#gen-form-container').is(':visible')) {
             $('#gen-form-container').slideUp(200);
@@ -283,14 +298,22 @@ function renderDashboard() {
 function renderGeneratorForm() {
     $('#gen-form-container').html(`
         <div class="lumi-form">
-            <label class="lumi-label">Scan Range (Latest Messages)</label>
-            <input type="range" id="gen-range" min="10" max="100" value="30" style="width:100%;margin-bottom:10px;accent-color:#ff69b4">
-            <div style="text-align:center;font-size:12px;color:#ff85a2;margin-bottom:10px" id="range-val">30 msgs</div>
-            
+            <label class="lumi-label">Scan Mode</label>
+            <div class="lumi-radio-group">
+                <label class="lumi-radio-label"><input type="radio" name="gen-mode" value="latest" checked> Latest X</label>
+                <label class="lumi-radio-label"><input type="radio" name="gen-mode" value="first"> First X</label>
+                <label class="lumi-radio-label"><input type="radio" name="gen-mode" value="all"> All History</label>
+            </div>
+            <div id="gen-count-wrap" style="margin-bottom:10px;">
+                <label class="lumi-label">Message Count</label>
+                <input type="number" id="gen-count" value="30" min="5" max="200" class="lumi-input">
+            </div>
             <button id="btn-run-gen" class="lumi-gen-btn" style="width:100%;justify-content:center">✨ Analyze & Generate</button>
         </div>
     `);
-    $('#gen-range').on('input', function(){ $('#range-val').text(this.value + ' msgs'); });
+    $('input[name="gen-mode"]').on('change', function() {
+        $('#gen-count-wrap').toggle($(this).val() !== 'all');
+    });
     $('#btn-run-gen').on('click', generateBatchMemories);
 }
 
@@ -299,7 +322,6 @@ function renderDashboardContent() {
     const mems = loadMemories();
     if(!mems.length) { $('#lumi-content').html('<div style="text-align:center;color:#ccc;padding:30px">No memories yet. Click Generate to start!</div>'); return; }
 
-    // Group by Character
     const byChar = {};
     mems.forEach(m => { 
         const char = m.character || "Unknown";
@@ -333,7 +355,7 @@ function renderCard(m) {
         <div class="lumi-card ${m.meta.isPinned?'pinned':''}" data-id="${m.id}">
             ${lockOverlay}
             <div class="lumi-meta">
-                <span class="lumi-badge" style="background:${color};color:white;font-weight:500">${m.character}</span>
+                <span class="lumi-badge lumi-char-badge" style="background:${color}">${m.character}</span>
                 <span class="lumi-badge">📅 ${m.content.rp_date||'?'}</span>
                 <span class="lumi-badge">📍 ${m.content.rp_location||'?'}</span>
             </div>
@@ -346,30 +368,48 @@ function renderCard(m) {
         </div>`;
 }
 
-// ⚙️ Settings
+// ⚙️ Settings (Restored Full Customization)
 function renderSettings() {
     $('#lumi-title').text("Settings");
     const s = extension_settings[extensionName];
+    const ag = s.diary.autoGen;
+    
     $('#lumi-body').html(`
         <div style="padding:10px;">
             <div class="lumi-form">
-                <label class="lumi-label">World Mode</label>
-                <select id="set-wm" class="lumi-input">
-                    <option value="auto" ${s.diary.worldMode==='auto'?'selected':''}>Auto</option>
-                    <option value="solo" ${s.diary.worldMode==='solo'?'selected':''}>Solo</option>
-                    <option value="rpg" ${s.diary.worldMode==='rpg'?'selected':''}>RPG</option>
-                </select>
+                <label class="lumi-label">General</label>
+                <div class="lumi-set-row"><span>Extension Enabled</span><input type="checkbox" id="set-en" ${s.isEnabled?'checked':''} style="width:20px;height:20px;accent-color:#ff69b4"></div>
+                <div class="lumi-set-row"><span>World Mode</span>
+                    <select id="set-wm" class="lumi-input" style="width:100px">
+                        <option value="auto" ${s.diary.worldMode==='auto'?'selected':''}>Auto</option>
+                        <option value="solo" ${s.diary.worldMode==='solo'?'selected':''}>Solo</option>
+                        <option value="rpg" ${s.diary.worldMode==='rpg'?'selected':''}>RPG</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="lumi-form">
+                <label class="lumi-label">Auto-Generation</label>
+                <div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="ag-en" ${ag.enabled?'checked':''} style="width:20px;height:20px;accent-color:#ff69b4"></div>
+                <div class="lumi-set-row"><span>Trigger</span>
+                    <select id="ag-tr" class="lumi-input" style="width:110px">
+                        <option value="turn_count" ${ag.triggerType==='turn_count'?'selected':''}>Every X Msgs</option>
+                        <option value="emotion" ${ag.triggerType==='emotion'?'selected':''}>Emotion Keywords</option>
+                        <option value="random" ${ag.triggerType==='random'?'selected':''}>Random</option>
+                    </select>
+                </div>
+                <div id="ag-val-wrap" style="margin-top:8px">
+                    ${ag.triggerType==='turn_count' ? `<span style="font-size:12px;color:#666">Interval:</span> <input type="number" id="ag-int" value="${ag.turnInterval}" min="5" max="100" style="width:50px;background:#fff;border:1px solid #FFD1DC;border-radius:6px;padding:4px;color:#ff85a2;font-family:'Mitr'">` : ''}
+                    ${ag.triggerType==='random' ? `<span style="font-size:12px;color:#666">Chance %:</span> <input type="number" id="ag-chance" value="${Math.round(ag.randomChance*100)}" min="1" max="50" style="width:50px;background:#fff;border:1px solid #FFD1DC;border-radius:6px;padding:4px;color:#ff85a2;font-family:'Mitr'">` : ''}
+                    ${ag.triggerType==='emotion' ? `<input type="text" id="ag-kw" value="${ag.emotionKeywords.join(',')}" placeholder="Keywords..." class="lumi-input">` : ''}
+                </div>
             </div>
             
             <div class="lumi-form">
                 <label class="lumi-label">Secret System</label>
-                <div class="lumi-set-row" style="justify-content:space-between">
-                    <span style="font-size:12px;color:#666">Enable Secret Mode</span>
-                    <input type="checkbox" id="set-secret-en" ${s.diary.display.showSecretSystem?'checked':''} style="width:20px;height:20px;accent-color:#ff69b4">
-                </div>
-                <div class="lumi-set-row" style="margin-top:10px">
-                    <span style="font-size:12px;color:#666">Unlock Rule</span>
-                    <select id="set-sec-mode" class="lumi-input" style="width:120px">
+                <div class="lumi-set-row"><span>Enable Secret Mode</span><input type="checkbox" id="set-sec-en" ${s.diary.display.showSecretSystem?'checked':''} style="width:20px;height:20px;accent-color:#ff69b4"></div>
+                <div class="lumi-set-row"><span>Unlock Rule</span>
+                    <select id="set-sec-mode" class="lumi-input" style="width:110px">
                         <option value="ai" ${s.diary.display.secretMode==='ai'?'selected':''}>AI Decide</option>
                         <option value="time" ${s.diary.display.secretMode==='time'?'selected':''}>Time (3 days)</option>
                         <option value="affection" ${s.diary.display.secretMode==='affection'?'selected':''}>Affection ≥ 80</option>
@@ -384,21 +424,37 @@ function renderSettings() {
         </div>
     `);
     
+    // Bind Settings Events
+    $('#set-en').on('change', function(){ s.isEnabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); showToast($(this).prop('checked')?'Enabled':'Disabled'); });
     $('#set-wm').on('change', function(){ s.diary.worldMode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
-    $('#set-secret-en').on('change', function(){ s.diary.display.showSecretSystem = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); showToast($(this).prop('checked')?'Secret System On':'Secret System Off'); });
+    
+    $('#ag-en').on('change', function(){ s.diary.autoGen.enabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#ag-tr').on('change', function() {
+        s.diary.autoGen.triggerType = $(this).val();
+        SillyTavern.getContext().saveSettingsDebounced();
+        renderSettings(); // Re-render to show correct input
+    });
+    $('#ag-int').on('change', function(){ s.diary.autoGen.turnInterval = parseInt($(this).val()) || 20; SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#ag-chance').on('change', function(){ s.diary.autoGen.randomChance = (parseInt($(this).val()) || 10) / 100; SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#ag-kw').on('change', function(){ s.diary.autoGen.emotionKeywords = $(this).val().split(',').map(k=>k.trim()).filter(k=>k); SillyTavern.getContext().saveSettingsDebounced(); });
+    
+    $('#set-sec-en').on('change', function(){ s.diary.display.showSecretSystem = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); showToast($(this).prop('checked')?'Secret System On':'Secret System Off'); });
     $('#set-sec-mode').on('change', function(){ s.diary.display.secretMode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
+    
     $('#btn-rst').on('click', ()=>{ s._internal.fabPos = null; SillyTavern.getContext().saveSettingsDebounced(); $('#lumi-fab').remove(); spawnLumiButton(); showToast('Reset FAB'); });
-    $('#btn-clr').on('click', ()=>{ if(confirm('Clear all?')) { s.memories=[]; SillyTavern.getContext().saveSettingsDebounced(); showToast('Cleared'); renderDashboard(); } });
+    $('#btn-clr').on('click', ()=>{ if(confirm('Clear all memories & settings?')) { s.memories=[]; s._internal.fabPos=null; SillyTavern.getContext().saveSettingsDebounced(); showToast('Cleared'); $('#lumi-fab').remove(); spawnLumiButton(); } });
 }
 
 // ═══════════════════════════════════════════════
 // 6. AI BATCH GENERATION
 // ═══════════════════════════════════════════════
 async function generateBatchMemories() {
-    const range = parseInt($('#gen-range').val()) || 30;
+    const mode = $('input[name="gen-mode"]:checked').val();
+    const count = parseInt($('#gen-count').val()) || 30;
+    
     $('#btn-run-gen').text('Thinking...').prop('disabled', true);
     
-    const results = await callAIBatch(range);
+    const results = await callAIBatch(mode, count);
     
     $('#btn-run-gen').text('✨ Analyze & Generate').prop('disabled', false);
     $('#gen-form-container').slideUp(200);
@@ -408,9 +464,7 @@ async function generateBatchMemories() {
         const wm = extension_settings[extensionName].diary.worldMode === 'auto' ? detectWorldMode() : extension_settings[extensionName].diary.worldMode;
         
         results.forEach(res => {
-            // Determine character based on AI response or fallback to current char
             let charName = res.character || ctx.name2 || "Character";
-            
             saveMemory({
                 id: 'mem_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
                 timestamp: new Date().toISOString(),
@@ -424,34 +478,36 @@ async function generateBatchMemories() {
         showToast(`✨ Created ${results.length} memories!`);
         renderDashboard();
     } else {
-        showToast('❌ No new memories found');
+        showToast('❌ No significant memories found');
     }
 }
 
-async function callAIBatch(range) {
+async function callAIBatch(mode, count) {
     const ctx = SillyTavern.getContext();
     const allChat = ctx.chat || [];
-    const chatSlice = allChat.slice(-range);
+    let chatSlice;
     
-    // สแกนหาตัวละครหลักในแชทช่วงนี้
+    if(mode === 'latest') chatSlice = allChat.slice(-count);
+    else if(mode === 'first') chatSlice = allChat.slice(0, count);
+    else chatSlice = allChat;
+    
     const charsInChat = [...new Set(chatSlice.filter(m=>m.name && !m.is_user).map(m=>m.name))];
     const charContext = charsInChat.length > 0 ? `Main Characters in context: ${charsInChat.join(', ')}` : `Main Character: ${ctx.name2}`;
-
-    const chatLog = chatSlice.map((m, i) => `[${m.is_user?'User':m.name||'NPC'}]: ${m.mes.slice(0,80)}`).join('\n');
+    const chatLog = chatSlice.map((m) => `[${m.is_user?'User':m.name||'NPC'}]: ${m.mes.slice(0,80)}`).join('\n');
 
     const prompt = `[System: You are the collective inner voice of the characters in this roleplay. Analyze the chat logs below.]
 ${charContext}
-Chat Log (Last ${range} msgs):
+Chat Log (${mode==='all'?'Full History':mode==='first'?`First ${count} Messages`:`Last ${count} Messages`}):
 ${chatLog}
 
-Identify up to 3 significant events or emotional moments. For EACH moment, generate a diary entry for the specific character involved.
+Identify up to 3 significant emotional events or turning points. For EACH event, generate a SEPARATE diary entry for the specific character involved. A single character can have multiple entries if they experienced multiple key moments.
 Return ONLY a JSON ARRAY of objects like this:
 [
   {
-    "character": "Name of character (e.g. Alice)",
-    "rp_date": "Fictional date (e.g. Day 5 of 3rd Moon)",
+    "character": "Exact Name from chat",
+    "rp_date": "Fictional date inferred from context",
     "rp_location": "Location inferred from chat",
-    "diary": "First-person diary entry in Thai. 2-4 sentences.",
+    "diary": "First-person diary entry in Thai. 2-4 sentences reflecting their personality.",
     "isSecret": true/false
   }
 ]
@@ -464,7 +520,6 @@ If nothing significant happened, return empty array [].`;
         else if (typeof window.generateQuietPrompt === 'function') res = await window.generateQuietPrompt(prompt, false, false);
         
         if (!res) return [];
-        // Extract JSON Array
         const match = res.match(/\[[\s\S]*\]/);
         return match ? JSON.parse(match[0]) : [];
     } catch (e) {
@@ -474,7 +529,47 @@ If nothing significant happened, return empty array [].`;
 }
 
 // ═══════════════════════════════════════════════
-// 7. HELPERS & UTILS
+// 7. AUTO-TRIGGER SYSTEM (Restored)
+// ═══════════════════════════════════════════════
+function setupAutoTriggerListener() {
+    $(document).off('messageReceived', onNewChat).on('messageReceived', onNewChat);
+}
+
+async function onNewChat() {
+    const s = extension_settings[extensionName];
+    const cfg = s.diary.autoGen;
+    if (!cfg.enabled) return;
+    s._internal.messageCounter++;
+    
+    const lastMsg = (SillyTavern.getContext().chat?.slice(-1)[0]?.mes || '').toLowerCase();
+    let gen = false;
+    
+    if (cfg.triggerType === 'turn_count' && s._internal.messageCounter >= cfg.turnInterval) { gen=true; s._internal.messageCounter=0; }
+    else if (cfg.triggerType === 'emotion' && cfg.emotionKeywords.some(k => lastMsg.includes(k))) { gen=true; }
+    else if (cfg.triggerType === 'random' && Math.random() < cfg.randomChance) { gen=true; }
+    
+    if (gen) {
+        const results = await callAIBatch('latest', cfg.turnInterval || 20);
+        if(results && results.length > 0) {
+            const ctx = SillyTavern.getContext();
+            const wm = s.diary.worldMode === 'auto' ? detectWorldMode() : s.diary.worldMode;
+            results.forEach(res => {
+                saveMemory({
+                    id: 'mem_auto_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+                    timestamp: new Date().toISOString(),
+                    character: res.character || ctx.name2 || "Character",
+                    worldMode: wm,
+                    content: { ...res },
+                    meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
+                });
+            });
+            showToast(`🌸 Auto-generated ${results.length} memory!`);
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════
+// 8. HELPERS & UTILS
 // ═══════════════════════════════════════════════
 function loadMemories(filter = {}) {
     let mem = [...(extension_settings[extensionName].memories || [])];
@@ -515,12 +610,12 @@ function showToast(msg) {
 
 function checkUnlock(m) {
     if(!m.meta.isSecret) return true;
-    if(!extension_settings[extensionName].diary.display.showSecretSystem) return true; // Secret system disabled
+    if(!extension_settings[extensionName].diary.display.showSecretSystem) return true;
     
     const mode = extension_settings[extensionName].diary.display.secretMode;
     if(mode === 'time') return (Date.now() - new Date(m.timestamp)) > 86400000 * 3;
-    if(mode === 'affection') return m.content.affection_score >= 80; // ถ้า AI ไม่ส่ง score มา จะถือว่า lock (ต้องแก้ prompt ให้ส่ง score ถ้าจะใช้ mode นี้)
-    return false; // Default AI decides -> treat as locked until user intervention or just visual lock
+    if(mode === 'affection') return (m.content.affection_score || 0) >= 80;
+    return false;
 }
 
 function bindEvents() {
@@ -533,7 +628,7 @@ function bindEvents() {
         
         if(act === 'pin') { mem.meta.isPinned = !mem.meta.isPinned; }
         if(act === 'fav') { mem.meta.isFavorite = !mem.meta.isFavorite; }
-        if(act === 'del') { if(confirm('Delete?')) { extension_settings[extensionName].memories = extension_settings[extensionName].memories.filter(m => m.id !== id); } }
+        if(act === 'del') { if(confirm('Delete this memory?')) { extension_settings[extensionName].memories = extension_settings[extensionName].memories.filter(m => m.id !== id); } }
         
         SillyTavern.getContext().saveSettingsDebounced();
         renderDashboardContent();
