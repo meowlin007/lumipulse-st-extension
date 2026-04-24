@@ -28,21 +28,20 @@ const defaultSettings = {
 
 let extension_settings = {};
 
-// Icon Links (สำหรับเมนูหลัก)
-const btnUrl    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
-const iconDiary = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
-const iconForum = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png";
+// Icon Links (สำหรับเมนูหลัก - ตามที่ขอ)
+const btnUrl       = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
+const iconDiary    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
+const iconSettings = "https://file.garden/ad59q6JMmVnp7v1-/setting-icon.png";
 
-// SVG Vectors (สำหรับปุ่มภายในระบบ & เมนู)
+// SVG Vectors (สำหรับปุ่มภายในระบบ)
 const svgHeart    = `<svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF69B4"/></svg>`;
 const svgPin      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1-1v-5h2v-2l-2-2z"/></svg>`;
 const svgStar     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
 const svgLock     = `<svg viewBox="0 0 24 24" fill="none" stroke="#ff85a2" stroke-width="2" width="20" height="20"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
 const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 const svgBack     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
-const svgSettings = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
 const svgPlus     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
-const svgDiary    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+const svgChevron  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>`;
 
 // ═══════════════════════════════════════════════
 // 2. BOOT SYSTEM
@@ -103,7 +102,7 @@ function injectStyles() {
         .lumi-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .lumi-menu-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; opacity: 0.85; transition: 0.2s; padding: 8px; border-radius: 12px; }
         .lumi-menu-item:hover { opacity: 1; background: #FFF0F5; }
-        .lumi-menu-item svg, .lumi-menu-item img { width: 28px; height: 28px; object-fit: contain; color: #ff85a2; }
+        .lumi-menu-item img { width: 28px; height: 28px; object-fit: contain; }
         .lumi-menu-item span { font-size: 10px; color: #666; }
 
         /* Modal */
@@ -122,7 +121,10 @@ function injectStyles() {
         .lumi-stat b { display: block; font-size: 18px; color: #ff69b4; font-weight: 500; }
         .lumi-stat span { font-size: 10px; color: #999; }
         
-        .lumi-action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .lumi-action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .lumi-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+        .lumi-filter-select { background: #fff; border: 1px solid #FFD1DC; border-radius: 10px; padding: 8px 12px; color: #ff85a2; font-family: 'Mitr'; font-size: 12px; outline: none; min-width: 120px; }
+        
         .lumi-gen-btn { background: linear-gradient(135deg, #FFB6C1, #FF69B4); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; gap: 6px; font-size: 13px; }
         .lumi-gen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -135,8 +137,35 @@ function injectStyles() {
         .lumi-radio-label:has(input:checked) { background: #FFB6C1; color: white; border-color: #FFB6C1; }
         .lumi-radio-label input { display: none; }
 
+        /* Character Group Banner (Collapsible) */
+        .lumi-char-banner {
+            display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+            background: linear-gradient(135deg, #FFFBFC, #FFF0F5);
+            border: 1px solid #FFE8EE; border-radius: 14px;
+            cursor: pointer; margin: 15px 0 8px; transition: 0.2s;
+        }
+        .lumi-char-banner:hover { background: #FFF0F5; }
+        .lumi-char-banner .lumi-avatar { 
+            width: 28px; height: 28px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: white; font-size: 13px; font-weight: 500; flex-shrink: 0; 
+        }
+        .lumi-char-banner .lumi-char-name { 
+            flex: 1; font-size: 14px; color: #444; font-weight: 500; 
+        }
+        .lumi-char-banner .lumi-char-count { 
+            font-size: 11px; color: #ff85a2; background: #FFF0F5; 
+            padding: 3px 10px; border-radius: 10px; 
+        }
+        .lumi-char-banner .lumi-chevron { 
+            color: #ffb6c1; transition: transform 0.3s; 
+        }
+        .lumi-char-banner.collapsed .lumi-chevron { transform: rotate(-90deg); }
+        .lumi-char-entries { transition: all 0.3s ease; overflow: hidden; }
+        .lumi-char-entries.collapsed { max-height: 0; opacity: 0; }
+
         /* Cards */
-        .lumi-card { background: #FFFBFC; border: 1px solid #FFE8EE; border-radius: 16px; padding: 14px; margin-bottom: 12px; position: relative; transition: 0.2s; }
+        .lumi-card { background: #FFFBFC; border: 1px solid #FFE8EE; border-radius: 16px; padding: 14px; margin: 0 0 10px 38px; position: relative; transition: 0.2s; }
         .lumi-card:hover { box-shadow: 0 5px 15px rgba(255,182,193,0.1); transform: translateY(-2px); }
         .lumi-card.pinned { border: 1px solid #FFD700; background: #FFFDF5; }
         .lumi-card.locked { background: #F8F9FA; opacity: 0.7; }
@@ -149,11 +178,6 @@ function injectStyles() {
         .lumi-act { background: none; border: none; cursor: pointer; color: #ffb6c1; opacity: 0.6; transition: 0.2s; padding: 4px; }
         .lumi-act:hover { opacity: 1; color: #ff69b4; }
         .lumi-act.active { opacity: 1; color: #FFD700; }
-
-        /* RPG Grouping */
-        .lumi-group-head { font-size: 14px; color: #ff69b4; margin: 20px 0 10px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
-        .lumi-group-line { flex: 1; height: 1px; background: #FFE8EE; }
-        .lumi-avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 500; }
 
         /* Settings */
         .lumi-set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #666; }
@@ -187,10 +211,11 @@ function spawnLumiButton() {
 
     const menu = document.createElement('div');
     menu.className = 'lumi-menu';
+    // ✅ ใช้ลิงก์ไอคอนตามที่ขอ
     menu.innerHTML = `
         <div class="lumi-menu-grid">
-            <div class="lumi-menu-item" id="lumi-open">${svgDiary}<span>Diary</span></div>
-            <div class="lumi-menu-item" id="lumi-set">${svgSettings}<span>Settings</span></div>
+            <div class="lumi-menu-item" id="lumi-open"><img src="${iconDiary}"><span>Diary</span></div>
+            <div class="lumi-menu-item" id="lumi-set"><img src="${iconSettings}"><span>Settings</span></div>
         </div>`;
     document.body.appendChild(menu);
 
@@ -263,25 +288,48 @@ function openSettingsModal() {
     renderSettings();
 }
 
-// 📊 Dashboard (Stats + Diary + Gen Button)
+// 📊 Dashboard (Stats + Filters + Diary + Gen Button)
 function renderDashboard() {
     $('#lumi-title').text("Memories");
-    const mems = loadMemories();
-    const chars = [...new Set(mems.map(m => m.character))];
+    
+    // 🆕 Bot Filter - แยกข้อมูลตามบอท
+    const ctx = SillyTavern.getContext();
+    const currentBotId = ctx.characterId;
+    const bots = ctx.characters ? Object.values(ctx.characters).map(c => ({ id: c.avatar, name: c.name })) : [];
+    
+    // 🆕 Character Filter - เฉพาะตัวละครที่มีไดอารี่ในบอทที่เลือก
+    const selectedBot = $('#lumi-bot-filter')?.val() || currentBotId;
+    const mems = loadMemories({ botId: selectedBot });
+    const charsInBot = [...new Set(mems.map(m => m.character))].filter(c => c);
     
     $('#lumi-body').html(`
         <div class="lumi-stats-bar">
             <div class="lumi-stat"><b>${mems.length}</b><span>Total</span></div>
-            <div class="lumi-stat"><b>${chars.length}</b><span>Chars</span></div>
+            <div class="lumi-stat"><b>${charsInBot.length}</b><span>Chars</span></div>
             <div class="lumi-stat"><b>${mems.filter(m=>m.meta.isFavorite).length}</b><span>Favs</span></div>
         </div>
+        
         <div class="lumi-action-row">
-            <span style="font-size:13px;color:#666">Recent Memories</span>
+            <div class="lumi-filters">
+                <select id="lumi-bot-filter" class="lumi-filter-select">
+                    <option value="">All Bots</option>
+                    ${bots.map(b => `<option value="${b.id}" ${b.id===selectedBot?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}
+                </select>
+                <select id="lumi-char-filter" class="lumi-filter-select">
+                    <option value="">All Characters</option>
+                    ${charsInBot.map(c => `<option>${escapeHtml(c)}</option>`).join('')}
+                </select>
+            </div>
             <button class="lumi-gen-btn" id="btn-open-gen">${svgPlus} Generate</button>
         </div>
+        
         <div id="gen-form-container" style="display:none;margin-bottom:15px;"></div>
         <div id="lumi-content"></div>
     `);
+    
+    // Bind Filters
+    $('#lumi-bot-filter').on('change', function() { renderDashboard(); });
+    $('#lumi-char-filter').on('change', function() { renderDashboardContent(); });
     
     $('#btn-open-gen').on('click', function() {
         if($('#gen-form-container').is(':visible')) {
@@ -317,11 +365,18 @@ function renderGeneratorForm() {
     $('#btn-run-gen').on('click', generateBatchMemories);
 }
 
-// 📖 Diary Content Rendering (Grouped by Character)
+// 📖 Diary Content Rendering (Collapsible Character Groups)
 function renderDashboardContent() {
-    const mems = loadMemories();
-    if(!mems.length) { $('#lumi-content').html('<div style="text-align:center;color:#ccc;padding:30px">No memories yet. Click Generate to start!</div>'); return; }
+    const selectedBot = $('#lumi-bot-filter')?.val() || SillyTavern.getContext().characterId;
+    const selectedChar = $('#lumi-char-filter')?.val() || '';
+    const mems = loadMemories({ botId: selectedBot, character: selectedChar || null });
+    
+    if(!mems.length) { 
+        $('#lumi-content').html('<div style="text-align:center;color:#ccc;padding:30px">No memories found. Click Generate to create some!</div>'); 
+        return; 
+    }
 
+    // Group by Character
     const byChar = {};
     mems.forEach(m => { 
         const char = m.character || "Unknown";
@@ -332,10 +387,31 @@ function renderDashboardContent() {
     let html = '';
     for(const char in byChar) {
         const color = generateColor(char);
-        html += `<div class="lumi-group-head"><div class="lumi-avatar" style="background:${color}">${char[0]}</div> ${char} <div class="lumi-group-line"></div></div>`;
-        byChar[char].forEach(m => html += renderCard(m));
+        const count = byChar[char].length;
+        const entriesHtml = byChar[char].map(m => renderCard(m)).join('');
+        
+        html += `
+            <div class="lumi-char-banner" data-char="${escapeHtml(char)}">
+                <div class="lumi-avatar" style="background:${color}">${char[0]}</div>
+                <span class="lumi-char-name">${escapeHtml(char)}</span>
+                <span class="lumi-char-count">${count} memories</span>
+                <span class="lumi-chevron">${svgChevron}</span>
+            </div>
+            <div class="lumi-char-entries" id="entries-${escapeHtml(char).replace(/[^a-zA-Z0-9]/g,'-')}">
+                ${entriesHtml}
+            </div>
+        `;
     }
     $('#lumi-content').html(html);
+    
+    // Bind collapsible behavior
+    $('.lumi-char-banner').on('click', function() {
+        const char = $(this).data('char');
+        const entries = $(`#entries-${escapeHtml(char).replace(/[^a-zA-Z0-9]/g,'-')}`);
+        $(this).toggleClass('collapsed');
+        entries.toggleClass('collapsed');
+    });
+    
     bindEvents();
 }
 
@@ -368,7 +444,7 @@ function renderCard(m) {
         </div>`;
 }
 
-// ⚙️ Settings (Restored Full Customization)
+// ⚙️ Settings (Full Customization)
 function renderSettings() {
     $('#lumi-title').text("Settings");
     const s = extension_settings[extensionName];
@@ -432,7 +508,7 @@ function renderSettings() {
     $('#ag-tr').on('change', function() {
         s.diary.autoGen.triggerType = $(this).val();
         SillyTavern.getContext().saveSettingsDebounced();
-        renderSettings(); // Re-render to show correct input
+        renderSettings();
     });
     $('#ag-int').on('change', function(){ s.diary.autoGen.turnInterval = parseInt($(this).val()) || 20; SillyTavern.getContext().saveSettingsDebounced(); });
     $('#ag-chance').on('change', function(){ s.diary.autoGen.randomChance = (parseInt($(this).val()) || 10) / 100; SillyTavern.getContext().saveSettingsDebounced(); });
@@ -446,7 +522,7 @@ function renderSettings() {
 }
 
 // ═══════════════════════════════════════════════
-// 6. AI BATCH GENERATION
+// 6. AI BATCH GENERATION (Improved Prompt)
 // ═══════════════════════════════════════════════
 async function generateBatchMemories() {
     const mode = $('input[name="gen-mode"]:checked').val();
@@ -462,6 +538,7 @@ async function generateBatchMemories() {
     if(results && results.length > 0) {
         const ctx = SillyTavern.getContext();
         const wm = extension_settings[extensionName].diary.worldMode === 'auto' ? detectWorldMode() : extension_settings[extensionName].diary.worldMode;
+        const botId = ctx.characterId;
         
         results.forEach(res => {
             let charName = res.character || ctx.name2 || "Character";
@@ -469,6 +546,7 @@ async function generateBatchMemories() {
                 id: 'mem_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
                 timestamp: new Date().toISOString(),
                 character: charName,
+                botId: botId, // 🆕 เก็บ botId
                 worldMode: wm,
                 content: { ...res },
                 meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
@@ -478,7 +556,7 @@ async function generateBatchMemories() {
         showToast(`✨ Created ${results.length} memories!`);
         renderDashboard();
     } else {
-        showToast('❌ No significant memories found');
+        showToast('❌ No significant memories found - try expanding the message range');
     }
 }
 
@@ -492,26 +570,42 @@ async function callAIBatch(mode, count) {
     else chatSlice = allChat;
     
     const charsInChat = [...new Set(chatSlice.filter(m=>m.name && !m.is_user).map(m=>m.name))];
-    const charContext = charsInChat.length > 0 ? `Main Characters in context: ${charsInChat.join(', ')}` : `Main Character: ${ctx.name2}`;
-    const chatLog = chatSlice.map((m) => `[${m.is_user?'User':m.name||'NPC'}]: ${m.mes.slice(0,80)}`).join('\n');
+    const charContext = charsInChat.length > 0 ? `Characters present: ${charsInChat.join(', ')}` : `Character: ${ctx.name2}`;
+    
+    // 🆕 Improved chat log format for better AI understanding
+    const chatLog = chatSlice.map((m, i) => {
+        const speaker = m.is_user ? 'User' : (m.name || 'NPC');
+        const text = m.mes.slice(0, 100);
+        return `[${speaker}]: ${text}`;
+    }).join('\n');
 
-    const prompt = `[System: You are the collective inner voice of the characters in this roleplay. Analyze the chat logs below.]
+    // 🆕 More generous prompt - encourages finding memories even in subtle moments
+    const prompt = `[System: You are analyzing a roleplay chat to create meaningful diary entries. Be generous in identifying memorable moments.]
 ${charContext}
+
 Chat Log (${mode==='all'?'Full History':mode==='first'?`First ${count} Messages`:`Last ${count} Messages`}):
 ${chatLog}
 
-Identify up to 3 significant emotional events or turning points. For EACH event, generate a SEPARATE diary entry for the specific character involved. A single character can have multiple entries if they experienced multiple key moments.
+Look for ANY of these moments to create diary entries:
+- Emotional reactions (happy, sad, angry, surprised, touched)
+- Character development or realization
+- Important conversations or decisions
+- Funny or awkward moments
+- Romantic or intimate exchanges
+- Plot developments or world-building details
+
+For EACH moment you identify, generate a SEPARATE diary entry. A character can have multiple entries.
 Return ONLY a JSON ARRAY of objects like this:
 [
   {
-    "character": "Exact Name from chat",
-    "rp_date": "Fictional date inferred from context",
-    "rp_location": "Location inferred from chat",
-    "diary": "First-person diary entry in Thai. 2-4 sentences reflecting their personality.",
-    "isSecret": true/false
+    "character": "Exact character name from chat",
+    "rp_date": "Fictional date (be creative: 'Day 3 of Moonfall', 'After the banquet', etc.)",
+    "rp_location": "Location from context (be specific: 'garden at dusk', 'throne room', etc.)",
+    "diary": "First-person diary in Thai. 2-4 sentences showing personality and emotion.",
+    "isSecret": true if deeply personal/vulnerable, false otherwise
   }
 ]
-If nothing significant happened, return empty array [].`;
+If you truly find nothing noteworthy, return []. But try to find at least 1-3 entries if possible.`;
 
     try {
         let res;
@@ -529,7 +623,7 @@ If nothing significant happened, return empty array [].`;
 }
 
 // ═══════════════════════════════════════════════
-// 7. AUTO-TRIGGER SYSTEM (Restored)
+// 7. AUTO-TRIGGER SYSTEM
 // ═══════════════════════════════════════════════
 function setupAutoTriggerListener() {
     $(document).off('messageReceived', onNewChat).on('messageReceived', onNewChat);
@@ -553,11 +647,13 @@ async function onNewChat() {
         if(results && results.length > 0) {
             const ctx = SillyTavern.getContext();
             const wm = s.diary.worldMode === 'auto' ? detectWorldMode() : s.diary.worldMode;
+            const botId = ctx.characterId;
             results.forEach(res => {
                 saveMemory({
                     id: 'mem_auto_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
                     timestamp: new Date().toISOString(),
                     character: res.character || ctx.name2 || "Character",
+                    botId: botId,
                     worldMode: wm,
                     content: { ...res },
                     meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
@@ -573,7 +669,16 @@ async function onNewChat() {
 // ═══════════════════════════════════════════════
 function loadMemories(filter = {}) {
     let mem = [...(extension_settings[extensionName].memories || [])];
-    if (filter.character) mem = mem.filter(m => m.character === filter.character);
+    
+    // 🆕 Filter by botId
+    if (filter.botId) {
+        mem = mem.filter(m => m.botId === filter.botId);
+    }
+    // 🆕 Filter by character name
+    if (filter.character) {
+        mem = mem.filter(m => m.character === filter.character);
+    }
+    
     return mem.sort((a,b) => (b.meta.isPinned?1:0) - (a.meta.isPinned?1:0) || new Date(b.timestamp) - new Date(a.timestamp));
 }
 
@@ -595,6 +700,11 @@ function generateColor(str) {
     const colors = ['#FFB6C1', '#E6D5F0', '#B6D7F0', '#B6F0D7', '#F0E6B6', '#F0B6D7'];
     let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
+}
+
+function escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 function extractTags(text) {
