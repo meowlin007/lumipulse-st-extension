@@ -8,7 +8,7 @@ const extensionName = "lumipulse-st-extension";
 const defaultSettings = {
     isEnabled: true,
     memories: [],
-    _internal: { fabPos: null },
+    _internal: { fabPos: null, theme: 'pink' },
     diary: {
         worldMode: 'auto',
         display: { 
@@ -33,7 +33,7 @@ const btnUrl       = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
 const iconDiary    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconSettings = "https://file.garden/ad59q6JMmVnp7v1-/setting-icon.png";
 
-// SVG Vectors (สำหรับปุ่มภายในระบบ)
+// ✅ SVG Vectors ทั้งหมด (แทนอิโมจิ)
 const svgHeart    = `<svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF69B4"/></svg>`;
 const svgPin      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1-1v-5h2v-2l-2-2z"/></svg>`;
 const svgStar     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
@@ -42,21 +42,19 @@ const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const svgBack     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
 const svgPlus     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
 const svgChevron  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>`;
+const svgFilter   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>`;
+const svgCalendar = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+const svgMapPin   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+const svgUser     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
 
 // ═══════════════════════════════════════════════
-// THEME & LAYOUT SYSTEM (✅ ย้ายมาไว้บนสุด)
+// THEME SYSTEM (✅ ย้ายมาไว้บนสุด)
 // ═══════════════════════════════════════════════
 const themes = {
-    pink: { name: 'Pink Pastel', primary: '#FFB6C1', secondary: '#FF69B4', bg: '#FFF0F5', card: '#FFFBFC', text: '#555' },
-    purple: { name: 'Purple Dream', primary: '#E6D5F0', secondary: '#9B7ED9', bg: '#F5F0FA', card: '#FAF7FC', text: '#555' },
-    ocean: { name: 'Ocean Blue', primary: '#B6D7F0', secondary: '#4A9FD9', bg: '#F0F7FA', card: '#F7FBFC', text: '#555' },
-    mint: { name: 'Mint Fresh', primary: '#B6F0D7', secondary: '#4AD99A', bg: '#F0FAF5', card: '#F7FCFA', text: '#555' }
-};
-
-const layouts = {
-    compact: { cardPadding: '8px', fontSize: '12px', gap: '6px' },
-    comfortable: { cardPadding: '14px', fontSize: '13px', gap: '10px' },
-    spacious: { cardPadding: '20px', fontSize: '14px', gap: '14px' }
+    pink: { name: 'Pink Pastel', primary: '#FFB6C1', secondary: '#FF69B4', bg: '#FFF0F5', card: '#FFFBFC', text: '#555', border: '#FFE8EE' },
+    purple: { name: 'Purple Dream', primary: '#E6D5F0', secondary: '#9B7ED9', bg: '#F5F0FA', card: '#FAF7FC', text: '#555', border: '#E8D8F0' },
+    ocean: { name: 'Ocean Blue', primary: '#B6D7F0', secondary: '#4A9FD9', bg: '#F0F7FA', card: '#F7FBFC', text: '#555', border: '#D8E8F0' },
+    mint: { name: 'Mint Fresh', primary: '#B6F0D7', secondary: '#4AD99A', bg: '#F0FAF5', card: '#F7FCFA', text: '#555', border: '#D8F0E8' }
 };
 
 function applyTheme(themeName) {
@@ -67,10 +65,7 @@ function applyTheme(themeName) {
     root.style.setProperty('--lumi-bg', theme.bg);
     root.style.setProperty('--lumi-card', theme.card);
     root.style.setProperty('--lumi-text', theme.text);
-}
-
-function applyLayout(layoutName) {
-    // CSS variables จะถูกใช้ใน injectStyles
+    root.style.setProperty('--lumi-border', theme.border);
 }
 
 // ═══════════════════════════════════════════════
@@ -92,6 +87,10 @@ function initLumiPulse() {
         ctx.saveSettingsDebounced();
     }
     extension_settings = ctx.extensionSettings;
+    
+    // ✅ Apply theme on init
+    applyTheme(extension_settings[extensionName]._internal.theme || 'pink');
+    
     injectStyles();
     createSettingsPanel();
     
@@ -113,7 +112,7 @@ function injectStyles() {
     s.id = 'lumi-styles';
     s.innerHTML = `
         @import url('https://fonts.googleapis.com/css2?family=Mitr:wght@200;300;400;500&display=swap');
-        :root { --lumi-pink: #FFB6C1; --lumi-dark: #FF69B4; --lumi-bg: #FFF0F5; --lumi-glass: rgba(255, 255, 255, 0.9); }
+        :root { --lumi-primary: #FFB6C1; --lumi-secondary: #FF69B4; --lumi-bg: #FFF0F5; --lumi-card: #FFFBFC; --lumi-text: #555; --lumi-border: #FFE8EE; --lumi-glass: rgba(255, 255, 255, 0.9); }
         
         @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
         @keyframes heartFloat { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -100px) scale(1.5); } }
@@ -130,97 +129,98 @@ function injectStyles() {
 
         .lumi-menu { position: fixed; z-index: 99998; display: none; background: rgba(255,255,255,0.98);
             backdrop-filter: blur(15px); border-radius: 20px; padding: 15px; border: 1px solid rgba(255,182,193,0.3);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-family: 'Mitr'; min-width: 180px; }
-        .lumi-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .lumi-menu-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; opacity: 0.85; transition: 0.2s; padding: 8px; border-radius: 12px; }
-        .lumi-menu-item:hover { opacity: 1; background: #FFF0F5; }
-        .lumi-menu-item img { width: 28px; height: 28px; object-fit: contain; }
-        .lumi-menu-item span { font-size: 10px; color: #666; }
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-family: 'Mitr'; min-width: 200px; }
+        .lumi-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .lumi-menu-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; opacity: 0.85; transition: 0.2s; padding: 10px; border-radius: 12px; }
+        .lumi-menu-item:hover { opacity: 1; background: var(--lumi-bg); }
+        .lumi-menu-item img { width: 32px; height: 32px; object-fit: contain; }
+        .lumi-menu-item svg { width: 32px; height: 32px; color: var(--lumi-primary); }
+        .lumi-menu-item span { font-size: 11px; color: #666; }
 
         /* Modal */
         .lumi-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); z-index: 100000; display: none; align-items: center; justify-content: center; }
-        .lumi-modal { width: 92%; max-width: 460px; height: 85vh; background: #fff; border-radius: 24px; border: 1px solid #FFD1DC;
+        .lumi-modal { width: 92%; max-width: 460px; height: 85vh; background: var(--lumi-card); border-radius: 24px; border: 1px solid var(--lumi-border);
             box-shadow: 0 20px 50px rgba(255,105,180,0.2); display: flex; flex-direction: column; overflow: hidden; font-family: 'Mitr'; animation: popIn 0.3s; }
-        .lumi-head { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #FFF0F5; background: #FFFBFC; }
-        .lumi-head h3 { margin: 0; font-size: 16px; color: #ff69b4; font-weight: 400; }
-        .lumi-btn { width: 32px; height: 32px; border-radius: 50%; background: #FFF0F5; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #ff85a2; transition: 0.2s; }
-        .lumi-btn:hover { background: #FFE0E6; }
-        .lumi-body { flex: 1; overflow-y: auto; padding: 15px; background: #fff; }
+        .lumi-head { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--lumi-border); background: var(--lumi-bg); }
+        .lumi-head h3 { margin: 0; font-size: 16px; color: var(--lumi-secondary); font-weight: 400; }
+        .lumi-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--lumi-bg); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--lumi-primary); transition: 0.2s; }
+        .lumi-btn:hover { background: var(--lumi-border); }
+        .lumi-body { flex: 1; overflow-y: auto; padding: 15px; background: var(--lumi-card); }
 
         /* Dashboard & Stats */
-        .lumi-stats-bar { display: flex; gap: 10px; margin-bottom: 15px; background: #FFF9FA; padding: 12px; border-radius: 14px; border: 1px solid #FFE8EE; }
+        .lumi-stats-bar { display: flex; gap: 10px; margin-bottom: 15px; background: var(--lumi-bg); padding: 12px; border-radius: 14px; border: 1px solid var(--lumi-border); }
         .lumi-stat { flex: 1; text-align: center; }
-        .lumi-stat b { display: block; font-size: 18px; color: #ff69b4; font-weight: 500; }
+        .lumi-stat b { display: block; font-size: 18px; color: var(--lumi-secondary); font-weight: 500; }
         .lumi-stat span { font-size: 10px; color: #999; }
         
         .lumi-action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         .lumi-filters { display: flex; gap: 8px; flex-wrap: wrap; }
-        .lumi-filter-select { background: #fff; border: 1px solid #FFD1DC; border-radius: 10px; padding: 8px 12px; color: #ff85a2; font-family: 'Mitr'; font-size: 12px; outline: none; min-width: 120px; }
+        .lumi-filter-select { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 8px 12px; color: var(--lumi-primary); font-family: 'Mitr'; font-size: 12px; outline: none; min-width: 120px; }
         
-        .lumi-gen-btn { background: linear-gradient(135deg, #FFB6C1, #FF69B4); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        .lumi-gen-btn { background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; gap: 6px; font-size: 13px; }
         .lumi-gen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* Generator Form */
-        .lumi-form { background: #FFF9FA; border: 1px solid #FFE8EE; border-radius: 16px; padding: 15px; margin-bottom: 15px; }
-        .lumi-input { width: 100%; background: #fff; border: 1px solid #FFD1DC; border-radius: 10px; padding: 10px; color: #ff85a2; font-family: 'Mitr'; outline: none; box-sizing: border-box; }
+        .lumi-form { background: var(--lumi-bg); border: 1px solid var(--lumi-border); border-radius: 16px; padding: 15px; margin-bottom: 15px; }
+        .lumi-input { width: 100%; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 10px; color: var(--lumi-primary); font-family: 'Mitr'; outline: none; box-sizing: border-box; }
         .lumi-label { font-size: 12px; color: #666; margin-bottom: 6px; display: block; font-weight: 400; }
         .lumi-radio-group { display: flex; gap: 8px; margin-bottom: 10px; }
-        .lumi-radio-label { flex: 1; text-align: center; padding: 8px; background: #fff; border: 1px solid #FFD1DC; border-radius: 10px; cursor: pointer; font-size: 12px; color: #666; transition: 0.2s; }
-        .lumi-radio-label:has(input:checked) { background: #FFB6C1; color: white; border-color: #FFB6C1; }
+        .lumi-radio-label { flex: 1; text-align: center; padding: 8px; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; cursor: pointer; font-size: 12px; color: #666; transition: 0.2s; }
+        .lumi-radio-label:has(input:checked) { background: var(--lumi-primary); color: white; border-color: var(--lumi-primary); }
         .lumi-radio-label input { display: none; }
 
-        /* Character Group Banner (Collapsible) */
-        .lumi-char-banner {
+        /* Character/Date/Location Group Banner */
+        .lumi-group-banner {
             display: flex; align-items: center; gap: 10px; padding: 12px 14px;
-            background: linear-gradient(135deg, #FFFBFC, #FFF0F5);
-            border: 1px solid #FFE8EE; border-radius: 14px;
+            background: linear-gradient(135deg, var(--lumi-bg), var(--lumi-card));
+            border: 1px solid var(--lumi-border); border-radius: 14px;
             cursor: pointer; margin: 15px 0 8px; transition: 0.2s;
         }
-        .lumi-char-banner:hover { background: #FFF0F5; }
-        .lumi-char-banner .lumi-avatar { 
+        .lumi-group-banner:hover { background: var(--lumi-bg); }
+        .lumi-group-banner .lumi-avatar { 
             width: 28px; height: 28px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             color: white; font-size: 13px; font-weight: 500; flex-shrink: 0; 
         }
-        .lumi-char-banner .lumi-char-name { 
-            flex: 1; font-size: 14px; color: #444; font-weight: 500; 
+        .lumi-group-banner .lumi-group-name { 
+            flex: 1; font-size: 14px; color: var(--lumi-text); font-weight: 500; 
         }
-        .lumi-char-banner .lumi-char-count { 
-            font-size: 11px; color: #ff85a2; background: #FFF0F5; 
+        .lumi-group-banner .lumi-group-count { 
+            font-size: 11px; color: var(--lumi-primary); background: var(--lumi-bg); 
             padding: 3px 10px; border-radius: 10px; 
         }
-        .lumi-char-banner .lumi-chevron { 
-            color: #ffb6c1; transition: transform 0.3s; 
+        .lumi-group-banner .lumi-chevron { 
+            color: var(--lumi-primary); transition: transform 0.3s; 
         }
-        .lumi-char-banner.collapsed .lumi-chevron { transform: rotate(-90deg); }
-        .lumi-char-entries { transition: all 0.3s ease; overflow: hidden; }
-        .lumi-char-entries.collapsed { max-height: 0; opacity: 0; }
+        .lumi-group-banner.collapsed .lumi-chevron { transform: rotate(-90deg); }
+        .lumi-group-entries { transition: all 0.3s ease; overflow: hidden; }
+        .lumi-group-entries.collapsed { max-height: 0; opacity: 0; }
 
         /* Cards */
-        .lumi-card { background: #FFFBFC; border: 1px solid #FFE8EE; border-radius: 16px; padding: 14px; margin: 0 0 10px 38px; position: relative; transition: 0.2s; }
-        .lumi-card:hover { box-shadow: 0 5px 15px rgba(255,182,193,0.1); transform: translateY(-2px); }
+        .lumi-card { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 16px; padding: 14px; margin: 0 0 10px 38px; position: relative; transition: 0.2s; }
+        .lumi-card:hover { box-shadow: 0 5px 15px rgba(255,105,180,0.1); transform: translateY(-2px); }
         .lumi-card.pinned { border: 1px solid #FFD700; background: #FFFDF5; }
         .lumi-card.locked { background: #F8F9FA; opacity: 0.7; }
         
         .lumi-meta { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
-        .lumi-badge { font-size: 10px; padding: 3px 8px; border-radius: 8px; background: #FFF0F5; color: #ff85a2; display: flex; align-items: center; gap: 3px; }
-        .lumi-char-badge { background: #FFB6C1; color: white; font-weight: 500; }
-        .lumi-text { font-size: 13px; color: #555; line-height: 1.6; white-space: pre-wrap; margin: 8px 0; }
-        .lumi-actions { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px dashed #FFE8EE; padding-top: 8px; }
-        .lumi-act { background: none; border: none; cursor: pointer; color: #ffb6c1; opacity: 0.6; transition: 0.2s; padding: 4px; }
-        .lumi-act:hover { opacity: 1; color: #ff69b4; }
+        .lumi-badge { font-size: 10px; padding: 3px 8px; border-radius: 8px; background: var(--lumi-bg); color: var(--lumi-primary); display: flex; align-items: center; gap: 3px; }
+        .lumi-char-badge { background: var(--lumi-primary); color: white; font-weight: 500; }
+        .lumi-text { font-size: 13px; color: var(--lumi-text); line-height: 1.6; white-space: pre-wrap; margin: 8px 0; }
+        .lumi-actions { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px dashed var(--lumi-border); padding-top: 8px; }
+        .lumi-act { background: none; border: none; cursor: pointer; color: var(--lumi-primary); opacity: 0.6; transition: 0.2s; padding: 4px; }
+        .lumi-act:hover { opacity: 1; color: var(--lumi-secondary); }
         .lumi-act.active { opacity: 1; color: #FFD700; }
 
         /* Settings */
         .lumi-set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #666; }
-        .lumi-set-row select, .lumi-set-row input[type="number"] { background: #fff; border: 1px solid #FFD1DC; border-radius: 8px; padding: 5px 8px; color: #ff85a2; font-family: 'Mitr'; outline: none; }
+        .lumi-set-row select, .lumi-set-row input[type="number"] { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 8px; padding: 5px 8px; color: var(--lumi-primary); font-family: 'Mitr'; outline: none; }
 
         /* Toast */
-        .lumi-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 999999; font-family: 'Mitr'; font-size: 13px; color: #ff69b4; border: 1px solid #FFE8EE; animation: popIn 0.3s; pointer-events: none; }
+        .lumi-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 999999; font-family: 'Mitr'; font-size: 13px; color: var(--lumi-secondary); border: 1px solid var(--lumi-border); animation: popIn 0.3s; pointer-events: none; }
         
         /* Extension Panel */
         #lumi-panel .inline-drawer-content { font-family: 'Mitr'; padding: 10px; }
-        #lumi-panel .menu_button { width: 100%; margin-bottom: 5px; background: linear-gradient(135deg, #FFB6C1, #FF69B4); color: white; border: none; border-radius: 8px; padding: 8px; font-family: 'Mitr'; }
+        #lumi-panel .menu_button { width: 100%; margin-bottom: 5px; background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; border-radius: 8px; padding: 8px; font-family: 'Mitr'; }
 
         @media (max-width: 768px) { .lumi-menu-grid { grid-template-columns: repeat(2, 1fr); } }
         
@@ -230,8 +230,8 @@ function injectStyles() {
 
         /* Timeline Date Header */
         .lumi-timeline-date {
-            background: linear-gradient(135deg, var(--lumi-bg, #FFF0F5), white);
-            border-left: 3px solid var(--lumi-primary, #FFB6C1);
+            background: linear-gradient(135deg, var(--lumi-bg), var(--lumi-card));
+            border-left: 3px solid var(--lumi-primary);
             border-radius: 12px;
             padding: 10px 14px;
             margin: 20px 0 15px;
@@ -242,7 +242,7 @@ function injectStyles() {
 }
 
 // ═══════════════════════════════════════════════
-// 4. FAB BUTTON (✅ เพิ่มบังคับแสดงปุ่ม)
+// 4. FAB BUTTON (✅ ไอคอนใหญ่ 32px)
 // ═══════════════════════════════════════════════
 function spawnLumiButton() {
     $('#lumi-fab, .lumi-menu').remove();
@@ -255,7 +255,6 @@ function spawnLumiButton() {
     else { fab.style.top = '50%'; fab.style.right = '20px'; fab.style.transform = 'translateY(-50%)'; }
     document.body.appendChild(fab);
     
-    // ✅ บังคับแสดงปุ่มทันที
     setTimeout(() => {
         fab.style.display = 'flex';
         fab.style.visibility = 'visible';
@@ -264,10 +263,11 @@ function spawnLumiButton() {
 
     const menu = document.createElement('div');
     menu.className = 'lumi-menu';
+    // ✅ ใช้ SVG แทนรูปภาพ + ขนาด 32px
     menu.innerHTML = `
         <div class="lumi-menu-grid">
-            <div class="lumi-menu-item" id="lumi-open"><img src="${iconDiary}"><span>Diary</span></div>
-            <div class="lumi-menu-item" id="lumi-set"><img src="${iconSettings}"><span>Settings</span></div>
+            <div class="lumi-menu-item" id="lumi-open">${svgCalendar}<span>Diary</span></div>
+            <div class="lumi-menu-item" id="lumi-set">${svgLock}<span>Settings</span></div>
         </div>`;
     document.body.appendChild(menu);
 
@@ -340,22 +340,33 @@ function openSettingsModal() {
     renderSettings();
 }
 
-// 📊 Dashboard (Stats + Filters + Diary + Gen Button)
+// 📊 Dashboard (✅ เพิ่มฟิลเตอร์: ตัวละคร/วันที่/สถานที่)
 function renderDashboard() {
     const ctx = SillyTavern.getContext();
     const currentBotId = ctx.characterId;
     const currentBotName = ctx.name2 || "Unknown Bot";
     
-    const savedTheme = extension_settings[extensionName]._internal.theme || 'pink';
-    const savedLayout = extension_settings[extensionName]._internal.layout || 'comfortable';
-    applyTheme(savedTheme);
-    applyLayout(savedLayout);
-    
     const mems = loadMemories({ botId: currentBotId });
-    const charsInBot = [...new Set(mems.map(m => m.character))].filter(c => c);
     
+    // ✅ ดึงค่าฟิลเตอร์จากหน่วยความจำ
+    const filterChar = extension_settings[extensionName]._internal.filterChar || '';
+    const filterDate = extension_settings[extensionName]._internal.filterDate || '';
+    const filterLoc = extension_settings[extensionName]._internal.filterLoc || '';
+    
+    // ✅ ดึงค่าที่ไม่ซ้ำสำหรับฟิลเตอร์
+    const chars = [...new Set(mems.map(m => m.character))].filter(c => c);
+    const dates = [...new Set(mems.map(m => m.content.rp_date))].filter(d => d);
+    const locs = [...new Set(mems.map(m => m.content.rp_location))].filter(l => l);
+    
+    // ✅ กรองตามฟิลเตอร์
+    let filteredMems = mems;
+    if (filterChar) filteredMems = filteredMems.filter(m => m.character === filterChar);
+    if (filterDate) filteredMems = filteredMems.filter(m => m.content.rp_date === filterDate);
+    if (filterLoc) filteredMems = filteredMems.filter(m => m.content.rp_location === filterLoc);
+    
+    // ✅ จัดกลุ่มตามวันที่ (สำหรับแสดงผล)
     const byDate = {};
-    mems.forEach(m => {
+    filteredMems.forEach(m => {
         const date = m.content.rp_date || 'Unknown Date';
         if (!byDate[date]) byDate[date] = [];
         byDate[date].push(m);
@@ -367,33 +378,32 @@ function renderDashboard() {
         <div style="background:linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary));padding:20px;border-radius:16px;margin-bottom:15px;box-shadow:0 4px 15px rgba(255,105,180,0.2);animation:slideIn 0.3s ease;">
             <div style="font-size:11px;color:rgba(255,255,255,0.9);margin-bottom:4px">📖 Memories of</div>
             <div style="font-size:18px;color:white;font-weight:500">${currentBotName}</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">${mems.length} memories · ${charsInBot.length} characters</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">${filteredMems.length} memories</div>
         </div>
         
         <div class="lumi-stats-bar" style="animation:fadeIn 0.4s ease 0.1s both;">
             <div class="lumi-stat"><b>${mems.length}</b><span>Total</span></div>
-            <div class="lumi-stat"><b>${charsInBot.length}</b><span>Chars</span></div>
+            <div class="lumi-stat"><b>${chars.length}</b><span>Chars</span></div>
             <div class="lumi-stat"><b>${mems.filter(m=>m.meta.isFavorite).length}</b><span>Favs</span></div>
         </div>
         
-        <div style="display:flex;gap:8px;margin-bottom:15px;animation:fadeIn 0.4s ease 0.2s both;">
-            <select id="lumi-theme-select" class="lumi-filter-select" style="flex:1">
-                ${Object.entries(themes).map(([k,v]) => `<option value="${k}" ${k===savedTheme?'selected':''}>${v.name}</option>`).join('')}
+        <!-- ✅ ฟิลเตอร์: ตัวละคร / วันที่ / สถานที่ -->
+        <div style="display:flex;gap:8px;margin-bottom:15px;animation:fadeIn 0.4s ease 0.2s both;flex-wrap:wrap;">
+            <select id="filter-char" class="lumi-filter-select" style="flex:1;min-width:100px">
+                <option value="">All Characters</option>
+                ${chars.map(c => `<option value="${escapeHtml(c)}" ${c===filterChar?'selected':''}>${escapeHtml(c)}</option>`).join('')}
             </select>
-            <select id="lumi-layout-select" class="lumi-filter-select" style="flex:1">
-                <option value="compact" ${savedLayout==='compact'?'selected':''}>Compact</option>
-                <option value="comfortable" ${savedLayout==='comfortable'?'selected':''}>Comfortable</option>
-                <option value="spacious" ${savedLayout==='spacious'?'selected':''}>Spacious</option>
+            <select id="filter-date" class="lumi-filter-select" style="flex:1;min-width:100px">
+                <option value="">All Dates</option>
+                ${dates.map(d => `<option value="${escapeHtml(d)}" ${d===filterDate?'selected':''}>${escapeHtml(d)}</option>`).join('')}
+            </select>
+            <select id="filter-loc" class="lumi-filter-select" style="flex:1;min-width:100px">
+                <option value="">All Locations</option>
+                ${locs.map(l => `<option value="${escapeHtml(l)}" ${l===filterLoc?'selected':''}>${escapeHtml(l)}</option>`).join('')}
             </select>
         </div>
         
         <div class="lumi-action-row" style="animation:fadeIn 0.4s ease 0.3s both;">
-            <div class="lumi-filters">
-                <select id="lumi-char-filter" class="lumi-filter-select">
-                    <option value="">All Characters</option>
-                    ${charsInBot.map(c => `<option>${escapeHtml(c)}</option>`).join('')}
-                </select>
-            </div>
             <button class="lumi-gen-btn" id="btn-open-gen">${svgPlus} Generate</button>
         </div>
         
@@ -402,7 +412,7 @@ function renderDashboard() {
         <div id="lumi-content">
             ${sortedDates.length === 0 ? `
                 <div style="text-align:center;padding:60px 20px;animation:fadeIn 0.5s ease;">
-                    <div style="font-size:64px;margin-bottom:16px;opacity:0.3">📭</div>
+                    <div style="font-size:64px;margin-bottom:16px;opacity:0.3">${svgCalendar}</div>
                     <div style="font-size:16px;color:#999;margin-bottom:8px">No memories yet</div>
                     <div style="font-size:13px;color:#ccc;margin-bottom:24px">Start creating memories with ${currentBotName}!</div>
                     <button class="lumi-gen-btn" onclick="$('#btn-open-gen').click()" style="margin:0 auto;display:inline-flex">
@@ -413,19 +423,15 @@ function renderDashboard() {
         </div>
     `);
     
-    $('#lumi-theme-select').on('change', function() {
-        extension_settings[extensionName]._internal.theme = $(this).val();
-        applyTheme($(this).val());
+    // ✅ Bind ฟิลเตอร์
+    $('#filter-char, #filter-date, #filter-loc').on('change', function() {
+        extension_settings[extensionName]._internal.filterChar = $('#filter-char').val();
+        extension_settings[extensionName]._internal.filterDate = $('#filter-date').val();
+        extension_settings[extensionName]._internal.filterLoc = $('#filter-loc').val();
         SillyTavern.getContext().saveSettingsDebounced();
+        renderDashboard();
     });
     
-    $('#lumi-layout-select').on('change', function() {
-        extension_settings[extensionName]._internal.layout = $(this).val();
-        applyLayout($(this).val());
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#lumi-char-filter').on('change', function() { renderDashboardContent(); });
     $('#btn-open-gen').on('click', function() {
         if($('#gen-form-container').is(':visible')) {
             $('#gen-form-container').slideUp(200);
@@ -441,19 +447,14 @@ function renderDashboard() {
 }
 
 function renderTimelineContent(byDate, sortedDates) {
-    const selectedChar = $('#lumi-char-filter')?.val() || '';
     let html = '';
     
     sortedDates.forEach(date => {
-        let entries = byDate[date];
-        if (selectedChar) {
-            entries = entries.filter(m => m.character === selectedChar);
-        }
-        
+        const entries = byDate[date];
         if (entries.length === 0) return;
         
         html += `<div class="lumi-timeline-date">
-            <div style="font-size:13px;color:var(--lumi-secondary, #ff69b4);font-weight:500">📅 ${date}</div>
+            <div style="font-size:13px;color:var(--lumi-secondary);font-weight:500;display:flex;align-items:center;gap:6px">${svgCalendar} ${date}</div>
         </div>`;
         
         entries.forEach((m, idx) => {
@@ -474,7 +475,7 @@ function renderCard(m, index) {
     let lockOverlay = '';
     if(isLocked) {
         lockOverlay = `<div style="position:absolute;inset:0;background:rgba(255,255,255,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;z-index:1;backdrop-filter:blur(5px);">
-            ${svgLock} <div style="font-size:11px;color:var(--lumi-secondary, #ff85a2);margin-top:5px">Locked</div>
+            ${svgLock} <div style="font-size:11px;color:var(--lumi-secondary);margin-top:5px">Locked</div>
         </div>`;
     }
 
@@ -482,8 +483,8 @@ function renderCard(m, index) {
         <div class="lumi-card" data-id="${m.id}" style="animation:fadeIn 0.4s ease ${delay}s both; ${isLocked?'opacity:0.7;':''}">
             ${lockOverlay}
             <div class="lumi-meta">
-                <span class="lumi-badge lumi-char-badge" style="background:${color}">${m.character}</span>
-                <span class="lumi-badge">📍 ${m.content.rp_location||'Unknown'}</span>
+                <span class="lumi-badge lumi-char-badge" style="background:${color};display:flex;align-items:center;gap:4px">${svgUser} ${m.character}</span>
+                <span class="lumi-badge" style="display:flex;align-items:center;gap:4px">${svgMapPin} ${m.content.rp_location||'Unknown'}</span>
             </div>
             <div class="lumi-text">${isLocked ? '...' : m.content.diary}</div>
             <div class="lumi-actions">
@@ -519,64 +520,26 @@ function renderGeneratorForm() {
     $('#btn-run-gen').on('click', generateBatchMemories);
 }
 
-function renderDashboardContent() {
-    const selectedBot = $('#lumi-bot-filter')?.val() || SillyTavern.getContext().characterId;
-    const selectedChar = $('#lumi-char-filter')?.val() || '';
-    const mems = loadMemories({ botId: selectedBot, character: selectedChar || null });
-    
-    if(!mems.length) { 
-        $('#lumi-content').html('<div style="text-align:center;color:#ccc;padding:30px">No memories found. Click Generate to create some!</div>'); 
-        return; 
-    }
-
-    const byChar = {};
-    mems.forEach(m => { 
-        const char = m.character || "Unknown";
-        if(!byChar[char]) byChar[char] = []; 
-        byChar[char].push(m); 
-    });
-
-    let html = '';
-    for(const char in byChar) {
-        const color = generateColor(char);
-        const count = byChar[char].length;
-        const entriesHtml = byChar[char].map(m => renderCard(m)).join('');
-        
-        html += `
-            <div class="lumi-char-banner" data-char="${escapeHtml(char)}">
-                <div class="lumi-avatar" style="background:${color}">${char[0]}</div>
-                <span class="lumi-char-name">${escapeHtml(char)}</span>
-                <span class="lumi-char-count">${count} memories</span>
-                <span class="lumi-chevron">${svgChevron}</span>
-            </div>
-            <div class="lumi-char-entries" id="entries-${escapeHtml(char).replace(/[^a-zA-Z0-9]/g,'-')}">
-                ${entriesHtml}
-            </div>
-        `;
-    }
-    $('#lumi-content').html(html);
-    
-    $('.lumi-char-banner').on('click', function() {
-        const char = $(this).data('char');
-        const entries = $(`#entries-${escapeHtml(char).replace(/[^a-zA-Z0-9]/g,'-')}`);
-        $(this).toggleClass('collapsed');
-        entries.toggleClass('collapsed');
-    });
-    
-    bindEvents();
-}
-
-// ⚙️ Settings (Full Customization)
+// ⚙️ Settings (✅ เพิ่ม Theme Selector)
 function renderSettings() {
     $('#lumi-title').text("Settings");
     const s = extension_settings[extensionName];
     const ag = s.diary.autoGen;
+    const savedTheme = s._internal.theme || 'pink';
     
     $('#lumi-body').html(`
         <div style="padding:10px;">
+            <!-- ✅ Theme Selector -->
+            <div class="lumi-form">
+                <label class="lumi-label">Theme</label>
+                <select id="set-theme" class="lumi-input">
+                    ${Object.entries(themes).map(([k,v]) => `<option value="${k}" ${k===savedTheme?'selected':''}>${v.name}</option>`).join('')}
+                </select>
+            </div>
+            
             <div class="lumi-form">
                 <label class="lumi-label">General</label>
-                <div class="lumi-set-row"><span>Extension Enabled</span><input type="checkbox" id="set-en" ${s.isEnabled?'checked':''} style="width:20px;height:20px;accent-color:#ff69b4"></div>
+                <div class="lumi-set-row"><span>Extension Enabled</span><input type="checkbox" id="set-en" ${s.isEnabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
                 <div class="lumi-set-row"><span>World Mode</span>
                     <select id="set-wm" class="lumi-input" style="width:100px">
                         <option value="auto" ${s.diary.worldMode==='auto'?'selected':''}>Auto</option>
@@ -588,7 +551,7 @@ function renderSettings() {
             
             <div class="lumi-form">
                 <label class="lumi-label">Auto-Generation</label>
-                <div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="ag-en" ${ag.enabled?'checked':''} style="width:20px;height:20px;accent-color:#ff69b4"></div>
+                <div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="ag-en" ${ag.enabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
                 <div class="lumi-set-row"><span>Trigger</span>
                     <select id="ag-tr" class="lumi-input" style="width:110px">
                         <option value="turn_count" ${ag.triggerType==='turn_count'?'selected':''}>Every X Msgs</option>
@@ -597,15 +560,15 @@ function renderSettings() {
                     </select>
                 </div>
                 <div id="ag-val-wrap" style="margin-top:8px">
-                    ${ag.triggerType==='turn_count' ? `<span style="font-size:12px;color:#666">Interval:</span> <input type="number" id="ag-int" value="${ag.turnInterval}" min="5" max="100" style="width:50px;background:#fff;border:1px solid #FFD1DC;border-radius:6px;padding:4px;color:#ff85a2;font-family:'Mitr'">` : ''}
-                    ${ag.triggerType==='random' ? `<span style="font-size:12px;color:#666">Chance %:</span> <input type="number" id="ag-chance" value="${Math.round(ag.randomChance*100)}" min="1" max="50" style="width:50px;background:#fff;border:1px solid #FFD1DC;border-radius:6px;padding:4px;color:#ff85a2;font-family:'Mitr'">` : ''}
+                    ${ag.triggerType==='turn_count' ? `<span style="font-size:12px;color:#666">Interval:</span> <input type="number" id="ag-int" value="${ag.turnInterval}" min="5" max="100" style="width:50px;background:var(--lumi-card);border:1px solid var(--lumi-border);border-radius:6px;padding:4px;color:var(--lumi-primary);font-family:'Mitr'">` : ''}
+                    ${ag.triggerType==='random' ? `<span style="font-size:12px;color:#666">Chance %:</span> <input type="number" id="ag-chance" value="${Math.round(ag.randomChance*100)}" min="1" max="50" style="width:50px;background:var(--lumi-card);border:1px solid var(--lumi-border);border-radius:6px;padding:4px;color:var(--lumi-primary);font-family:'Mitr'">` : ''}
                     ${ag.triggerType==='emotion' ? `<input type="text" id="ag-kw" value="${ag.emotionKeywords.join(',')}" placeholder="Keywords..." class="lumi-input">` : ''}
                 </div>
             </div>
             
             <div class="lumi-form">
                 <label class="lumi-label">Secret System</label>
-                <div class="lumi-set-row"><span>Enable Secret Mode</span><input type="checkbox" id="set-sec-en" ${s.diary.display.showSecretSystem?'checked':''} style="width:20px;height:20px;accent-color:#ff69b4"></div>
+                <div class="lumi-set-row"><span>Enable Secret Mode</span><input type="checkbox" id="set-sec-en" ${s.diary.display.showSecretSystem?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
                 <div class="lumi-set-row"><span>Unlock Rule</span>
                     <select id="set-sec-mode" class="lumi-input" style="width:110px">
                         <option value="ai" ${s.diary.display.secretMode==='ai'?'selected':''}>AI Decide</option>
@@ -616,11 +579,18 @@ function renderSettings() {
             </div>
             
             <div style="margin-top:15px;display:flex;gap:10px">
-                <button id="btn-rst" class="lumi-input" style="background:#FFE0E0;color:#ff69b4;text-align:center;cursor:pointer">Reset FAB</button>
-                <button id="btn-clr" class="lumi-input" style="background:#FFE0E0;color:#ff69b4;text-align:center;cursor:pointer">Clear Data</button>
+                <button id="btn-rst" class="lumi-input" style="background:#FFE0E0;color:var(--lumi-secondary);text-align:center;cursor:pointer">Reset FAB</button>
+                <button id="btn-clr" class="lumi-input" style="background:#FFE0E0;color:var(--lumi-secondary);text-align:center;cursor:pointer">Clear Data</button>
             </div>
         </div>
     `);
+    
+    // ✅ Bind Theme Change
+    $('#set-theme').on('change', function() {
+        s._internal.theme = $(this).val();
+        applyTheme($(this).val());
+        SillyTavern.getContext().saveSettingsDebounced();
+    });
     
     $('#set-en').on('change', function(){ s.isEnabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); showToast($(this).prop('checked')?'Enabled':'Disabled'); });
     $('#set-wm').on('change', function(){ s.diary.worldMode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
@@ -713,14 +683,14 @@ Look for ANY of these moments to create diary entries:
 - Romantic or intimate exchanges
 - Plot developments or world-building details
 
-For EACH moment you identify, generate a SEPARATE diary entry. A character can have multiple entries.
+For EACH moment you identify, generate a SEPARATE diary entry. A character can have multiple entries, but each entry must be UNIQUE in content.
 Return ONLY a JSON ARRAY of objects like this:
 [
   {
     "character": "Exact character name from chat",
     "rp_date": "Fictional date (be creative: 'Day 3 of Moonfall', 'After the banquet', etc.)",
     "rp_location": "Location from context (be specific: 'garden at dusk', 'throne room', etc.)",
-    "diary": "First-person diary in Thai. 2-4 sentences showing personality and emotion.",
+    "diary": "First-person diary in Thai. 2-4 sentences showing personality and emotion. MUST BE UNIQUE - do not repeat previous entries.",
     "isSecret": true if deeply personal/vulnerable, false otherwise
   }
 ]
@@ -802,12 +772,25 @@ function loadMemories(filter = {}) {
     return mem.sort((a,b) => (b.meta.isPinned?1:0) - (a.meta.isPinned?1:0) || new Date(b.timestamp) - new Date(a.timestamp));
 }
 
+// ✅ ตรวจสอบไดอารี่ซ้ำก่อนบันทึก
 function saveMemory(entry) {
     const s = extension_settings[extensionName];
     
+    // ✅ Fuzzy Matching ชื่อตัวละคร
     const existingChars = [...new Set(s.memories.map(m => m.character))];
     const matchedName = findMatchingCharName(entry.character, existingChars);
     entry.character = matchedName;
+    
+    // ✅ ตรวจสอบไดอารี่ซ้ำ: ตัวละครเดียวกัน + เนื้อหาเหมือนกัน (>90% similar)
+    const isDuplicate = s.memories.some(m => 
+        m.character === entry.character && 
+        similarityScore(m.content.diary, entry.content.diary) > 90
+    );
+    
+    if (isDuplicate) {
+        console.log('[LumiPulse] Duplicate memory skipped:', entry.content.diary.slice(0, 50));
+        return; // ไม่บันทึกถ้าซ้ำ
+    }
     
     s.memories.unshift(entry);
     if (s.memories.length > s.diary.storage.max) {
@@ -897,7 +880,7 @@ function createSettingsPanel() {
     $('#extensions_settings').append(`
         <div id="lumi-panel" class="inline-drawer">
             <div class="inline-drawer-toggle inline-drawer-header">
-                <b style="color:#ff85a2;font-family:'Mitr';font-weight:300;">🌸 LumiPulse</b>
+                <b style="color:var(--lumi-primary);font-family:'Mitr';font-weight:300;">🌸 LumiPulse</b>
                 <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
             </div>
             <div class="inline-drawer-content" style="display:none;"></div>
@@ -952,10 +935,10 @@ function editMemoryInline(id) {
     const currentText = mem.content.diary;
     
     card.find('.lumi-text').html(`
-        <textarea class="lumi-edit-textarea" style="width:100%;min-height:80px;padding:10px;border:1px solid #FFD1DC;border-radius:10px;font-family:'Mitr';font-size:13px;resize:vertical">${currentText}</textarea>
+        <textarea class="lumi-edit-textarea" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--lumi-border);border-radius:10px;font-family:'Mitr';font-size:13px;resize:vertical;color:var(--lumi-text);background:var(--lumi-card)">${currentText}</textarea>
         <div style="margin-top:8px;display:flex;gap:8px">
-            <button class="lumi-btn-save" style="flex:1;background:#FFB6C1;color:white;border:none;padding:8px;border-radius:8px;cursor:pointer">Save</button>
-            <button class="lumi-btn-cancel" style="flex:1;background:#FFE0E0;color:#ff69b4;border:none;padding:8px;border-radius:8px;cursor:pointer">Cancel</button>
+            <button class="lumi-btn-save" style="flex:1;background:var(--lumi-primary);color:white;border:none;padding:8px;border-radius:8px;cursor:pointer">Save</button>
+            <button class="lumi-btn-cancel" style="flex:1;background:#FFE0E0;color:var(--lumi-secondary);border:none;padding:8px;border-radius:8px;cursor:pointer">Cancel</button>
         </div>
     `);
     
@@ -997,7 +980,7 @@ function editMemoryModal(id) {
             </div>
             <div style="display:flex;gap:10px">
                 <button id="btn-save-edit" class="lumi-gen-btn" style="flex:2">💾 Save Changes</button>
-                <button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:#FFE0E0;color:#ff69b4;text-align:center;cursor:pointer">Cancel</button>
+                <button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:#FFE0E0;color:var(--lumi-secondary);text-align:center;cursor:pointer">Cancel</button>
             </div>
         </div>
     `);
@@ -1052,7 +1035,7 @@ function createMemoryEntry(res, type, ctx, wm, refText, messageIndex) {
         character: getRPGCharacters(1)[0]?.name || getCharacterName(),
         characterId: ctx.characterId,
         worldMode: wm,
-        botId: ctx.characterId,  // ✅ เพิ่มบรรทัดนี้!
+        botId: ctx.characterId,
         content: {
             rp_date: res.rp_date || "วันไม่ทราบแน่ชัด",
             rp_location: res.rp_location || "สถานที่ปัจจุบัน",
