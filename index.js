@@ -47,7 +47,8 @@ const svgUser = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 
 // ═══════════════════════════════════════════════
 // BOOT & INIT
-// ═══════════════════════════════════════════════jQuery(async () => {
+// ═══════════════════════════════════════════════
+jQuery(async () => {
     const boot = setInterval(() => {
         if (window.SillyTavern && SillyTavern.getContext && document.body) {
             clearInterval(boot);
