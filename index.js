@@ -292,14 +292,18 @@ function openSettingsModal() {
 function renderDashboard() {
     $('#lumi-title').text("Memories");
     
-    // 🆕 Bot Filter - แยกข้อมูลตามบอท
     const ctx = SillyTavern.getContext();
     const currentBotId = ctx.characterId;
-    const bots = ctx.characters ? Object.values(ctx.characters).map(c => ({ id: c.avatar, name: c.name })) : [];
+    const currentBotName = ctx.name2 || "Unknown Bot";
     
-    // 🆕 Character Filter - เฉพาะตัวละครที่มีไดอารี่ในบอทที่เลือก
-    const selectedBot = $('#lumi-bot-filter')?.val() || currentBotId;
-    const mems = loadMemories({ botId: selectedBot });
+    // 🆕 แสดงชื่อบอทที่กำลังดู
+    $('#lumi-title').html(`${currentBotName} <span style="font-size:12px;color:#999">| Memories</span>`);
+    
+    // Get all bots for filter
+    const bots = ctx.characters ? Object.values(ctx.characters).map(c => ({ id: c.avatar || c.id, name: c.name })) : [];
+    
+    // 🆕 Filter เฉพาะบอทปัจจุบัน
+    const mems = loadMemories({ botId: currentBotId });
     const charsInBot = [...new Set(mems.map(m => m.character))].filter(c => c);
     
     $('#lumi-body').html(`
@@ -309,12 +313,13 @@ function renderDashboard() {
             <div class="lumi-stat"><b>${mems.filter(m=>m.meta.isFavorite).length}</b><span>Favs</span></div>
         </div>
         
+        <div style="background:#FFF0F5;padding:10px 14px;border-radius:12px;margin-bottom:12px;border:1px solid #FFE8EE;">
+            <div style="font-size:11px;color:#999;margin-bottom:4px">Viewing memories for:</div>
+            <div style="font-size:14px;color:#ff69b4;font-weight:500">${currentBotName}</div>
+        </div>
+        
         <div class="lumi-action-row">
             <div class="lumi-filters">
-                <select id="lumi-bot-filter" class="lumi-filter-select">
-                    <option value="">All Bots</option>
-                    ${bots.map(b => `<option value="${b.id}" ${b.id===selectedBot?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}
-                </select>
                 <select id="lumi-char-filter" class="lumi-filter-select">
                     <option value="">All Characters</option>
                     ${charsInBot.map(c => `<option>${escapeHtml(c)}</option>`).join('')}
@@ -327,8 +332,7 @@ function renderDashboard() {
         <div id="lumi-content"></div>
     `);
     
-    // Bind Filters
-    $('#lumi-bot-filter').on('change', function() { renderDashboard(); });
+    // Bind Character Filter Only (removed bot filter)
     $('#lumi-char-filter').on('change', function() { renderDashboardContent(); });
     
     $('#btn-open-gen').on('click', function() {
@@ -540,18 +544,20 @@ async function generateBatchMemories() {
         const wm = extension_settings[extensionName].diary.worldMode === 'auto' ? detectWorldMode() : extension_settings[extensionName].diary.worldMode;
         const botId = ctx.characterId;
         
+        // ใน generateBatchMemories()
         results.forEach(res => {
-            let charName = res.character || ctx.name2 || "Character";
-            saveMemory({
-                id: 'mem_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-                timestamp: new Date().toISOString(),
-                character: charName,
-                botId: botId, // 🆕 เก็บ botId
-                worldMode: wm,
-                content: { ...res },
-                meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
-            });
-        });
+
+    let charName = res.character || ctx.name2 || "Character";
+    saveMemory({
+        id: 'mem_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+        timestamp: new Date().toISOString(),
+        character: charName,
+        botId: ctx.characterId,  // ✅ ต้องมีบรรทัดนี้!
+        worldMode: wm,
+        content: { ...res },
+        meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
+    });
+});
         
         showToast(`✨ Created ${results.length} memories!`);
         renderDashboard();
@@ -648,17 +654,20 @@ async function onNewChat() {
             const ctx = SillyTavern.getContext();
             const wm = s.diary.worldMode === 'auto' ? detectWorldMode() : s.diary.worldMode;
             const botId = ctx.characterId;
+            // ใน onNewChat()
             results.forEach(res => {
                 saveMemory({
-                    id: 'mem_auto_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-                    timestamp: new Date().toISOString(),
-                    character: res.character || ctx.name2 || "Character",
-                    botId: botId,
-                    worldMode: wm,
-                    content: { ...res },
-                    meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
-                });
-            });
+        id: 'mem_auto_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
+        timestamp: new Date().toISOString(),
+        character: res.character || ctx.name2 || "Character",
+        botId: ctx.characterId,  // ✅ ต้องมีบรรทัดนี้!
+        worldMode: wm,
+        content: { ...res },
+        meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, tags: extractTags(res.diary) }
+    });
+});
+
+
             showToast(`🌸 Auto-generated ${results.length} memory!`);
         }
     }
@@ -670,11 +679,15 @@ async function onNewChat() {
 function loadMemories(filter = {}) {
     let mem = [...(extension_settings[extensionName].memories || [])];
     
-    // 🆕 Filter by botId
+    // 🆕 Filter by botId (สำคัญมาก!)
     if (filter.botId) {
-        mem = mem.filter(m => m.botId === filter.botId);
+        mem = mem.filter(m => {
+            // เช็คว่า botId ตรงกัน หรือไม่มี botId (ของเก่า)
+            return m.botId === filter.botId || !m.botId;
+        });
     }
-    // 🆕 Filter by character name
+    
+    // Filter by character name
     if (filter.character) {
         mem = mem.filter(m => m.character === filter.character);
     }
