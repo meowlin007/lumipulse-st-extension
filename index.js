@@ -5,11 +5,10 @@
 // ═══════════════════════════════════════════════
 const extensionName = "lumipulse-st-extension";
 
-// Default Settings (Added 'forum' and 'forumPosts')
 const defaultSettings = {
     isEnabled: true,
     memories: [],
-    forumPosts: [], // 🆕 เก็บข้อมูล Forum
+    forumPosts: [], // ข้อมูล Forum แยกอิสระ
     
     _internal: { 
         fabPos: null, theme: 'pink', 
@@ -20,7 +19,7 @@ const defaultSettings = {
         lastForumAutoGen: 0
     },
     
-    // Diary Settings (Unchanged)
+    // Diary Settings
     diary: {
         worldMode: 'auto',
         display: { secretMode: 'ai', showSecretSystem: true },
@@ -28,16 +27,15 @@ const defaultSettings = {
         storage: { max: 150 }
     },
     
-    // 🆕 Forum Settings
+    // Forum Settings (แยกอิสระ)
     forum: {
         enabled: true,
-        mode: 'separate', // 'separate' | 'linked'
+        mode: 'separate', 
         autoGen: {
             enabled: true,
-            messageInterval: 10, // ทุกกี่ข้อความ
-            timeInterval: 300,   // ทุกกี่วินาที (5 นาที)
-            randomChance: 0.15,  // โอกาสสุ่ม
-            triggerOnEvents: true
+            messageInterval: 15, 
+            timeInterval: 600,   
+            randomChance: 0.10
         },
         storage: { max: 200 }
     },
@@ -47,13 +45,12 @@ const defaultSettings = {
 
 let extension_settings = {};
 
-// Icon
+// Icon Links
 const btnUrl       = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
-const iconDiary    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
-const iconForum    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png"; // ✅ Forum Icon
+const iconDiary    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";const iconForum    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png";
 const iconSettings = "https://file.garden/ad59q6JMmVnp7v1-/setting-icon.png";
 
-// SVG Vectors
+// SVGs
 const svgHeart    = `<svg viewBox="0 0 24 24" fill="none" width="40" height="40"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF69B4"/></svg>`;
 const svgPin      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1-1v-5h2v-2l-2-2z"/></svg>`;
 const svgStar     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
@@ -61,7 +58,6 @@ const svgLock     = `<svg viewBox="0 0 24 24" fill="none" stroke="#ff85a2" strok
 const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 const svgBack     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
 const svgPlus     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
-const svgChevron  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>`;
 const svgCalendar = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
 const svgMapPin   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
 const svgUser     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
@@ -72,7 +68,6 @@ const svgLink     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const svgScroll   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
 const svgGlobe    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
 
-// Themes (Unchanged)
 const themes = {
     pink: { name: 'Pink Pastel', primary: '#FFB6C1', secondary: '#FF69B4', bg: '#FFF0F5', card: '#FFFBFC', text: '#2A2A2A', border: '#FFE8EE', danger: '#D32F2F' },
     purple: { name: 'Purple Dream', primary: '#E6D5F0', secondary: '#9B7ED9', bg: '#F5F0FA', card: '#FAF7FC', text: '#2A2A2A', border: '#E8D8F0', danger: '#C62828' },
@@ -93,15 +88,15 @@ function applyTheme(themeName) {
 }
 
 // ═══════════════════════════════════════════════
-// 2. BOOT SYSTEM (Unchanged)
+// 2. BOOT SYSTEM
 // ═══════════════════════════════════════════════
 jQuery(async () => {
     const boot = setInterval(() => {
-        if (window.SillyTavern && SillyTavern.getContext && document.body) {            clearInterval(boot); initLumiPulse();
+        if (window.SillyTavern && SillyTavern.getContext && document.body) {
+            clearInterval(boot); initLumiPulse();
         }
     }, 500);
 });
-
 function initLumiPulse() {
     const ctx = SillyTavern.getContext();
     if (!ctx.extensionSettings[extensionName]) {
@@ -117,7 +112,7 @@ function initLumiPulse() {
 }
 
 // ═══════════════════════════════════════════════
-// 3. UI RENDERING (Unchanged Styles)
+// 3. UI RENDERING (Fixed Event Delegation)
 // ═══════════════════════════════════════════════
 function injectStyles() {
     if ($('#lumi-styles').length) return;
@@ -147,9 +142,10 @@ function injectStyles() {
         .lumi-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--lumi-bg); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--lumi-primary); transition: 0.2s; }
         .lumi-btn:hover { background: var(--lumi-border); }
         .lumi-body { flex: 1; overflow-y: auto; padding: 15px; background: var(--lumi-card); color: var(--lumi-text); }
+
+        /* ✅ Tabs */
         .lumi-nav { display: flex; gap: 6px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .lumi-nav-tab { padding: 6px 12px; border-radius: 12px; background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-primary); font-size: 11px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
-        .lumi-nav-tab.active { background: var(--lumi-primary); color: white; border-color: var(--lumi-primary); }
+        .lumi-nav-tab { padding: 6px 12px; border-radius: 12px; background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-primary); font-size: 11px; cursor: pointer; white-space: nowrap; transition: 0.2s; }        .lumi-nav-tab.active { background: var(--lumi-primary); color: white; border-color: var(--lumi-primary); }
         
         .lumi-stats-bar { display: flex; gap: 10px; margin-bottom: 15px; background: var(--lumi-bg); padding: 12px; border-radius: 14px; border: 1px solid var(--lumi-border); }
         .lumi-stat { flex: 1; text-align: center; }
@@ -160,27 +156,13 @@ function injectStyles() {
         .lumi-filters { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
         .lumi-filter-select { flex: 1; min-width: 80px; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 8px 12px; color: var(--lumi-primary); font-family: 'Mitr'; font-size: 12px; outline: none; }
         
-        .lumi-gen-btn { background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; gap: 6px; font-size: 13px; width: 100%; }
+        .lumi-gen-btn { background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; width: 100%; }
         .lumi-gen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .lumi-form { background: var(--lumi-bg); border: 1px solid var(--lumi-border); border-radius: 16px; padding: 15px; margin-bottom: 15px; }
         .lumi-input { width: 100%; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 10px; color: var(--lumi-text); font-family: 'Mitr'; outline: none; box-sizing: border-box; }
         .lumi-label { font-size: 12px; color: #666; margin-bottom: 6px; display: block; font-weight: 400; }
-        .lumi-radio-group { display: flex; gap: 8px; margin-bottom: 10px; }
-        .lumi-radio-label { flex: 1; text-align: center; padding: 8px; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; cursor: pointer; font-size: 12px; color: #666; transition: 0.2s; }
-        .lumi-radio-label:has(input:checked) { background: var(--lumi-primary); color: white; border-color: var(--lumi-primary); }
-        .lumi-radio-label input { display: none; }
-
-        .lumi-group-banner { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: linear-gradient(135deg, var(--lumi-bg), var(--lumi-card)); border: 1px solid var(--lumi-border); border-radius: 14px; cursor: pointer; margin: 15px 0 8px; transition: 0.2s; }
-        .lumi-group-banner:hover { background: var(--lumi-bg); }
-        .lumi-group-banner .lumi-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 500; flex-shrink: 0; }
-        .lumi-group-banner .lumi-group-name { flex: 1; font-size: 14px; color: var(--lumi-text); font-weight: 500; }
-        .lumi-group-banner .lumi-group-count { font-size: 11px; color: var(--lumi-primary); background: var(--lumi-bg); padding: 3px 10px; border-radius: 10px; }
-        .lumi-group-banner .lumi-chevron { color: var(--lumi-primary); transition: transform 0.3s; }
-        .lumi-group-banner.collapsed .lumi-chevron { transform: rotate(-90deg); }
-        .lumi-group-entries { transition: all 0.3s ease; overflow: hidden; }
-        .lumi-group-entries.collapsed { max-height: 0; opacity: 0; }
-
+        
         .lumi-card { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 16px; padding: 14px; margin: 0 0 10px 38px; position: relative; transition: 0.2s; color: var(--lumi-text); }
         .lumi-card:hover { box-shadow: 0 5px 15px rgba(255,105,180,0.1); transform: translateY(-2px); }
         .lumi-card.pinned { border: 1px solid #FFD700; background: #FFFDF5; }
@@ -188,14 +170,14 @@ function injectStyles() {
         
         .lumi-meta { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
         .lumi-badge { font-size: 10px; padding: 3px 8px; border-radius: 8px; background: var(--lumi-bg); color: var(--lumi-primary); display: flex; align-items: center; gap: 3px; cursor: pointer; }
-        .lumi-badge:hover { background: var(--lumi-border); }
         .lumi-char-badge { background: var(--lumi-primary); color: white; font-weight: 500; }
         .lumi-text { font-size: 13px; color: var(--lumi-text); line-height: 1.6; white-space: pre-wrap; margin: 8px 0; }
         .lumi-actions { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px dashed var(--lumi-border); padding-top: 8px; }
         .lumi-act { background: none; border: none; cursor: pointer; color: var(--lumi-primary); opacity: 0.6; transition: 0.2s; padding: 4px; }
         .lumi-act:hover { opacity: 1; color: var(--lumi-secondary); }
         .lumi-act.active { opacity: 1; color: #FFD700; }
-        .lumi-act.danger { color: var(--lumi-danger); }        .lumi-act.danger:hover { color: #B84444; }
+        .lumi-act.danger { color: var(--lumi-danger); }
+        .lumi-act.danger:hover { color: #B84444; }
 
         .lumi-set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #666; }
         .lumi-set-row select, .lumi-set-row input[type="number"] { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 8px; padding: 5px 8px; color: var(--lumi-text); font-family: 'Mitr'; outline: none; }
@@ -212,9 +194,8 @@ function injectStyles() {
     `;
     document.head.appendChild(s);
 }
-
 // ═══════════════════════════════════════════════
-// 4. FAB BUTTON (Unchanged Structure)
+// 4. FAB BUTTON
 // ═══════════════════════════════════════════════
 function spawnLumiButton() {
     $('#lumi-fab, .lumi-menu').remove();
@@ -226,7 +207,6 @@ function spawnLumiButton() {
     setTimeout(() => { fab.style.display = 'flex'; fab.style.visibility = 'visible'; fab.style.opacity = '1'; }, 50);
 
     const menu = document.createElement('div'); menu.className = 'lumi-menu';
-    // ✅ Added Forum Button here
     menu.innerHTML = `<div class="lumi-menu-grid">
         <div class="lumi-menu-item" id="lumi-open"><img src="${iconDiary}"><span>Diary</span></div>
         <div class="lumi-menu-item" id="lumi-forum-btn"><img src="${iconForum}"><span>Forum</span></div>
@@ -244,14 +224,14 @@ function spawnLumiButton() {
     fab.addEventListener('touchstart', e => { e.preventDefault(); startDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
     fab.addEventListener('touchmove', e => { e.preventDefault(); moveDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
     fab.addEventListener('touchend', e => { e.preventDefault(); endDrag(); }, { passive: false });
-        // ✅ Bind Forum Button
+    
     $('#lumi-open').on('click', () => { $(menu).fadeOut(); openModal(); });
-    $('#lumi-forum-btn').on('click', () => { $(menu).fadeOut(); openModal(); setTimeout(() => { $('.lumi-nav-tab[data-tab="forum"]').click(); }, 300); });
+    $('#lumi-forum-btn').on('click', () => { $(menu).fadeOut(); openModal(); setTimeout(() => { switchTab('forum'); }, 300); });
     $('#lumi-set').on('click', () => { $(menu).fadeOut(); openSettingsModal(); });
 }
 
 // ═══════════════════════════════════════════════
-// 5. MODAL & UI LOGIC (Added Forum Tab)
+// 5. MODAL & UI LOGIC
 // ═══════════════════════════════════════════════
 function createModal() {
     if ($('#lumi-overlay').length) return;
@@ -262,7 +242,22 @@ function createModal() {
 function openModal() { $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200); renderDashboard(); }
 function openSettingsModal() { $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200); renderSettings(); }
 
-// 📊 Dashboard (Unchanged Diary Logic + Added Forum Tab)
+// ✅ Global Event Delegation (Fixes "Stuck on same page")
+$(document).on('click', '.lumi-nav-tab', function() {    const tab = $(this).data('tab');
+    switchTab(tab);
+});
+
+function switchTab(tabName) {
+    $('.lumi-nav-tab').removeClass('active');
+    $(`.lumi-nav-tab[data-tab="${tabName}"]`).addClass('active');
+    
+    if(tabName === 'diary') renderDiaryTab();
+    else if(tabName === 'forum') renderForumTab();
+    else if(tabName === 'story') renderStoryWeaver();
+    else if(tabName === 'lore') renderLoreExtractor();
+    else if(tabName === 'links') renderMemoryLinks();
+}
+
 function renderDashboard() {
     const ctx = SillyTavern.getContext(); const currentBotId = ctx.characterId; const currentBotName = ctx.name2 || "Unknown Bot";
     const mems = loadMemories({ botId: currentBotId });
@@ -293,35 +288,25 @@ function renderDashboard() {
             <div class="lumi-nav-tab" data-tab="links">${svgLink} Links</div>
         </div>
         
-        <div id="tab-content">            <div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;">
+        <div id="tab-content">
+            <div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;">
                 <select id="filter-char" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Chars</option>${chars.map(c => `<option value="${escapeHtml(c)}" ${c===filterChar?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
                 <select id="filter-date" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Dates</option>${dates.map(d => `<option value="${escapeHtml(d)}" ${d===filterDate?'selected':''}>${escapeHtml(d)}</option>`).join('')}</select>
-                <select id="filter-loc" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Locs</option>${locs.map(l => `<option value="${escapeHtml(l)}" ${l===filterLoc?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select>
-            </div>
+                <select id="filter-loc" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Locs</option>${locs.map(l => `<option value="${escapeHtml(l)}" ${l===filterLoc?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select>            </div>
             <div class="lumi-action-row" style="margin-top:10px;"><button class="lumi-gen-btn" id="btn-open-gen">${svgPlus} Generate</button></div>
             <div id="gen-form-container" style="display:none;margin-bottom:15px;"></div>
             <div id="lumi-content"></div>
         </div>
     `);
     
-    $('#filter-char, #filter-date, #filter-loc').on('change', function() { extension_settings[extensionName]._internal.filterChar = $('#filter-char').val(); extension_settings[extensionName]._internal.filterDate = $('#filter-date').val(); extension_settings[extensionName]._internal.filterLoc = $('#filter-loc').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); });
+    $('#filter-char, #filter-date, #filter-loc').on('change', function() { extension_settings[extensionName]._internal.filterChar = $('#filter-char').val(); extension_settings[extensionName]._internal.filterDate = $('#filter-date').val(); extension_settings[extensionName]._internal.filterLoc = $('#filter-loc').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDiaryTab(); });
     $('#btn-open-gen').on('click', function() { if($('#gen-form-container').is(':visible')) $('#gen-form-container').slideUp(200); else { renderGeneratorForm(); $('#gen-form-container').slideDown(200); } });
     
-    // ✅ Forum Tab Handler Added
-    $('.lumi-nav-tab').on('click', function() {
-        $('.lumi-nav-tab').removeClass('active'); $(this).addClass('active');
-        const tab = $(this).data('tab');
-        if(tab === 'diary') renderDiaryTab();
-        else if(tab === 'forum') renderForumTab();
-        else if(tab === 'story') renderStoryWeaver();
-        else if(tab === 'lore') renderLoreExtractor();
-        else if(tab === 'links') renderMemoryLinks();
-    });
     renderDiaryTab();
 }
 
 // ═══════════════════════════════════════════════
-// 6. DIARY UI (Unchanged Logic)
+// 6. DIARY UI
 // ═══════════════════════════════════════════════
 function renderDiaryTab() {
     const ctx = SillyTavern.getContext(); const currentBotId = ctx.characterId;
@@ -342,7 +327,8 @@ function renderDiaryTab() {
 }
 
 function renderCard(m, index) {
-    const showSecret = extension_settings[extensionName].diary.display.showSecretSystem;    const isLocked = showSecret && checkUnlock(m) === false;
+    const showSecret = extension_settings[extensionName].diary.display.showSecretSystem;
+    const isLocked = showSecret && checkUnlock(m) === false;
     const color = generateColor(m.character); const delay = index * 0.05;
     let lockOverlay = '';
     if(isLocked) lockOverlay = `<div style="position:absolute;inset:0;background:rgba(255,255,255,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;z-index:1;backdrop-filter:blur(5px);">${svgLock}<div style="font-size:11px;color:var(--lumi-secondary);margin-top:5px">Locked</div></div>`;
@@ -355,50 +341,44 @@ function renderCard(m, index) {
 
 function renderGeneratorForm() {
     $('#gen-form-container').html(`<div class="lumi-form"><label class="lumi-label">Scan Mode</label><div class="lumi-radio-group"><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="latest" checked> Latest X</label><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="first"> First X</label><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="all"> All History</label></div><div id="gen-count-wrap" style="margin-bottom:10px;"><label class="lumi-label">Message Count</label><input type="number" id="gen-count" value="30" min="5" max="200" class="lumi-input"></div><button id="btn-run-gen" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgPlus} Analyze & Generate</button></div>`);
-    $('input[name="gen-mode"]').on('change', function() { $('#gen-count-wrap').toggle($(this).val() !== 'all'); });
-    $('#btn-run-gen').on('click', generateBatchMemories);
+    $('input[name="gen-mode"]').on('change', function() { $('#gen-count-wrap').toggle($(this).val() !== 'all'); });    $('#btn-run-gen').on('click', generateBatchMemories);
 }
 
 // ═══════════════════════════════════════════════
-// 7. 🆕 FORUM UI & LOGIC
+// 7. 🆕 FORUM UI (Fixed & Separated)
 // ═══════════════════════════════════════════════
 function renderForumTab() {
     const ctx = SillyTavern.getContext();
     const forumData = extension_settings[extensionName].forumPosts || [];
     const currentBotId = ctx.characterId;
     
-    // Filter forum posts for current bot
     const botForums = forumData.filter(f => f.botId === currentBotId || !f.botId);
-    
-    // Group by threads
     const threads = {};
     botForums.forEach(post => {
         if(!threads[post.threadId]) threads[post.threadId] = [];
         threads[post.threadId].push(post);
     });
-    
     const sortedThreads = Object.values(threads).sort((a,b) => new Date(b[b.length-1].timestamp) - new Date(a[a.length-1].timestamp));
     
+    // ✅ Clean Render for Forum
     $('#lumi-content').html(`
-        <div class="lumi-form">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <label class="lumi-label" style="margin:0">Forum Topics</label>
-                <button id="btn-new-topic" class="lumi-gen-btn" style="padding:6px 12px;font-size:11px;width:auto">${svgPlus} New Topic</button>
-            </div>
-            <div class="lumi-set-row">
-                <span>Mode:</span>
-                <select id="forum-mode-display" class="lumi-input" style="width:150px">
-                    <option value="separate" ${extension_settings[extensionName].forum.mode==='separate'?'selected':''}>Separate from RP</option>
-                    <option value="linked" ${extension_settings[extensionName].forum.mode==='linked'?'selected':''}>Linked to RP</option>
+        <div class="lumi-form" style="display:flex;justify-content:space-between;align-items:center;">
+            <label class="lumi-label" style="margin:0">Forum Topics</label>
+            <div style="display:flex;gap:8px;">
+                <select id="forum-mode-display" class="lumi-input" style="width:120px;font-size:11px">
+                    <option value="separate" ${extension_settings[extensionName].forum.mode==='separate'?'selected':''}>Separate</option>
+                    <option value="linked" ${extension_settings[extensionName].forum.mode==='linked'?'selected':''}>Linked</option>
                 </select>
-            </div>        </div>
+                <button id="btn-forum-gen" class="lumi-gen-btn" style="width:auto;padding:6px 12px;font-size:11px">${svgPlus} Refresh</button>
+            </div>
+        </div>
         <div id="forum-threads-list">
-            ${sortedThreads.length === 0 ? '<div style="text-align:center;padding:40px;color:#999;">No forum topics yet. Create one to start!</div>' : ''}
+            ${sortedThreads.length === 0 ? '<div style="text-align:center;padding:40px;color:#999;">No forum topics yet. Click Refresh to generate!</div>' : ''}
             ${sortedThreads.map(thread => renderForumThread(thread)).join('')}
         </div>
     `);
     
-    $('#btn-new-topic').on('click', () => createNewForumTopic());
+    $('#btn-forum-gen').on('click', function() { generateForumPost(); });
     $('#forum-mode-display').on('change', function() {
         extension_settings[extensionName].forum.mode = $(this).val();
         SillyTavern.getContext().saveSettingsDebounced();
@@ -410,8 +390,7 @@ function renderForumThread(thread) {
     const firstPost = thread[0];
     const replies = thread.slice(1);
     const lastPost = thread[thread.length-1];
-    
-    return `
+        return `
         <div class="lumi-card" style="margin-bottom:12px;cursor:pointer" data-thread-id="${firstPost.threadId}">
             <div class="lumi-meta">
                 <span class="lumi-badge lumi-char-badge">${firstPost.author}</span>
@@ -428,123 +407,49 @@ function renderForumThread(thread) {
     `;
 }
 
-function createNewForumTopic() {
+async function generateForumPost() {
     const ctx = SillyTavern.getContext();
-    $('#lumi-body').html(`
-        <div class="lumi-form">
-            <label class="lumi-label">Topic Title</label>
-            <input type="text" id="forum-topic-title" class="lumi-input" placeholder="Enter topic title...">
-        </div>
-        <div class="lumi-form">
-            <label class="lumi-label">Type</label>
-            <select id="forum-topic-type" class="lumi-input">
-                <option value="General">General Discussion</option>
-                <option value="Rumor">Rumor/Gossip</option>
-                <option value="Event">Event</option>                <option value="Faction">Faction Discussion</option>
-            </select>
-        </div>
-        <div class="lumi-form">
-            <label class="lumi-label">Content</label>
-            <textarea id="forum-topic-content" class="lumi-input" style="min-height:150px" placeholder="Write your post..."></textarea>
-        </div>
-        <div style="display:flex;gap:10px">
-            <button id="btn-submit-topic" class="lumi-gen-btn" style="flex:2">Post Topic</button>
-            <button id="btn-cancel-topic" class="lumi-input" style="flex:1;background:#FFE0E0;color:var(--lumi-danger);text-align:center;cursor:pointer">Cancel</button>
-        </div>
-    `);
-    
-    $('#btn-submit-topic').on('click', async function() {
-        const title = $('#forum-topic-title').val().trim();
-        const type = $('#forum-topic-type').val();
-        const content = $('#forum-topic-content').val().trim();
-        
-        if(!title || !content) {
-            showToast('Please fill in all fields');
-            return;
-        }
-        
-        const newPost = {
-            id: 'forum_' + Date.now(),
-            threadId: 'thread_' + Date.now(),
-            botId: ctx.characterId,
-            author: ctx.name1 || 'Player',
-            isPlayer: true,
-            title: title,
-            type: type,
-            content: content,
-            timestamp: new Date().toISOString(),
-            views: 0,
-            likes: 0,
-            replies: []
-        };
-        
-        if(!extension_settings[extensionName].forumPosts) extension_settings[extensionName].forumPosts = [];
-        extension_settings[extensionName].forumPosts.push(newPost);
-        SillyTavern.getContext().saveSettingsDebounced();
-        
-        showToast('Topic created!');
-        renderForumTab();
-    });
-    
-    $('#btn-cancel-topic').on('click', () => renderForumTab());
-}
-
-async function generateForumPost() {    const ctx = SillyTavern.getContext();
     const s = extension_settings[extensionName];
     const mode = s.forum.mode;
     
-    // Get recent chat context
+    // Get recent chat context (or random if separate)
     const recentChat = ctx.chat?.slice(-20) || [];
     const chatText = recentChat.map(m => `[${m.is_user ? ctx.name1 : m.name}]: ${m.mes}`).join('\n');
-    
-    // Get existing characters from chat
     const charNames = [...new Set(recentChat.filter(m => !m.is_user).map(m => m.name).filter(Boolean))];
     
-    if(charNames.length < 2) return; // Need at least 2 characters for forum discussion
-    
-    const prompt = `[System: Generate a forum discussion based on recent events.]
+    // If no characters or separate mode, use generic prompt
+    let prompt;
+    if(mode === 'linked' && charNames.length > 0 && chatText) {
+        prompt = `[System: Generate a forum discussion based on recent events.]
 Mode: ${mode}
 Characters present: ${charNames.join(', ')}
-
-Recent Chat:
+Chat Log:
 ${chatText}
 
 Generate a forum thread with:
-1. A topic title
+1. A topic title related to chat events
 2. Type (Rumor/Event/General/Faction)
 3. Initial post from one character
-4. 2-3 replies from other characters who know each other
+4. 2-3 replies
 
 Return ONLY JSON:
-{
-    "threadId": "thread_${Date.now()}",
-    "title": "Topic title",
-    "type": "Rumor|Event|General|Faction",
-    "posts": [
-        {
-            "author": "Character name",
-            "content": "Post content",
-            "timestamp": "${new Date().toISOString()}"
-        },
-        {
-            "author": "Another character",
-            "content": "Reply content",
-            "timestamp": "${new Date().toISOString()}"
-        }
-    ]
-}`;
-
+{"threadId": "thread_${Date.now()}", "title": "Topic", "type": "General", "posts": [{"author": "Name", "content": "Post", "timestamp": "${new Date().toISOString()}"}]}`;
+    } else {
+        // Generic Forum Post (No Lorebook, no context)
+        prompt = `[System: Generate a random social media/forum post for a fantasy roleplay setting.]
+Return ONLY JSON:
+{"threadId": "thread_${Date.now()}", "title": "Random Topic", "type": "General", "posts": [{"author": "Random Character", "content": "Random content", "timestamp": "${new Date().toISOString()}"}]}`;
+    }
     try {
         let res;
         if (typeof ctx.generateQuietPrompt === 'function') res = await ctx.generateQuietPrompt(prompt, false, false);
         else if (typeof ctx.generateRaw === 'function') res = await ctx.generateRaw(prompt, true);
-                if(!res) return;
+        
+        if(!res) return;
         const match = res.match(/\{[\s\S]*\}/);
         if(!match) return;
         
         const data = JSON.parse(match[0]);
-        
-        // Create forum posts
         if(!s.forumPosts) s.forumPosts = [];
         
         data.posts.forEach((post, idx) => {
@@ -552,10 +457,10 @@ Return ONLY JSON:
                 id: `forum_${Date.now()}_${idx}`,
                 threadId: data.threadId,
                 botId: ctx.characterId,
-                author: post.author,
+                author: post.author || 'Anonymous',
                 isPlayer: false,
-                title: idx === 0 ? data.title : '',
-                type: data.type,
+                title: data.title || 'Untitled',
+                type: data.type || 'General',
                 content: post.content,
                 timestamp: post.timestamp,
                 views: Math.floor(Math.random() * 100) + 1,
@@ -569,45 +474,36 @@ Return ONLY JSON:
         }
         
         SillyTavern.getContext().saveSettingsDebounced();
-        showToast(`📢 New forum discussion: ${data.title}`);
+        showToast(`📢 New forum discussion!`);
+        renderForumTab();
     } catch(e) {
         console.error('Forum generation error:', e);
     }
 }
 
 // ═══════════════════════════════════════════════
-// 8. SETTINGS (Merged Diary + Forum Settings)
+// 8. SETTINGS (Merged)
 // ═══════════════════════════════════════════════
 function renderSettings() {
     $('#lumi-title').text("Settings"); const s = extension_settings[extensionName]; const ag = s.diary.autoGen; const savedTheme = s._internal.theme || 'pink';
     $('#lumi-body').html(`
         <div style="padding:10px;">
-            <div class="lumi-form"><label class="lumi-label">Theme</label><select id="set-theme" class="lumi-input">${Object.entries(themes).map(([k,v]) => `<option value="${k}" ${k===savedTheme?'selected':''}>${v.name}</option>`).join('')}</select></div>
-            
+            <div class="lumi-form"><label class="lumi-label">Theme</label><select id="set-theme" class="lumi-input">${Object.entries(themes).map(([k,v]) => `<option value="${k}" ${k===savedTheme?'selected':''}>${v.name}</option>`).join('')}</select></div>            
             <div class="lumi-form">
                 <label class="lumi-label">General</label>
                 <div class="lumi-set-row"><span>Extension Enabled</span><input type="checkbox" id="set-en" ${s.isEnabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
-                <div class="lumi-set-row"><span>World Mode</span><select id="set-wm" class="lumi-input" style="width:100px"><option value="auto" ${s.diary.worldMode==='auto'?'selected':''}>Auto</option><option value="solo" ${s.diary.worldMode==='solo'?'selected':''}>Solo</option><option value="rpg" ${s.diary.worldMode==='rpg'?'selected':''}>RPG</option></select></div>            </div>
+            </div>
 
             <div class="lumi-form">
                 <label class="lumi-label">Diary Auto-Generation</label>
                 <div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="ag-en" ${ag.enabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
-                <div class="lumi-set-row"><span>Trigger</span><select id="ag-tr" class="lumi-input" style="width:110px"><option value="turn_count" ${ag.triggerType==='turn_count'?'selected':''}>Every X Msgs</option><option value="emotion" ${ag.triggerType==='emotion'?'selected':''}>Emotion Keywords</option><option value="random" ${ag.triggerType==='random'?'selected':''}>Random</option></select></div>
             </div>
 
-            <!-- 🆕 Forum Settings -->
             <div class="lumi-form">
                 <label class="lumi-label">Forum Auto-Generation</label>
                 <div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="forum-auto-en" ${s.forum.autoGen.enabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
                 <div class="lumi-set-row"><span>Msgs Interval</span><input type="number" id="forum-msg-interval" value="${s.forum.autoGen.messageInterval}" min="1" max="50" style="width:60px;background:var(--lumi-card);border:1px solid var(--lumi-border);border-radius:6px;padding:4px;color:var(--lumi-text);font-family:'Mitr'"></div>
                 <div class="lumi-set-row"><span>Time (sec)</span><input type="number" id="forum-time-interval" value="${s.forum.autoGen.timeInterval}" min="60" max="1800" style="width:60px;background:var(--lumi-card);border:1px solid var(--lumi-border);border-radius:6px;padding:4px;color:var(--lumi-text);font-family:'Mitr'"></div>
-                <div class="lumi-set-row"><span>Random %</span><input type="number" id="forum-random-chance" value="${Math.round(s.forum.autoGen.randomChance*100)}" min="0" max="100" style="width:60px;background:var(--lumi-card);border:1px solid var(--lumi-border);border-radius:6px;padding:4px;color:var(--lumi-text);font-family:'Mitr'"></div>
-            </div>
-
-            <div class="lumi-form">
-                <label class="lumi-label">Forum Mode</label>
-                <div class="lumi-set-row"><span>Mode</span><select id="forum-mode" class="lumi-input" style="width:150px"><option value="separate" ${s.forum.mode==='separate'?'selected':''}>Separate from RP</option><option value="linked" ${s.forum.mode==='linked'?'selected':''}>Linked to RP</option></select></div>
-                <div class="lumi-set-row"><span>Gen Type</span><select id="forum-gen-type" class="lumi-input" style="width:150px"><option value="auto" ${s.forum.generationType==='auto'?'selected':''}>Auto</option><option value="realtime" ${s.forum.generationType==='realtime'?'selected':''}>Real-time</option><option value="turnbased" ${s.forum.generationType==='turnbased'?'selected':''}>Turn-based</option></select></div>
             </div>
             
             <div style="margin-top:15px;display:flex;gap:10px">
@@ -619,34 +515,29 @@ function renderSettings() {
     
     $('#set-theme').on('change', function() { s._internal.theme = $(this).val(); applyTheme($(this).val()); SillyTavern.getContext().saveSettingsDebounced(); });
     $('#set-en').on('change', function(){ s.isEnabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
-    $('#set-wm').on('change', function(){ s.diary.worldMode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
     $('#ag-en').on('change', function(){ s.diary.autoGen.enabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
-    $('#ag-tr').on('change', function() { s.diary.autoGen.triggerType = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); renderSettings(); });
     
-    // Forum Settings Bindings
+    // Forum Bindings
     $('#forum-auto-en').on('change', function(){ s.forum.autoGen.enabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
-    $('#forum-msg-interval').on('change', function(){ s.forum.autoGen.messageInterval = parseInt($(this).val()) || 10; SillyTavern.getContext().saveSettingsDebounced(); });
-    $('#forum-time-interval').on('change', function(){ s.forum.autoGen.timeInterval = parseInt($(this).val()) || 300; SillyTavern.getContext().saveSettingsDebounced(); });
-    $('#forum-random-chance').on('change', function(){ s.forum.autoGen.randomChance = (parseInt($(this).val()) || 15) / 100; SillyTavern.getContext().saveSettingsDebounced(); });
-    $('#forum-mode').on('change', function(){ s.forum.mode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
-    $('#forum-gen-type').on('change', function(){ s.forum.generationType = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#forum-msg-interval').on('change', function(){ s.forum.autoGen.messageInterval = parseInt($(this).val()) || 15; SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#forum-time-interval').on('change', function(){ s.forum.autoGen.timeInterval = parseInt($(this).val()) || 600; SillyTavern.getContext().saveSettingsDebounced(); });
     
     $('#btn-rst').on('click', ()=>{ s._internal.fabPos = null; SillyTavern.getContext().saveSettingsDebounced(); $('#lumi-fab').remove(); spawnLumiButton(); });
-    $('#btn-clr').on('click', ()=>{ if(confirm('Clear all?')) { s.memories=[]; s.forumPosts=[]; s._internal.fabPos=null; s._internal.nameRegistry={}; SillyTavern.getContext().saveSettingsDebounced(); $('#lumi-fab').remove(); spawnLumiButton(); } });
+    $('#btn-clr').on('click', ()=>{ if(confirm('Clear all?')) { s.memories=[]; s.forumPosts=[]; s._internal.fabPos=null; SillyTavern.getContext().saveSettingsDebounced(); $('#lumi-fab').remove(); spawnLumiButton(); } });
 }
 
 // ═══════════════════════════════════════════════
-// 9. AUTO-TRIGGER (Merged Diary + Forum)// ═══════════════════════════════════════════════
+// 9. AUTO-TRIGGER
+// ═══════════════════════════════════════════════
 function setupAutoTriggerListener() { $(document).off('messageReceived', onNewChat).on('messageReceived', onNewChat); }
 
 async function onNewChat() {
     const s = extension_settings[extensionName];
     
-    // 📖 Diary Logic (Unchanged)
+    // Diary Logic
     const cfg = s.diary.autoGen;
     if (cfg.enabled) {
-        s._internal.messageCounter++;
-        const lastMsg = (SillyTavern.getContext().chat?.slice(-1)[0]?.mes || '').toLowerCase();
+        s._internal.messageCounter++;        const lastMsg = (SillyTavern.getContext().chat?.slice(-1)[0]?.mes || '').toLowerCase();
         let gen = false;
         if (cfg.triggerType === 'turn_count' && s._internal.messageCounter >= cfg.turnInterval) { gen = true; s._internal.messageCounter = 0; }
         else if (cfg.triggerType === 'emotion' && cfg.emotionKeywords.some(k => lastMsg.includes(k))) { gen = true; }
@@ -660,7 +551,7 @@ async function onNewChat() {
         }
     }
     
-    // 📢 Forum Logic (Added)
+    // 📢 Forum Logic
     if(s.forum.enabled && s.forum.autoGen.enabled) {
         s._internal.forumAutoCounter++;
         const forumCfg = s.forum.autoGen;
@@ -680,12 +571,13 @@ async function onNewChat() {
 }
 
 // ═══════════════════════════════════════════════
-// 10. HELPER FUNCTIONS (Unchanged)
+// 10. HELPERS
 // ═══════════════════════════════════════════════
 function loadMemories(filter = {}) {
     let mem = [...(extension_settings[extensionName].memories || [])];
     if (filter.botId) mem = mem.filter(m => m.botId === filter.botId || !m.botId);
-    if (filter.character) mem = mem.filter(m => m.character === filter.character);    return mem.sort((a,b) => (b.meta.isPinned?1:0) - (a.meta.isPinned?1:0) || new Date(b.timestamp) - new Date(a.timestamp));
+    if (filter.character) mem = mem.filter(m => m.character === filter.character);
+    return mem.sort((a,b) => (b.meta.isPinned?1:0) - (a.meta.isPinned?1:0) || new Date(b.timestamp) - new Date(a.timestamp));
 }
 
 function saveMemory(entry) {
@@ -694,8 +586,7 @@ function saveMemory(entry) {
     let canonName = cleanName;
     if(!s._internal.nameRegistry) s._internal.nameRegistry = {};
     for(let regName in s._internal.nameRegistry) { if(similarityScore(cleanName, regName) > 90) { canonName = regName; break; } }
-    s._internal.nameRegistry[canonName] = true;
-    entry.character = canonName;
+    s._internal.nameRegistry[canonName] = true;    entry.character = canonName;
     const charMems = s.memories.filter(m => m.character === canonName);
     const isDuplicate = charMems.some(m => similarityScore(m.content.diary, entry.content.diary) > 85);
     if (isDuplicate) return;
@@ -717,8 +608,6 @@ function bindEvents() {
         e.stopPropagation(); const id = $(this).closest('.lumi-card').data('id'); const act = $(this).data('act'); const mem = extension_settings[extensionName].memories.find(m => m.id === id); if(!mem) return;
         if(act === 'pin') { mem.meta.isPinned = !mem.meta.isPinned; SillyTavern.getContext().saveSettingsDebounced(); renderDiaryTab(); }
         if(act === 'fav') { mem.meta.isFavorite = !mem.meta.isFavorite; SillyTavern.getContext().saveSettingsDebounced(); renderDiaryTab(); }
-        if(act === 'edit-inline') { editMemoryInline(id); }
-        if(act === 'edit-modal') { editMemoryModal(id); }
         if(act === 'del') { if(confirm('Delete?')) { extension_settings[extensionName].memories = extension_settings[extensionName].memories.filter(m => m.id !== id); SillyTavern.getContext().saveSettingsDebounced(); renderDiaryTab(); } }
     });
 }
@@ -734,7 +623,8 @@ function editMemoryModal(id) { const mem = extension_settings[extensionName].mem
 async function generateBatchMemories() {
     const mode = $('input[name="gen-mode"]:checked').val(); const count = parseInt($('#gen-count').val()) || 30;
     $('#btn-run-gen').html(`${svgPlus} Thinking...`).prop('disabled', true);
-    const results = await callAIBatch(mode, count);    $('#btn-run-gen').html(`${svgPlus} Analyze & Generate`).prop('disabled', false); $('#gen-form-container').slideUp(200);
+    const results = await callAIBatch(mode, count);
+    $('#btn-run-gen').html(`${svgPlus} Analyze & Generate`).prop('disabled', false); $('#gen-form-container').slideUp(200);
     if(results && results.length > 0) {
         const ctx = SillyTavern.getContext(); const wm = extension_settings[extensionName].diary.worldMode === 'auto' ? detectWorldMode() : extension_settings[extensionName].diary.worldMode; const botId = ctx.characterId;
         results.forEach(res => saveMemory({ id: 'mem_'+Date.now()+'_'+Math.random().toString(36).substr(2,5), timestamp: new Date().toISOString(), character: res.character || ctx.name2 || "Character", botId: botId, worldMode: wm, content: { ...res }, meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, linkedIds: res.linkedIds || [], tags: extractTags(res.diary) } }));
@@ -745,8 +635,7 @@ async function generateBatchMemories() {
 async function callAIBatch(mode, count) {
     const ctx = SillyTavern.getContext(); const allChat = ctx.chat || [];
     let chatSlice, startIndex = 0, endIndex = 0;
-    if(mode === 'latest') { chatSlice = allChat.slice(-count); startIndex = Math.max(0, allChat.length - count); endIndex = allChat.length; }
-    else if(mode === 'first') { chatSlice = allChat.slice(0, count); startIndex = 0; endIndex = count; }
+    if(mode === 'latest') { chatSlice = allChat.slice(-count); startIndex = Math.max(0, allChat.length - count); endIndex = allChat.length; }    else if(mode === 'first') { chatSlice = allChat.slice(0, count); startIndex = 0; endIndex = count; }
     else { chatSlice = allChat.filter(m => m.mes && m.mes.length > 15).slice(-120); startIndex = Math.max(0, allChat.length - 120); endIndex = allChat.length; }
 
     const cleanChat = chatSlice.filter(m => m.mes && m.mes.length > 10);
@@ -782,3 +671,8 @@ Rules:
         const match = res.match(/\[[\s\S]*\]/); return match ? JSON.parse(match[0]) : [];
     } catch (e) { console.error(e); return []; }
 }
+
+// Placeholders for other tabs
+function renderStoryWeaver() { $('#lumi-content').html(`<div style="text-align:center;padding:40px;color:#999;">Story Weaver coming soon...</div>`); }
+function renderLoreExtractor() { $('#lumi-content').html(`<div style="text-align:center;padding:40px;color:#999;">Lore Extractor coming soon...</div>`); }
+function renderMemoryLinks() { $('#lumi-content').html(`<div style="text-align:center;padding:40px;color:#999;">Memory Links coming soon...</div>`); }
