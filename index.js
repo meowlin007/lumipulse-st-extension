@@ -282,7 +282,6 @@ function openModal(type = 'diary') {
     else renderDashboard();
 }
 
-// ✅ แยก Settings Modal ออกมาชัดเจน
 function openSettingsModal() {
     $('#lumi-body').data('current-tab', 'settings');
     $('#lumi-title').text('LumiPulse - Settings');
@@ -292,8 +291,8 @@ function openSettingsModal() {
 
 // Diary Dashboard
 function renderDashboard() {
-    $('#lumi-body').data('current-tab', 'diary');    $('#lumi-title').text('LumiPulse - Diary');
-    const ctx = SillyTavern.getContext(); const currentBotId = ctx.characterId; const currentBotName = ctx.name2 || "Unknown Bot";
+    $('#lumi-body').data('current-tab', 'diary');
+    $('#lumi-title').text('LumiPulse - Diary');    const ctx = SillyTavern.getContext(); const currentBotId = ctx.characterId; const currentBotName = ctx.name2 || "Unknown Bot";
     const mems = loadMemories({ botId: currentBotId });
     const filterChar = extension_settings[extensionName]._internal.filterChar || '';
     const filterDate = extension_settings[extensionName]._internal.filterDate || '';
@@ -341,8 +340,8 @@ function renderDashboard() {
         const tab = $(this).data('tab');
         if(tab === 'diary') renderDiaryTab();
         else if(tab === 'story') renderStoryWeaver();
-        else if(tab === 'lore') renderLoreExtractor();        else if(tab === 'links') renderMemoryLinks();
-    });
+        else if(tab === 'lore') renderLoreExtractor();
+        else if(tab === 'links') renderMemoryLinks();    });
     renderDiaryTab();
 }
 
@@ -390,8 +389,8 @@ function renderStoryWeaver() {
     const ctx = SillyTavern.getContext(); const mems = loadMemories({ botId: ctx.characterId }).sort((a,b) => a.timestamp.localeCompare(b.timestamp));
     $('#lumi-content').html(`
         <div class="lumi-form">
-            <label class="lumi-label">Story Settings</label>            <div class="lumi-set-row"><span>Include All Characters</span><input type="checkbox" id="sw-all-chars" checked style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
-            <div class="lumi-set-row"><span>Chapter Length</span><select id="sw-chapters" class="lumi-input" style="width:100px"><option value="auto">Auto</option><option value="3">3 Chapters</option><option value="5">5 Chapters</option></select></div>
+            <label class="lumi-label">Story Settings</label>
+            <div class="lumi-set-row"><span>Include All Characters</span><input type="checkbox" id="sw-all-chars" checked style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>            <div class="lumi-set-row"><span>Chapter Length</span><select id="sw-chapters" class="lumi-input" style="width:100px"><option value="auto">Auto</option><option value="3">3 Chapters</option><option value="5">5 Chapters</option></select></div>
             <button id="btn-weave" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgScroll} Weave Story</button>
         </div>
         <div id="sw-output" class="lumi-weaver-output" style="display:none;"></div>
@@ -439,8 +438,8 @@ function renderLoreExtractor() {
             <label class="lumi-label">Lore Extraction</label>
             <p style="font-size:12px;color:#666;margin-bottom:10px;">Scan memories to generate SillyTavern-compatible World Info JSON.</p>
             <button id="btn-extract-lore" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgGlobe} Extract Lore</button>
-        </div>        <div id="lore-output" style="display:none;"></div>
-    `);
+        </div>
+        <div id="lore-output" style="display:none;"></div>    `);
     $('#btn-extract-lore').on('click', async function() {
         $(this).html('<span class="lumi-loading"></span>Extracting...').prop('disabled', true);
         const ctx = SillyTavern.getContext(); const mems = loadMemories({ botId: ctx.characterId });
@@ -488,8 +487,8 @@ Return ONLY JSON array of objects:
                 matchCharacterDepthPrompt: false, matchScenario: false, matchCreatorNotes: false,
                 delayUntilRecursion: false, outletName: "", groupOverride: false, useGroupScoring: null,
                 automationId: "", role: null, sticky: 0, cooldown: 0, delay: 0, triggers: [],
-                characterFilter: { isExclude: false, names: [], tags: [] }            };
-        });
+                characterFilter: { isExclude: false, names: [], tags: [] }
+            };        });
         return { entries: entries };
     } catch(e) { return { entries: {} }; }
 }
@@ -537,8 +536,8 @@ function renderForum() {
         
         <div class="lumi-nav">
             <div class="lumi-nav-tab active" data-forum-tab="threads">${svgComment} Threads</div>
-            <div class="lumi-nav-tab" data-forum-tab="network">${svgNetwork} Network</div>            <div class="lumi-nav-tab" data-forum-tab="analytics">${svgMood} Analytics</div>
-        </div>
+            <div class="lumi-nav-tab" data-forum-tab="network">${svgNetwork} Network</div>
+            <div class="lumi-nav-tab" data-forum-tab="analytics">${svgMood} Analytics</div>        </div>
         
         <div class="lumi-action-row" style="margin-bottom:15px;">
             <div class="lumi-filters">
@@ -586,8 +585,8 @@ function renderForum() {
     $('.lumi-nav-tab').on('click', function() {
         $('.lumi-nav-tab').removeClass('active'); $(this).addClass('active');
         const tab = $(this).data('forum-tab');
-        if(tab === 'threads') renderForumThreads();        else if(tab === 'network') renderForumNetwork();
-        else if(tab === 'analytics') renderForumAnalytics();
+        if(tab === 'threads') renderForumThreads();
+        else if(tab === 'network') renderForumNetwork();        else if(tab === 'analytics') renderForumAnalytics();
     });
     
     renderForumThreads();
@@ -635,8 +634,8 @@ function renderForumNetwork() {
     const connections = analyzeCharacterConnections(posts);
     
     let html = '<div style="font-size:12px;font-weight:500;color:var(--lumi-secondary);margin-bottom:10px;">Active Characters</div>';
-    chars.forEach(char => {        const postCount = posts.filter(p => p.author === char).length;
-        const affinity = connections[char] || 0;
+    chars.forEach(char => {
+        const postCount = posts.filter(p => p.author === char).length;        const affinity = connections[char] || 0;
         html += `
             <div class="lumi-network-node" data-char="${escapeHtml(char)}">
                 <div style="font-size:11px;font-weight:500;">${escapeHtml(char)}</div>
@@ -684,8 +683,8 @@ function renderForumAnalytics() {
 function groupPostsByThread(posts) {
     const threads = {};
     posts.forEach(post => {
-        if(!threads[post.threadId]) threads[post.threadId] = { title: post.threadTitle, posts: [] };        threads[post.threadId].posts.push(post);
-    });
+        if(!threads[post.threadId]) threads[post.threadId] = { title: post.threadTitle, posts: [] };
+        threads[post.threadId].posts.push(post);    });
     return Object.values(threads).sort((a,b) => b.posts.length - a.posts.length);
 }
 
@@ -733,8 +732,8 @@ function showCharacterDetails(char) {
             <div style="font-size:12px;color:#666;margin-bottom:10px;">Recent Posts:</div>
             ${charPosts.slice(-5).map(post => renderForumPost(post)).join('')}
         </div>
-    `);    
-    $('#back-to-network').on('click', () => renderForumNetwork());
+    `);
+        $('#back-to-network').on('click', () => renderForumNetwork());
 }
 
 function calculateAffinity(char) {
@@ -782,8 +781,8 @@ Return JSON array:
         const s = extension_settings[extensionName];
         s.forumPosts = [...(s.forumPosts || []), ...newPosts].slice(-s.forum.storage.max);
         SillyTavern.getContext().saveSettingsDebounced();
-                showToast(`Generated ${newPosts.length} forum posts!`);
-        renderForum();
+        
+        showToast(`Generated ${newPosts.length} forum posts!`);        renderForum();
         return true;
     } catch(e) {
         console.error(e);
@@ -831,8 +830,8 @@ function setupForumAutoTrigger() {
         const timeSinceLastGen = now - (s._internal.lastForumGenTime || 0);
         
         let shouldGenerate = false;
-                if(cfg.messageInterval && s._internal.forumMessageCounter >= cfg.messageInterval) {
-            shouldGenerate = true;
+        
+        if(cfg.messageInterval && s._internal.forumMessageCounter >= cfg.messageInterval) {            shouldGenerate = true;
             s._internal.forumMessageCounter = 0;
         }
         
@@ -880,8 +879,8 @@ async function callAIBatch(mode, count) {
     const cleanChat = chatSlice.filter(m => m.mes && m.mes.length > 10);
     const chatLog = cleanChat.map((m, i) => `[${m.is_user ? 'User' : (m.name || 'NPC')}]: ${m.mes.slice(0, 60)}`).join('\n');
     
-    const botMems = loadMemories({ botId: ctx.characterId });    const prevTopics = botMems.slice(0, 10).map(m => `- [${m.character}] ${m.content.rp_date} @ ${m.content.rp_location}: ${m.content.diary.slice(0, 50)}...`).join('\n');
-    const registryList = Object.keys(extension_settings[extensionName]._internal.nameRegistry || {}).join(', ');
+    const botMems = loadMemories({ botId: ctx.characterId });
+    const prevTopics = botMems.slice(0, 10).map(m => `- [${m.character}] ${m.content.rp_date} @ ${m.content.rp_location}: ${m.content.diary.slice(0, 50)}...`).join('\n');    const registryList = Object.keys(extension_settings[extensionName]._internal.nameRegistry || {}).join(', ');
 
     const prompt = `[System: Analyze chat to create UNIQUE diary entries.]
 [Scanning Range: Message #${startIndex+1}-#${endIndex}]
@@ -929,8 +928,8 @@ async function onNewChat() {
         }
     }
 }
-// ═══════════════════════════════════════════════
-// 8. HELPERS & UTILS
+
+// ═══════════════════════════════════════════════// 8. HELPERS & UTILS
 // ═══════════════════════════════════════════════
 function loadMemories(filter = {}) {
     let mem = [...(extension_settings[extensionName].memories || [])];
@@ -1027,8 +1026,8 @@ function renderSettings() {
                 </div>
             </div>
 
-            <div class="lumi-form">                <label class="lumi-label">Secret System</label>
-                <div class="lumi-set-row"><span>Enable Secret Mode</span><input type="checkbox" id="set-sec-en" ${s.diary.display.showSecretSystem?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
+            <div class="lumi-form">
+                <label class="lumi-label">Secret System</label>                <div class="lumi-set-row"><span>Enable Secret Mode</span><input type="checkbox" id="set-sec-en" ${s.diary.display.showSecretSystem?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
                 <div class="lumi-set-row"><span>Unlock Rule</span><select id="set-sec-mode" class="lumi-input" style="width:110px"><option value="ai" ${s.diary.display.secretMode==='ai'?'selected':''}>AI Decide</option><option value="time" ${s.diary.display.secretMode==='time'?'selected':''}>Time (3 days)</option><option value="affection" ${s.diary.display.secretMode==='affection'?'selected':''}>Affection ≥ 80</option></select></div>
             </div>
 
