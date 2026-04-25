@@ -235,38 +235,54 @@ function spawnLumiButton() {
 // ═══════════════════════════════════════════════
 function createModal() {
     if ($('#lumi-overlay').length) return;
-    $('body').append(`<div id="lumi-overlay" class="lumi-overlay"><div class="lumi-modal"><div class="lumi-head"><button class="lumi-btn" id="lumi-back">${svgBack}</button><h3 id="lumi-title">LumiPulse</h3><button class="lumi-btn" id="lumi-close">${svgClose}</button></div><div id="lumi-body" class="lumi-body"></div></div></div>`);
-    $('#lumi-close, #lumi-overlay').on('click', e => { if(e.target.id==='lumi-overlay'||e.target.closest('#lumi-close')) $('#lumi-overlay').fadeOut(); });
-    $('#lumi-back').on('click', () => renderDashboard());
-}
-function openModal() { $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200); renderDashboard(); }
-function openSettingsModal() { $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200); renderSettings(); }
-
-// ✅ Global Event Delegation (Fixes "Stuck on same page")
-$(document).on('click', '.lumi-nav-tab', function() {    const tab = $(this).data('tab');
-    switchTab(tab);
-});
-
-function switchTab(tabName) {
-    $('.lumi-nav-tab').removeClass('active');
-    $(`.lumi-nav-tab[data-tab="${tabName}"]`).addClass('active');
+    $('body').append(`
+        <div id="lumi-overlay" class="lumi-overlay">
+            <div class="lumi-modal">
+                <div class="lumi-head">
+                    <button class="lumi-btn" id="lumi-back">${svgBack}</button>
+                    <h3 id="lumi-title">LumiPulse</h3>
+                    <button class="lumi-btn" id="lumi-close">${svgClose}</button>
+                </div>
+                <div id="lumi-body" class="lumi-body"></div>
+            </div>
+        </div>
+    `);
     
-    if(tabName === 'diary') renderDiaryTab();
-    else if(tabName === 'forum') renderForumTab();
-    else if(tabName === 'story') renderStoryWeaver();
-    else if(tabName === 'lore') renderLoreExtractor();
-    else if(tabName === 'links') renderMemoryLinks();
+    $('#lumi-close, #lumi-overlay').on('click', function(e) {
+        if(e.target.id === 'lumi-overlay' || $(e.target).closest('#lumi-close').length) {
+            $('#lumi-overlay').fadeOut();
+        }
+    });
+    
+    $('#lumi-back').on('click', function() {
+        renderDashboard();
+    });
 }
 
+function openModal() {
+    $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200);
+    renderDashboard();
+}
+
+function openSettingsModal() {
+    $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200);
+    renderSettings();
+}
+
+// ✅ แก้ไข Dashboard Rendering
 function renderDashboard() {
-    const ctx = SillyTavern.getContext(); const currentBotId = ctx.characterId; const currentBotName = ctx.name2 || "Unknown Bot";
+    const ctx = SillyTavern.getContext();
+    const currentBotId = ctx.characterId;
+    const currentBotName = ctx.name2 || "Unknown Bot";
     const mems = loadMemories({ botId: currentBotId });
+    
     const filterChar = extension_settings[extensionName]._internal.filterChar || '';
     const filterDate = extension_settings[extensionName]._internal.filterDate || '';
     const filterLoc = extension_settings[extensionName]._internal.filterLoc || '';
-    const chars = [...new Set(mems.map(m => m.character))].filter(c => c);
+        const chars = [...new Set(mems.map(m => m.character))].filter(c => c);
     const dates = [...new Set(mems.map(m => m.content.rp_date))].filter(d => d);
     const locs = [...new Set(mems.map(m => m.content.rp_location))].filter(l => l);
+    
     let filteredMems = mems;
     if (filterChar) filteredMems = filteredMems.filter(m => m.character === filterChar);
     if (filterDate) filteredMems = filteredMems.filter(m => m.content.rp_date === filterDate);
@@ -278,7 +294,12 @@ function renderDashboard() {
             <div style="font-size:18px;color:white;font-weight:500">${currentBotName}</div>
             <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">${filteredMems.length} memories</div>
         </div>
-        <div class="lumi-stats-bar" style="animation:fadeIn 0.4s ease 0.1s both;"><div class="lumi-stat"><b>${mems.length}</b><span>Total</span></div><div class="lumi-stat"><b>${chars.length}</b><span>Chars</span></div><div class="lumi-stat"><b>${mems.filter(m=>m.meta.isFavorite).length}</b><span>Favs</span></div></div>
+        
+        <div class="lumi-stats-bar" style="animation:fadeIn 0.4s ease 0.1s both;">
+            <div class="lumi-stat"><b>${mems.length}</b><span>Total</span></div>
+            <div class="lumi-stat"><b>${chars.length}</b><span>Chars</span></div>
+            <div class="lumi-stat"><b>${mems.filter(m=>m.meta.isFavorite).length}</b><span>Favs</span></div>
+        </div>
         
         <div class="lumi-nav">
             <div class="lumi-nav-tab active" data-tab="diary">${svgBook} Diary</div>
@@ -289,59 +310,145 @@ function renderDashboard() {
         </div>
         
         <div id="tab-content">
-            <div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;">
-                <select id="filter-char" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Chars</option>${chars.map(c => `<option value="${escapeHtml(c)}" ${c===filterChar?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
-                <select id="filter-date" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Dates</option>${dates.map(d => `<option value="${escapeHtml(d)}" ${d===filterDate?'selected':''}>${escapeHtml(d)}</option>`).join('')}</select>
-                <select id="filter-loc" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Locs</option>${locs.map(l => `<option value="${escapeHtml(l)}" ${l===filterLoc?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select>            </div>
-            <div class="lumi-action-row" style="margin-top:10px;"><button class="lumi-gen-btn" id="btn-open-gen">${svgPlus} Generate</button></div>
-            <div id="gen-form-container" style="display:none;margin-bottom:15px;"></div>
+            <div class="lumi-filters">
+                <select id="filter-char" class="lumi-filter-select" style="flex:1;min-width:80px">
+                    <option value="">All Chars</option>
+                    ${chars.map(c => `<option value="${escapeHtml(c)}" ${c===filterChar?'selected':''}>${escapeHtml(c)}</option>`).join('')}
+                </select>
+                <select id="filter-date" class="lumi-filter-select" style="flex:1;min-width:80px">
+                    <option value="">All Dates</option>
+                    ${dates.map(d => `<option value="${escapeHtml(d)}" ${d===filterDate?'selected':''}>${escapeHtml(d)}</option>`).join('')}
+                </select>
+                <select id="filter-loc" class="lumi-filter-select" style="flex:1;min-width:80px">
+                    <option value="">All Locs</option>
+                    ${locs.map(l => `<option value="${escapeHtml(l)}" ${l===filterLoc?'selected':''}>${escapeHtml(l)}</option>`).join('')}
+                </select>
+            </div>
+            
+            <div class="lumi-action-row" style="margin-top:10px;">
+                <button class="lumi-gen-btn" id="btn-open-gen">${svgPlus} Generate</button>
+            </div>
+                        <div id="gen-form-container" style="display:none;margin-bottom:15px;"></div>
             <div id="lumi-content"></div>
         </div>
     `);
     
-    $('#filter-char, #filter-date, #filter-loc').on('change', function() { extension_settings[extensionName]._internal.filterChar = $('#filter-char').val(); extension_settings[extensionName]._internal.filterDate = $('#filter-date').val(); extension_settings[extensionName]._internal.filterLoc = $('#filter-loc').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDiaryTab(); });
-    $('#btn-open-gen').on('click', function() { if($('#gen-form-container').is(':visible')) $('#gen-form-container').slideUp(200); else { renderGeneratorForm(); $('#gen-form-container').slideDown(200); } });
+    // Bind events ใหม่ทุกครั้งหลัง render
+    bindFilterEvents();
+    bindGenerateButton();
+    bindTabNavigation();
     
+    // Render tab เริ่มต้น (Diary)
     renderDiaryTab();
 }
 
-// ═══════════════════════════════════════════════
-// 6. DIARY UI
-// ═══════════════════════════════════════════════
-function renderDiaryTab() {
-    const ctx = SillyTavern.getContext(); const currentBotId = ctx.characterId;
-    const mems = loadMemories({ botId: currentBotId });
-    const filterChar = extension_settings[extensionName]._internal.filterChar || '';
-    const filterDate = extension_settings[extensionName]._internal.filterDate || '';
-    const filterLoc = extension_settings[extensionName]._internal.filterLoc || '';
-    let filteredMems = mems;
-    if (filterChar) filteredMems = filteredMems.filter(m => m.character === filterChar);
-    if (filterDate) filteredMems = filteredMems.filter(m => m.content.rp_date === filterDate);
-    if (filterLoc) filteredMems = filteredMems.filter(m => m.content.rp_location === filterLoc);
-    const byDate = {}; filteredMems.forEach(m => { const date = m.content.rp_date || 'Unknown Date'; if (!byDate[date]) byDate[date] = []; byDate[date].push(m); });
-    const sortedDates = Object.keys(byDate).sort();
+// ✅ แยก Bind Events ออกมา
+function bindFilterEvents() {
+    $('#filter-char, #filter-date, #filter-loc').off('change').on('change', function() {
+        extension_settings[extensionName]._internal.filterChar = $('#filter-char').val();
+        extension_settings[extensionName]._internal.filterDate = $('#filter-date').val();
+        extension_settings[extensionName]._internal.filterLoc = $('#filter-loc').val();
+        SillyTavern.getContext().saveSettingsDebounced();
+        renderDiaryTab();
+    });
+}
+
+function bindGenerateButton() {
+    $('#btn-open-gen').off('click').on('click', function() {
+        if($('#gen-form-container').is(':visible')) {
+            $('#gen-form-container').slideUp(200);
+        } else {
+            renderGeneratorForm();
+            $('#gen-form-container').slideDown(200);
+        }
+    });
+}
+
+// ✅ แก้ไข Tab Navigation ให้ชัดเจน
+function bindTabNavigation() {
+    $('.lumi-nav-tab').off('click').on('click', function() {
+        const tab = $(this).data('tab');
+        switchTab(tab);
+    });
+}
+
+function switchTab(tabName) {
+    // Update active tab UI
+    $('.lumi-nav-tab').removeClass('active');
+    $(`.lumi-nav-tab[data-tab="${tabName}"]`).addClass('active');
     
-    let html = sortedDates.length === 0 ? `<div style="text-align:center;padding:60px 20px;animation:fadeIn 0.5s ease;"><div style="font-size:64px;margin-bottom:16px;opacity:0.3;color:var(--lumi-primary)">${svgCalendar}</div><div style="font-size:16px;color:#999;margin-bottom:8px">No memories yet</div></div>` : '';
-    sortedDates.forEach(date => { const entries = byDate[date]; if (entries.length === 0) return; html += `<div class="lumi-timeline-date"><div style="font-size:13px;color:var(--lumi-secondary);font-weight:500;display:flex;align-items:center;gap:6px">${svgCalendar} ${date}</div></div>`; entries.forEach((m, idx) => { html += renderCard(m, idx); }); });
-    $('#lumi-content').html(html); bindEvents();
+    // Clear content    $('#lumi-content').empty();
+    
+    // Render appropriate tab
+    switch(tabName) {
+        case 'diary':
+            renderDiaryTab();
+            break;
+        case 'forum':
+            renderForumTab();
+            break;
+        case 'story':
+            renderStoryWeaver();
+            break;
+        case 'lore':
+            renderLoreExtractor();
+            break;
+        case 'links':
+            renderMemoryLinks();
+            break;
+        default:
+            renderDiaryTab();
+    }
 }
 
-function renderCard(m, index) {
-    const showSecret = extension_settings[extensionName].diary.display.showSecretSystem;
-    const isLocked = showSecret && checkUnlock(m) === false;
-    const color = generateColor(m.character); const delay = index * 0.05;
-    let lockOverlay = '';
-    if(isLocked) lockOverlay = `<div style="position:absolute;inset:0;background:rgba(255,255,255,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;z-index:1;backdrop-filter:blur(5px);">${svgLock}<div style="font-size:11px;color:var(--lumi-secondary);margin-top:5px">Locked</div></div>`;
-    const locHtml = m.content.rp_location ? `<span class="lumi-badge" style="cursor:default">${svgMapPin} ${escapeHtml(m.content.rp_location)}</span>` : '';
-    const linkHtml = (m.meta.linkedIds && m.meta.linkedIds.length) ? `<span class="lumi-badge" data-links="${m.meta.linkedIds.join(',')}">${svgLink} ${m.meta.linkedIds.length}</span>` : '';
-    const tagsHtml = (m.content.rp_tags && m.content.rp_tags.length) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">${m.content.rp_tags.map(t=>`<span class="lumi-badge" style="font-size:10px;background:var(--lumi-bg);color:var(--lumi-primary)">${svgTag} ${t}</span>`).join('')}</div>` : '';
-    const moodHtml = m.content.mood ? `<div style="font-size:11px;color:var(--lumi-secondary);margin-bottom:6px;font-style:italic;display:flex;align-items:center;gap:4px;">${svgMood} ${m.content.mood}</div>` : '';
-    return `<div class="lumi-card" data-id="${m.id}" style="animation:fadeIn 0.4s ease ${delay}s both; ${isLocked?'opacity:0.7;':''}">${lockOverlay}<div class="lumi-meta"><span class="lumi-badge lumi-char-badge" style="background:${color};display:flex;align-items:center;gap:4px">${svgUser} ${m.character}</span>${locHtml}${linkHtml}</div>${moodHtml}${tagsHtml}<div class="lumi-text">${isLocked ? '...' : m.content.diary}</div><div class="lumi-actions"><button class="lumi-act ${m.meta.isPinned?'active':''}" data-act="pin">${svgPin}</button><button class="lumi-act ${m.meta.isFavorite?'active':''}" data-act="fav">${svgStar}</button><button class="lumi-act" data-act="edit-inline">${svgBook}</button><button class="lumi-act" data-act="edit-modal">${svgTag}</button><button class="lumi-act danger" data-act="del">${svgClose}</button></div></div>`;
-}
-
-function renderGeneratorForm() {
-    $('#gen-form-container').html(`<div class="lumi-form"><label class="lumi-label">Scan Mode</label><div class="lumi-radio-group"><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="latest" checked> Latest X</label><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="first"> First X</label><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="all"> All History</label></div><div id="gen-count-wrap" style="margin-bottom:10px;"><label class="lumi-label">Message Count</label><input type="number" id="gen-count" value="30" min="5" max="200" class="lumi-input"></div><button id="btn-run-gen" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgPlus} Analyze & Generate</button></div>`);
-    $('input[name="gen-mode"]').on('change', function() { $('#gen-count-wrap').toggle($(this).val() !== 'all'); });    $('#btn-run-gen').on('click', generateBatchMemories);
+// ✅ แก้ไข Forum Tab Rendering
+function renderForumTab() {
+    const ctx = SillyTavern.getContext();
+    const forumData = extension_settings[extensionName].forumPosts || [];
+    const currentBotId = ctx.characterId;
+    
+    const botForums = forumData.filter(f => f.botId === currentBotId || !f.botId);
+    
+    const threads = {};
+    botForums.forEach(post => {
+        if(!threads[post.threadId]) threads[post.threadId] = [];
+        threads[post.threadId].push(post);
+    });
+    
+    const sortedThreads = Object.values(threads).sort((a,b) => 
+        new Date(b[b.length-1].timestamp) - new Date(a[a.length-1].timestamp)
+    );
+    
+    $('#lumi-content').html(`
+        <div class="lumi-form" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <label class="lumi-label" style="margin:0">Forum Topics</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <select id="forum-mode-display" class="lumi-input" style="width:120px;font-size:11px">
+                    <option value="separate" ${extension_settings[extensionName].forum.mode==='separate'?'selected':''}>Separate</option>
+                    <option value="linked" ${extension_settings[extensionName].forum.mode==='linked'?'selected':''}>Linked</option>
+                </select>                <button id="btn-forum-gen" class="lumi-gen-btn" style="width:auto;padding:6px 12px;font-size:11px">
+                    ${svgPlus} Refresh
+                </button>
+            </div>
+        </div>
+        
+        <div id="forum-threads-list">
+            ${sortedThreads.length === 0 ? 
+                '<div style="text-align:center;padding:40px;color:#999;">No forum topics yet. Click Refresh to generate!</div>' 
+                : ''}
+            ${sortedThreads.map(thread => renderForumThread(thread)).join('')}
+        </div>
+    `);
+    
+    // Bind events สำหรับ Forum
+    $('#btn-forum-gen').off('click').on('click', function() {
+        generateForumPost();
+    });
+    
+    $('#forum-mode-display').off('change').on('change', function() {
+        extension_settings[extensionName].forum.mode = $(this).val();
+        SillyTavern.getContext().saveSettingsDebounced();
+    });
 }
 
 // ═══════════════════════════════════════════════
