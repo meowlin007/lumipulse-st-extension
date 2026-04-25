@@ -1,7 +1,7 @@
 "use strict";
 
 // ═══════════════════════════════════════════════
-// 1. CONFIG & ASSETS
+// 1. CONFIG & ASSETTS
 // ═══════════════════════════════════════════════
 const extensionName = "lumipulse-st-extension";
 
@@ -85,7 +85,7 @@ function applyTheme(themeName) {
 }
 
 // ═══════════════════════════════════════════════
-// 2. BOOT SYSTEM
+// 2. BOOT SYSTEM (✅ แก้ไข Deep Merge)
 // ═══════════════════════════════════════════════
 jQuery(async () => {
     const boot = setInterval(() => {
@@ -97,20 +97,29 @@ jQuery(async () => {
 
 function initLumiPulse() {
     const ctx = SillyTavern.getContext();
-    if (!ctx.extensionSettings[extensionName]) {
+    
+    // ✅ DEEP MERGE SETTINGS - แก้ปัญหา Data Structure Conflict
+    if (ctx.extensionSettings[extensionName]) {
+        const oldSettings = ctx.extensionSettings[extensionName];
+        // ใช้ jQuery.extend ทำ deep merge
+        ctx.extensionSettings[extensionName] = $.extend(true, {}, defaultSettings, oldSettings);
+        ctx.saveSettingsDebounced();
+    } else {
         ctx.extensionSettings[extensionName] = JSON.parse(JSON.stringify(defaultSettings));
         ctx.saveSettingsDebounced();
     }
+    
     extension_settings = ctx.extensionSettings;
     applyTheme(extension_settings[extensionName]._internal.theme || 'pink');
     injectStyles(); createSettingsPanel();
+    
     if (extension_settings[extensionName].isEnabled) {
         setTimeout(() => { spawnLumiButton(); createModal(); setupAutoTriggerListener(); setupForumAutoTrigger(); }, 500);
     }
 }
 
 // ═══════════════════════════════════════════════
-// 3. UI RENDERING (✅ ปรับ CSS ให้เต็มกรอบ)
+// 3. UI RENDERING
 // ═══════════════════════════════════════════════
 function injectStyles() {
     if ($('#lumi-styles').length) return;
@@ -143,11 +152,9 @@ function injectStyles() {
         .lumi-btn:hover { background: var(--lumi-border); }
         .lumi-body { flex: 1; overflow-y: auto; padding: 15px; background: var(--lumi-card); color: var(--lumi-text); }
 
-        /* ✅ TABS - ปรับให้เต็มกรอบ */
-        .lumi-nav { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; }
-        .lumi-nav-tab { flex: 1; text-align: center; padding: 12px 8px; border-radius: 12px; background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-primary); font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
+        .lumi-nav { display: flex; gap: 6px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .lumi-nav-tab { padding: 6px 12px; border-radius: 12px; background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-primary); font-size: 11px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
         .lumi-nav-tab.active { background: var(--lumi-primary); color: white; border-color: var(--lumi-primary); }
-        .lumi-nav-tab:hover:not(.active) { background: var(--lumi-border); }
         
         .lumi-stats-bar { display: flex; gap: 10px; margin-bottom: 15px; background: var(--lumi-bg); padding: 12px; border-radius: 14px; border: 1px solid var(--lumi-border); }
         .lumi-stat { flex: 1; text-align: center; }
@@ -155,10 +162,10 @@ function injectStyles() {
         .lumi-stat span { font-size: 10px; color: #777; }
         
         .lumi-action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .lumi-filters { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
-        .lumi-filter-select { flex: 1; min-width: 80px; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 8px 12px; color: var(--lumi-primary); font-family: 'Mitr'; font-size: 12px; outline: none; }
+        .lumi-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+        .lumi-filter-select { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 8px 12px; color: var(--lumi-primary); font-family: 'Mitr'; font-size: 12px; outline: none; min-width: 100px; }
         
-        .lumi-gen-btn { background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; width: 100%; }
+        .lumi-gen-btn { background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; gap: 6px; font-size: 13px; }
         .lumi-gen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .lumi-form { background: var(--lumi-bg); border: 1px solid var(--lumi-border); border-radius: 16px; padding: 15px; margin-bottom: 15px; }
@@ -198,7 +205,7 @@ function injectStyles() {
         .lumi-act.danger:hover { color: #B84444; }
 
         .lumi-set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #666; }
-        .lumi-set-row select, .lumi-set-row input[type="number"], .lumi-set-row input[type="text"] { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 8px; padding: 5px 8px; color: var(--lumi-text); font-family: 'Mitr'; outline: none; }
+        .lumi-set-row select, .lumi-set-row input[type="number"] { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 8px; padding: 5px 8px; color: var(--lumi-text); font-family: 'Mitr'; outline: none; }
 
         .lumi-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 999999; font-family: 'Mitr'; font-size: 13px; color: var(--lumi-secondary); border: 1px solid var(--lumi-border); animation: popIn 0.3s; pointer-events: none; }
         
@@ -210,7 +217,6 @@ function injectStyles() {
         .lumi-lore-table th, .lumi-lore-table td { padding: 8px; border-bottom: 1px solid var(--lumi-border); text-align: left; }
         .lumi-lore-table th { color: var(--lumi-secondary); font-weight: 500; }
 
-        /* ✅ FORUM STYLES */
         .lumi-forum-container { display: flex; gap: 15px; height: calc(88vh - 250px); }
         .lumi-forum-main { flex: 1; overflow-y: auto; }
         .lumi-forum-sidebar { width: 250px; background: var(--lumi-bg); border-radius: 12px; padding: 15px; overflow-y: auto; border: 1px solid var(--lumi-border); }
@@ -226,8 +232,6 @@ function injectStyles() {
         .lumi-network-node:hover { background: var(--lumi-border); transform: translateX(5px); }
         .lumi-network-node.active { background: var(--lumi-primary); color: white; }
         .lumi-post-input { width: 100%; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 10px; color: var(--lumi-text); font-family: 'Mitr'; font-size: 12px; resize: vertical; min-height: 80px; margin-bottom: 10px; box-sizing: border-box; }
-        
-        /* ✅ LOADING SPINNER */
         .lumi-loading { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; margin-right: 8px; }
 
         @media (max-width: 768px) { .lumi-menu-grid { grid-template-columns: repeat(2, 1fr); } .lumi-modal { width: 96%; height: 92vh; } .lumi-forum-container { flex-direction: column; } .lumi-forum-sidebar { width: 100%; height: 200px; } }
@@ -239,7 +243,7 @@ function injectStyles() {
 }
 
 // ═══════════════════════════════════════════════
-// 4. FAB BUTTON (✅ เพิ่มปุ่ม Settings)
+// 4. FAB BUTTON
 // ═══════════════════════════════════════════════
 function spawnLumiButton() {
     $('#lumi-fab, .lumi-menu').remove();
@@ -270,24 +274,31 @@ function spawnLumiButton() {
 }
 
 // ═══════════════════════════════════════════════
-// 5. MODAL & UI LOGIC (✅ แก้ไข navigation)
+// 5. MODAL & UI LOGIC (✅ แก้ไข Navigation)
 // ═══════════════════════════════════════════════
 function createModal() {
     if ($('#lumi-overlay').length) return;
     $('body').append(`<div id="lumi-overlay" class="lumi-overlay"><div class="lumi-modal"><div class="lumi-head"><button class="lumi-btn" id="lumi-back">${svgBack}</button><h3 id="lumi-title">LumiPulse</h3><button class="lumi-btn" id="lumi-close">${svgClose}</button></div><div id="lumi-body" class="lumi-body"></div></div></div>`);
     $('#lumi-close, #lumi-overlay').on('click', e => { if(e.target.id==='lumi-overlay'||e.target.closest('#lumi-close')) $('#lumi-overlay').fadeOut(); });
     $('#lumi-back').on('click', () => { 
-        const currentTab = $('#lumi-body').data('current-tab') || 'diary'; 
-        if(currentTab === 'forum') renderForum(); 
-        else if(currentTab === 'settings') renderSettings();
-        else renderDashboard(); 
+        const currentTab = $('#lumi-body').data('current-tab');
+        if(currentTab === 'forum') {
+            renderForum();
+        } else if(currentTab === 'settings') {
+            renderSettings();
+        } else {
+            renderDashboard();
+        }
     });
 }
 
 function openModal(type = 'diary') {
     $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200);
-    if (type === 'forum') renderForum();
-    else renderDashboard();
+    if (type === 'forum') {
+        renderForum();
+    } else {
+        renderDashboard();
+    }
 }
 
 function openSettingsModal() {
@@ -402,7 +413,7 @@ function renderStoryWeaver() {
             <label class="lumi-label">Story Settings</label>
             <div class="lumi-set-row"><span>Include All Characters</span><input type="checkbox" id="sw-all-chars" checked style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
             <div class="lumi-set-row"><span>Chapter Length</span><select id="sw-chapters" class="lumi-input" style="width:100px"><option value="auto">Auto</option><option value="3">3 Chapters</option><option value="5">5 Chapters</option></select></div>
-            <button id="btn-weave" class="lumi-gen-btn">${svgScroll} Weave Story</button>
+            <button id="btn-weave" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgScroll} Weave Story</button>
         </div>
         <div id="sw-output" class="lumi-weaver-output" style="display:none;"></div>
         <div id="sw-actions" style="display:none;text-align:center;margin-top:10px;">
@@ -530,7 +541,7 @@ function renderMemoryLinks() {
 }
 
 // ═══════════════════════════════════════════════
-// FORUM MODE (✅ เพิ่ม Loading States)
+// FORUM MODE (✅ แก้ไขสมบูรณ์)
 // ═══════════════════════════════════════════════
 
 function renderForum() {
@@ -579,28 +590,47 @@ function renderForum() {
         </div>
     `);
     
-    $('#forum-filter-char, #forum-filter-type').on('change', function() { renderForumThreads(); });
-    $('#btn-generate-forum').on('click', async function() {
-        $(this).html('<span class="lumi-loading"></span>Generating...').prop('disabled', true);
-        await generateForumPosts();
-        $(this).html(`${svgPlus} Generate`).prop('disabled', false);
-    });
-    $('#btn-submit-post').on('click', function() {
-        $(this).html('<span class="lumi-loading"></span>Posting...').prop('disabled', true);
-        submitForumPost();
-        $(this).html(`${svgPlus} Post`).prop('disabled', false);
-    });
-    
-    $('.lumi-nav-tab').on('click', function() {
-        $('.lumi-nav-tab').removeClass('active'); $(this).addClass('active');
-        const tab = $(this).data('forum-tab');
-        if(tab === 'threads') renderForumThreads();
-        else if(tab === 'network') renderForumNetwork();
-        else if(tab === 'analytics') renderForumAnalytics();
-    });
-    
-    renderForumThreads();
-    renderForumNetwork();
+    // ✅ Bind events หลัง render เสร็จ
+    setTimeout(() => {
+        $('#forum-filter-char, #forum-filter-type').on('change', function() { renderForumThreads(); });
+        
+        $('#btn-generate-forum').on('click', async function() {
+            const $btn = $(this);
+            $btn.html('<span class="lumi-loading"></span>Generating...').prop('disabled', true);
+            try {
+                await generateForumPosts();
+                renderForum();
+            } catch(e) {
+                console.error(e);
+                showToast('Error generating posts');
+            }
+            $btn.html(`${svgPlus} Generate`).prop('disabled', false);
+        });
+        
+        $('#btn-submit-post').on('click', function() {
+            const $btn = $(this);
+            $btn.html('<span class="lumi-loading"></span>Posting...').prop('disabled', true);
+            try {
+                submitForumPost();
+                renderForum();
+            } catch(e) {
+                console.error(e);
+                showToast('Error posting');
+            }
+            $btn.html(`${svgPlus} Post`).prop('disabled', false);
+        });
+        
+        $('.lumi-nav-tab').on('click', function() {
+            $('.lumi-nav-tab').removeClass('active'); $(this).addClass('active');
+            const tab = $(this).data('forum-tab');
+            if(tab === 'threads') renderForumThreads();
+            else if(tab === 'network') renderForumNetwork();
+            else if(tab === 'analytics') renderForumAnalytics();
+        });
+        
+        renderForumThreads();
+        renderForumNetwork();
+    }, 100);
 }
 
 function renderForumThreads() {
@@ -613,27 +643,33 @@ function renderForumThreads() {
     
     let html = '';
     const threads = groupPostsByThread(filtered);
-    threads.forEach(thread => {
-        html += `
-            <div class="lumi-forum-thread">
-                <div class="lumi-forum-header">
-                    <div class="lumi-forum-title">${escapeHtml(thread.title)}</div>
-                    <div class="lumi-forum-meta">${thread.posts.length} posts</div>
+    
+    if(threads.length === 0) {
+        html = '<div style="text-align:center;padding:60px 20px;color:#999;"><div style="font-size:48px;margin-bottom:15px;opacity:0.3">💬</div><div>No forum posts yet. Generate or create one!</div></div>';
+    } else {
+        threads.forEach(thread => {
+            html += `
+                <div class="lumi-forum-thread">
+                    <div class="lumi-forum-header">
+                        <div class="lumi-forum-title">${escapeHtml(thread.title)}</div>
+                        <div class="lumi-forum-meta">${thread.posts.length} posts</div>
+                    </div>
+                    ${thread.posts.map(post => renderForumPost(post)).join('')}
                 </div>
-                ${thread.posts.map(post => renderForumPost(post)).join('')}
-            </div>
-        `;
-    });
-    $('#forum-main-content').html(html || '<div style="text-align:center;padding:40px;color:#999;">No posts yet. Generate or create one!</div>');
+            `;
+        });
+    }
+    $('#forum-main-content').html(html);
 }
 
 function renderForumPost(post) {
     const isPlayer = post.author === 'Player';
+    const time = new Date(post.timestamp).toLocaleString('th-TH');
     return `
         <div class="lumi-forum-post" style="${isPlayer ? 'border-left:3px solid var(--lumi-primary);' : ''}">
             <div class="lumi-forum-author">${isPlayer ? '👤 You' : escapeHtml(post.author)}</div>
             <div class="lumi-forum-content">${escapeHtml(post.content)}</div>
-            <div style="font-size:10px;color:#888;margin-top:5px;">${new Date(post.timestamp).toLocaleString()}</div>
+            <div style="font-size:10px;color:#888;margin-top:5px;">${time}</div>
         </div>
     `;
 }
@@ -644,16 +680,21 @@ function renderForumNetwork() {
     const connections = analyzeCharacterConnections(posts);
     
     let html = '<div style="font-size:12px;font-weight:500;color:var(--lumi-secondary);margin-bottom:10px;">Active Characters</div>';
-    chars.forEach(char => {
-        const postCount = posts.filter(p => p.author === char).length;
-        const affinity = connections[char] || 0;
-        html += `
-            <div class="lumi-network-node" data-char="${escapeHtml(char)}">
-                <div style="font-size:11px;font-weight:500;">${escapeHtml(char)}</div>
-                <div style="font-size:10px;color:#888;">${postCount} posts • Affinity: ${affinity}</div>
-            </div>
-        `;
-    });
+    
+    if(chars.length === 0) {
+        html += '<div style="text-align:center;padding:20px;color:#999;font-size:12px;">No activity yet</div>';
+    } else {
+        chars.forEach(char => {
+            const postCount = posts.filter(p => p.author === char).length;
+            const affinity = connections[char] || 0;
+            html += `
+                <div class="lumi-network-node" data-char="${escapeHtml(char)}">
+                    <div style="font-size:11px;font-weight:500;">${escapeHtml(char)}</div>
+                    <div style="font-size:10px;color:#888;">${postCount} posts • Affinity: ${affinity}</div>
+                </div>
+            `;
+        });
+    }
     $('#network-nodes').html(html);
     
     $('.lumi-network-node').off('click').on('click', function() {
@@ -674,27 +715,40 @@ function renderForumAnalytics() {
                 <div class="lumi-stat"><b>${Object.keys(moodData).length}</b><span>Moods</span></div>
             </div>
             <div style="margin-top:15px;">
-                ${Object.entries(moodData).map(([mood, count]) => `
-                    <div style="margin:8px 0;padding:10px;background:var(--lumi-bg);border-radius:8px;">
-                        <div style="display:flex;justify-content:space-between;font-size:12px;">
-                            <span>${mood}</span>
-                            <span style="color:var(--lumi-primary);font-weight:500;">${count} posts</span>
-                        </div>
-                        <div style="height:6px;background:var(--lumi-border);border-radius:3px;margin-top:5px;overflow:hidden;">
-                            <div style="height:100%;background:var(--lumi-primary);width:${(count/posts.length)*100}%;transition:width 0.3s;"></div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
     `;
+    
+    if(Object.keys(moodData).length === 0) {
+        html += '<div style="text-align:center;padding:40px;color:#999;">No data yet. Generate some posts!</div>';
+    } else {
+        Object.entries(moodData).forEach(([mood, count]) => {
+            const percentage = posts.length > 0 ? (count / posts.length) * 100 : 0;
+            html += `
+                <div style="margin:8px 0;padding:10px;background:var(--lumi-bg);border-radius:8px;">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;">
+                        <span>${mood}</span>
+                        <span style="color:var(--lumi-primary);font-weight:500;">${count} posts</span>
+                    </div>
+                    <div style="height:6px;background:var(--lumi-border);border-radius:3px;margin-top:5px;overflow:hidden;">
+                        <div style="height:100%;background:var(--lumi-primary);width:${percentage}%;transition:width 0.3s;"></div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    html += '</div></div>';
     $('#forum-main-content').html(html);
 }
 
 function groupPostsByThread(posts) {
     const threads = {};
     posts.forEach(post => {
-        if(!threads[post.threadId]) threads[post.threadId] = { title: post.threadTitle, posts: [] };
+        if(!threads[post.threadId]) {
+            threads[post.threadId] = { 
+                title: post.threadTitle || 'Untitled Thread', 
+                posts: [] 
+            };
+        }
         threads[post.threadId].posts.push(post);
     });
     return Object.values(threads).sort((a,b) => b.posts.length - a.posts.length);
@@ -721,10 +775,10 @@ function analyzeForumMoods(posts) {
 
 function detectMood(text) {
     const lower = text.toLowerCase();
-    if(lower.match(/(รัก|ชอบ|สุข|ดีใจ|happy|love)/)) return 'Happy';
-    if(lower.match(/(โกรธ|ไม่พอใจ|angry|hate)/)) return 'Angry';
-    if(lower.match(/(เศร้า|เสียใจ|sad|cry)/)) return 'Sad';
-    if(lower.match(/(กลัว|worried|fear)/)) return 'Anxious';
+    if(lower.match(/(รัก|ชอบ|สุข|ดีใจ|happy|love|smile)/)) return 'Happy';
+    if(lower.match(/(โกรธ|ไม่พอใจ|angry|hate|mad)/)) return 'Angry';
+    if(lower.match(/(เศร้า|เสียใจ|sad|cry|tear)/)) return 'Sad';
+    if(lower.match(/(กลัว|worried|fear|scared)/)) return 'Anxious';
     return 'Neutral';
 }
 
@@ -762,8 +816,8 @@ async function generateForumPosts() {
     const characters = [...new Set(recentChat.filter(m => m.name && !m.is_user).map(m => m.name))];
     
     if(characters.length === 0) {
-        showToast('No characters in recent chat to generate forum posts');
-        return;
+        showToast('No characters in recent chat to generate from');
+        return false;
     }
     
     const prompt = `[System: Generate forum discussions based on recent chat events.]
@@ -777,35 +831,56 @@ Generate 2-3 forum posts from different characters discussing recent events. Eac
 2. React to events in the chat
 3. Show their perspective and emotions
 
-Return JSON array:
-[{"author":"Character Name","threadId":"1","threadTitle":"Topic Title","content":"Post content","type":"public|private","mood":"Happy|Angry|Sad|Neutral","timestamp":"${new Date().toISOString()}"}]`;
+Return ONLY JSON array (no markdown):
+[{"author":"Character Name","threadId":"1","threadTitle":"Topic Title","content":"Post content","type":"public","mood":"Happy","timestamp":"${new Date().toISOString()}"}]`;
 
     try {
         let res;
         if (typeof ctx.generateQuietPrompt === 'function') res = await ctx.generateQuietPrompt(prompt, false, false);
         else if (typeof ctx.generateRaw === 'function') res = await ctx.generateRaw(prompt, true);
         
-        if(!res) { showToast('Failed to generate forum posts'); return; }
+        if(!res) { 
+            showToast('AI did not respond'); 
+            return false; 
+        }
+        
+        res = res.replace(/
+```json/g, '').replace(/
+```/g, '').trim();
+        
         const match = res.match(/\[[\s\S]*\]/);
-        if(!match) { showToast('Invalid response format'); return; }
+        if(!match) { 
+            showToast('Invalid response format'); 
+            return false; 
+        }
         
         const newPosts = JSON.parse(match[0]);
+        if(!Array.isArray(newPosts) || newPosts.length === 0) {
+            showToast('No posts generated');
+            return false;
+        }
+        
         const s = extension_settings[extensionName];
         s.forumPosts = [...(s.forumPosts || []), ...newPosts].slice(-s.forum.storage.max);
         SillyTavern.getContext().saveSettingsDebounced();
         
-        showToast(`Generated ${newPosts.length} forum posts!`);
-        renderForum();
+        showToast(`✅ Generated ${newPosts.length} posts!`);
+        return true;
     } catch(e) {
-        console.error(e);
-        showToast('Error generating forum posts');
+        console.error('Generate error:', e);
+        showToast('Error: ' + e.message);
+        return false;
     }
 }
 
 function submitForumPost() {
     const content = $('#forum-post-input').val().trim();
     const type = $('#forum-post-type').val();
-    if(!content) { showToast('Please enter post content'); return; }
+    
+    if(!content) { 
+        showToast('Please enter post content'); 
+        return false; 
+    }
     
     const s = extension_settings[extensionName];
     const newPost = {
@@ -824,15 +899,15 @@ function submitForumPost() {
     SillyTavern.getContext().saveSettingsDebounced();
     
     $('#forum-post-input').val('');
-    showToast('Post submitted!');
-    renderForum();
+    showToast('✅ Post submitted!');
+    return true;
 }
 
 function setupForumAutoTrigger() {
     $(document).on('messageReceived', async function() {
         const s = extension_settings[extensionName];
         const cfg = s.forum.autoGen;
-        if(!cfg.enabled) return;
+        if(!cfg.enabled || !s.forum.enabled) return;
         
         s._internal.forumMessageCounter = (s._internal.forumMessageCounter || 0) + 1;
         const now = Date.now();
@@ -995,7 +1070,7 @@ function editMemoryInline(id) { const mem = extension_settings[extensionName].me
 function editMemoryModal(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; $('#lumi-title').text('Edit Memory'); $('#lumi-body').html(`<div style="padding:15px;"><div class="lumi-form"><label class="lumi-label">Character</label><input type="text" id="edit-char" value="${mem.character}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Date (RP)</label><input type="text" id="edit-date" value="${mem.content.rp_date||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Location</label><input type="text" id="edit-loc" value="${mem.content.rp_location||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Tags</label><input type="text" id="edit-tags" value="${(mem.content.rp_tags||[]).join(', ')}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Diary</label><textarea id="edit-diary" class="lumi-input" style="min-height:150px;resize:vertical">${mem.content.diary}</textarea></div><div style="display:flex;gap:10px"><button id="btn-save-edit" class="lumi-gen-btn" style="flex:2">Save</button><button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:#FFE0E0;color:var(--lumi-danger);text-align:center;cursor:pointer">Cancel</button></div></div>`); $('#btn-save-edit').on('click', function() { mem.character = $('#edit-char').val(); mem.content.rp_date = $('#edit-date').val(); mem.content.rp_location = $('#edit-loc').val(); mem.content.rp_tags = $('#edit-tags').val().split(',').map(t=>t.trim()).filter(t=>t); mem.content.diary = $('#edit-diary').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); showToast('Updated!'); }); $('#btn-cancel-edit').on('click', function() { renderDashboard(); }); }
 
 // ═══════════════════════════════════════════════
-// SETTINGS (✅ แก้ไข navigation และเพิ่ม Forum settings)
+// SETTINGS (✅ แก้ไข Navigation)
 // ═══════════════════════════════════════════════
 function renderSettings() {
     $('#lumi-title').text('LumiPulse - Settings');
