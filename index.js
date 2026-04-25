@@ -1,5 +1,8 @@
 "use strict";
 
+// ═══════════════════════════════════════════════
+// 1. CONFIG & ASSETS (โครงสร้างเดิมที่ทำงานได้)
+// ═══════════════════════════════════════════════
 const extensionName = "lumipulse-st-extension";
 
 const defaultSettings = {
@@ -30,7 +33,6 @@ const defaultSettings = {
 
 let extension_settings = {};
 
-// ไอคอน (URL เดิมของคุณ)
 const btnUrl       = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
 const iconDiary    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconSettings = "https://file.garden/ad59q6JMmVnp7v1-/setting-icon.png";
@@ -79,39 +81,44 @@ function applyTheme(themeName) {
 }
 
 // ═══════════════════════════════════════════════
-// BOOT SYSTEM (โครงสร้างเก่าที่มั่นคง)
+// 2. BOOT SYSTEM (โครงสร้างเดิม)
 // ═══════════════════════════════════════════════
 jQuery(async () => {
-    // รอจนกว่า SillyTavern จะโหลดเสร็จ
     const boot = setInterval(() => {
         if (window.SillyTavern && SillyTavern.getContext && document.body) {
             clearInterval(boot);
+            console.log("[LumiPulse] ST Ready. Initializing...");
             initLumiPulse();
         }
     }, 500);
 });
 
 function initLumiPulse() {
-    const ctx = SillyTavern.getContext();
-    
-    // เริ่มต้นตั้งค่าถ้ายังไม่มี
-    if (!ctx.extensionSettings[extensionName]) {
-        ctx.extensionSettings[extensionName] = JSON.parse(JSON.stringify(defaultSettings));
-        ctx.saveSettingsDebounced();
-    }
-    extension_settings = ctx.extensionSettings;
-    
-    // 1. ลง CSS ทันที (แก้ปุ่มหายเพราะ CSS โหลดช้า)
-    injectStyles();
-    
-    // 2. สร้าง Panel ตั้งค่า
-    createSettingsPanel();
-    
-    // 3. ถ้าเปิดใช้งาน -> สร้างปุ่ม
-    if (extension_settings[extensionName].isEnabled) {
-        spawnLumiButton();
-        createModal();
-        setupAutoTriggerListener();
+    try {
+        const ctx = SillyTavern.getContext();
+        
+        // เริ่มต้นตั้งค่าถ้ายังไม่มี
+        if (!ctx.extensionSettings[extensionName]) {
+            ctx.extensionSettings[extensionName] = JSON.parse(JSON.stringify(defaultSettings));
+            ctx.saveSettingsDebounced();
+        }
+        extension_settings = ctx.extensionSettings;
+        
+        // 1. ลง CSS ทันที (แก้ปุ่มหายเพราะ CSS โหลดช้า)
+        injectStyles();
+        
+        // 2. สร้าง Panel ตั้งค่า
+        createSettingsPanel();
+        
+        // 3. ถ้าเปิดใช้งาน -> สร้างปุ่ม
+        if (extension_settings[extensionName].isEnabled) {
+            spawnLumiButton();
+            createModal();
+            setupAutoTriggerListener();
+            console.log("[LumiPulse] ✅ Modules Loaded");
+        }
+    } catch (e) {
+        console.error("[LumiPulse] Error during init:", e);
     }
 }
 
@@ -122,6 +129,7 @@ function injectStyles() {
     if ($('#lumi-styles').length) return;
     const s = document.createElement('style');
     s.id = 'lumi-styles';
+    // CSS เต็มรูปแบบที่บังคับแสดงผล
     s.innerHTML = `
         @import url('https://fonts.googleapis.com/css2?family=Mitr:wght@200;300;400;500&display=swap');
         :root { --lumi-primary: #FFB6C1; --lumi-secondary: #FF69B4; --lumi-bg: #FFF0F5; --lumi-card: #FFFBFC; --lumi-text: #2A2A2A; --lumi-border: #FFE8EE; --lumi-danger: #D32F2F; --lumi-glass: rgba(255, 255, 255, 0.9); }
@@ -273,15 +281,18 @@ function injectStyles() {
 function spawnLumiButton() {
     // ✅ ป้องกันการสร้างปุ่มซ้ำ (แก้ปุ่มหาย/กระพริบ)
     if ($('#lumi-fab').length > 0) {
-        $('#lumi-fab').show(); // ถ้ามีแต่ซ่อนอยู่ ให้แสดง
+        console.log("[LumiPulse] FAB exists, updating visibility.");
+        $('#lumi-fab').show(); 
         return;
     }
     
     if (!document.body) {
+        console.warn("[LumiPulse] Body not ready. Retrying spawn...");
         setTimeout(spawnLumiButton, 500);
         return;
     }
 
+    console.log("[LumiPulse] Creating FAB...");
     const fab = document.createElement('div');
     fab.id = 'lumi-fab';
     fab.title = 'LumiPulse Menu';
@@ -308,8 +319,7 @@ function spawnLumiButton() {
     menu.innerHTML = `
         <div class="lumi-menu-grid">
             <div class="lumi-menu-item" id="lumi-diary"><img src="${iconDiary}"><span>Diary</span></div>
-            <div class="lumi-menu-item" id="lumi-forum"><img src="${iconForum}"><span>Forum</span></div>
-            <div class="lumi-menu-item" id="lumi-set"><img src="${iconSettings}"><span>Settings</span></div>
+            <div class="lumi-menu-item" id="lumi-forum"><img src="<LaTex>id_81</LaTex>{iconSettings}"><span>Settings</span></div>
         </div>
         <div class="lumi-branding">LumiPulse</div>
     `;
@@ -414,8 +424,7 @@ function spawnLumiButton() {
 // ═══════════════════════════════════════════════
 function createModal() {
     if ($('#lumi-overlay').length) return;
-    $('body').append(`<div id="lumi-overlay" class="lumi-overlay"><div class="lumi-modal"><div class="lumi-head"><button class="lumi-btn" id="lumi-back">${svgBack}</button><h3 id="lumi-title">LumiPulse</h3><button class="lumi-btn" id="lumi-close">${svgClose}</button></div><div id="lumi-body" class="lumi-body"></div></div></div>`);
-    $('#lumi-close, #lumi-overlay').on('click', e => { if(e.target.id==='lumi-overlay'||e.target.closest('#lumi-close')) $('#lumi-overlay').fadeOut(); });
+    $('body').append(`<div id="lumi-overlay" class="lumi-overlay"><div class="lumi-modal"><div class="lumi-head"><button class="lumi-btn" id="lumi-back">${svgBack}</button><h3 id="lumi-title">LumiPulse</h3><button class="lumi-btn" id="lumi-close"><LaTex>id_80</LaTex>('#lumi-close, #lumi-overlay').on('click', e => { if(e.target.id==='lumi-overlay'||e.target.closest('#lumi-close')) $('#lumi-overlay').fadeOut(); });
     $('#lumi-back').on('click', () => { const activeTab = $('.lumi-nav-tab.active').data('tab'); if(activeTab === 'diary') renderDiaryTab(); else if(activeTab === 'forum') renderForumTab(); });
 }
 
@@ -427,7 +436,7 @@ function openModal(type = 'diary') {
 
 function openSettingsModal() { $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200); renderSettings(); }
 
-// 📊 Dashboard
+// 📊 Dashboard (โครงสร้างเดิม)
 function renderDashboard() {
     const ctx = SillyTavern.getContext(); const currentBotId = ctx.characterId; const currentBotName = ctx.name2 || "Unknown Bot";
     const mems = loadMemories({ botId: currentBotId });
@@ -444,32 +453,21 @@ function renderDashboard() {
     
     $('#lumi-body').html(`
         <div style="background:linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary));padding:20px;border-radius:16px;margin-bottom:15px;box-shadow:0 4px 15px rgba(255,105,180,0.2);animation:slideIn 0.3s ease;">
-            <div style="font-size:11px;color:rgba(255,255,255,0.9);margin-bottom:4px;display:flex;align-items:center;gap:6px">${svgBook} Memories of</div>
-            <div style="font-size:18px;color:white;font-weight:500">${currentBotName}</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">${filteredMems.length} memories</div>
-        </div>
-        <div class="lumi-stats-bar" style="animation:fadeIn 0.4s ease 0.1s both;"><div class="lumi-stat"><b>${mems.length}</b><span>Total</span></div><div class="lumi-stat"><b>${chars.length}</b><span>Chars</span></div><div class="lumi-stat"><b>${mems.filter(m=>m.meta.isFavorite).length}</b><span>Favs</span></div></div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.9);margin-bottom:4px;display:flex;align-items:center;gap:6px"><LaTex>id_79</LaTex>{currentBotName}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px"><LaTex>id_78</LaTex>{mems.length}</b><span>Total</span></div><div class="lumi-stat"><b><LaTex>id_77</LaTex>{mems.filter(m=>m.meta.isFavorite).length}</b><span>Favs</span></div></div>
         
         <div class="lumi-nav">
-            <div class="lumi-nav-tab active" data-tab="diary">${svgBook} Diary</div>
-            <div class="lumi-nav-tab" data-tab="story">${svgScroll} Story</div>
-            <div class="lumi-nav-tab" data-tab="lore">${svgGlobe} Lore</div>
-            <div class="lumi-nav-tab" data-tab="links">${svgLink} Links</div>
+            <div class="lumi-nav-tab active" data-tab="diary"><LaTex>id_76</LaTex>{svgScroll} Story</div>
+            <div class="lumi-nav-tab" data-tab="lore"><LaTex>id_75</LaTex>{svgLink} Links</div>
         </div>
         
         <div id="tab-content">
             <div class="lumi-filters">
-                <select id="filter-char" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Chars</option>${chars.map(c => `<option value="${escapeHtml(c)}" ${c===filterChar?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
-                <select id="filter-date" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Dates</option>${dates.map(d => `<option value="${escapeHtml(d)}" ${d===filterDate?'selected':''}>${escapeHtml(d)}</option>`).join('')}</select>
-                <select id="filter-loc" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Locs</option>${locs.map(l => `<option value="${escapeHtml(l)}" ${l===filterLoc?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select>
+                <select id="filter-char" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Chars</option><LaTex>id_74</LaTex>{escapeHtml(c)}" ${c===filterChar?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
+                <select id="filter-date" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Dates</option><LaTex>id_73</LaTex>{escapeHtml(d)}" ${d===filterDate?'selected':''}>${escapeHtml(d)}</option>`).join('')}</select>
+                <select id="filter-loc" class="lumi-filter-select" style="flex:1;min-width:80px"><option value="">All Locs</option><LaTex>id_72</LaTex>{escapeHtml(l)}" ${l===filterLoc?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select>
             </div>
-            <div class="lumi-action-row" style="margin-top:10px;"><button class="lumi-gen-btn" id="btn-open-gen">${svgPlus} Generate</button></div>
-            <div id="gen-form-container" style="display:none;margin-bottom:15px;"></div>
-            <div id="lumi-content"></div>
-        </div>
-    `);
-    
-    $('#filter-char, #filter-date, #filter-loc').on('change', function() { extension_settings[extensionName]._internal.filterChar = $('#filter-char').val(); extension_settings[extensionName]._internal.filterDate = $('#filter-date').val(); extension_settings[extensionName]._internal.filterLoc = $('#filter-loc').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); });
+            <div class="lumi-action-row" style="margin-top:10px;"><button class="lumi-gen-btn" id="btn-open-gen"><LaTex>id_71</LaTex>('#filter-char, #filter-date, #filter-loc').on('change', function() { extension_settings[extensionName]._internal.filterChar = $('#filter-char').val(); extension_settings[extensionName]._internal.filterDate = $('#filter-date').val(); extension_settings[extensionName]._internal.filterLoc = $('#filter-loc').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); });
     $('#btn-open-gen').on('click', function() { if($('#gen-form-container').is(':visible')) $('#gen-form-container').slideUp(200); else { renderGeneratorForm(); $('#gen-form-container').slideDown(200); } });
     
     $('.lumi-nav-tab').on('click', function() {
@@ -497,7 +495,7 @@ function renderDiaryTab() {
     const sortedDates = Object.keys(byDate).sort();
     
     let html = sortedDates.length === 0 ? `<div style="text-align:center;padding:60px 20px;animation:fadeIn 0.5s ease;"><div style="font-size:64px;margin-bottom:16px;opacity:0.3;color:var(--lumi-primary)">${svgCalendar}</div><div style="font-size:16px;color:#999;margin-bottom:8px">No memories yet</div></div>` : '';
-    sortedDates.forEach(date => { const entries = byDate[date]; if (entries.length === 0) return; html += `<div class="lumi-timeline-date"><div style="font-size:13px;color:var(--lumi-secondary);font-weight:500;display:flex;align-items:center;gap:6px">${svgCalendar} ${date}</div></div>`; entries.forEach((m, idx) => { html += renderCard(m, idx); }); });
+    sortedDates.forEach(date => { const entries = byDate[date]; if (entries.length === 0) return; html += `<div class="lumi-timeline-date"><div style="font-size:13px;color:var(--lumi-secondary);font-weight:500;display:flex;align-items:center;gap:6px"><LaTex>id_70</LaTex>{date}</div></div>`; entries.forEach((m, idx) => { html += renderCard(m, idx); }); });
     $('#lumi-content').html(html); bindEvents();
 }
 
@@ -508,17 +506,11 @@ function renderCard(m, index) {
     let lockOverlay = '';
     if(isLocked) lockOverlay = `<div style="position:absolute;inset:0;background:rgba(255,255,255,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;z-index:1;backdrop-filter:blur(5px);">${svgLock}<div style="font-size:11px;color:var(--lumi-secondary);margin-top:5px">Locked</div></div>`;
     
-    const locHtml = m.content.rp_location ? `<span class="lumi-badge" style="cursor:default">${svgMapPin} ${escapeHtml(m.content.rp_location)}</span>` : '';
-    const linkHtml = (m.meta.linkedIds && m.meta.linkedIds.length) ? `<span class="lumi-badge" data-links="${m.meta.linkedIds.join(',')}">${svgLink} ${m.meta.linkedIds.length}</span>` : '';
-    const tagsHtml = (m.content.rp_tags && m.content.rp_tags.length) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">${m.content.rp_tags.map(t=>`<span class="lumi-badge" style="font-size:10px;background:var(--lumi-bg);color:var(--lumi-primary)">${svgTag} ${t}</span>`).join('')}</div>` : '';
-    const moodHtml = m.content.mood ? `<div style="font-size:11px;color:var(--lumi-secondary);margin-bottom:6px;font-style:italic;display:flex;align-items:center;gap:4px;">${svgMood} ${m.content.mood}</div>` : '';
+    const locHtml = m.content.rp_location ? `<span class="lumi-badge" style="cursor:default"><LaTex>id_69</LaTex>{escapeHtml(m.content.rp_location)}</span>` : '';
+    const linkHtml = (m.meta.linkedIds && m.meta.linkedIds.length) ? `<span class="lumi-badge" data-links="<LaTex>id_68</LaTex>{svgLink} <LaTex>id_67</LaTex>{m.content.rp_tags.map(t=>`<span class="lumi-badge" style="font-size:10px;background:var(--lumi-bg);color:var(--lumi-primary)">${svgTag} ${t}</span>`).join('')}</div>` : '';
+    const moodHtml = m.content.mood ? `<div style="font-size:11px;color:var(--lumi-secondary);margin-bottom:6px;font-style:italic;display:flex;align-items:center;gap:4px;"><LaTex>id_66</LaTex>{m.content.mood}</div>` : '';
     
-    return `<div class="lumi-card" data-id="${m.id}" style="animation:fadeIn 0.4s ease ${delay}s both; ${isLocked?'opacity:0.7;':''}">${lockOverlay}<div class="lumi-meta"><span class="lumi-badge lumi-char-badge" style="background:${color};display:flex;align-items:center;gap:4px">${svgUser} ${m.character}</span>${locHtml}${linkHtml}</div>${moodHtml}${tagsHtml}<div class="lumi-text">${isLocked ? '...' : m.content.diary}</div><div class="lumi-actions"><button class="lumi-act ${m.meta.isPinned?'active':''}" data-act="pin">${svgPin}</button><button class="lumi-act ${m.meta.isFavorite?'active':''}" data-act="fav">${svgStar}</button><button class="lumi-act" data-act="edit-inline">${svgBook}</button><button class="lumi-act" data-act="edit-modal">${svgTag}</button><button class="lumi-act danger" data-act="del">${svgClose}</button></div></div>`;
-}
-
-function renderGeneratorForm() {
-    $('#gen-form-container').html(`<div class="lumi-form"><label class="lumi-label">Scan Mode</label><div class="lumi-radio-group"><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="latest" checked> Latest X</label><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="first"> First X</label><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="all"> All History</label></div><div id="gen-count-wrap" style="margin-bottom:10px;"><label class="lumi-label">Message Count</label><input type="number" id="gen-count" value="30" min="5" max="200" class="lumi-input"></div><button id="btn-run-gen" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgPlus} Analyze & Generate</button></div>`);
-    $('input[name="gen-mode"]').on('change', function() { $('#gen-count-wrap').toggle($(this).val() !== 'all'); });
+    return `<div class="lumi-card" data-id="<LaTex>id_65</LaTex>{delay}s both; <LaTex>id_64</LaTex>{lockOverlay}<div class="lumi-meta"><span class="lumi-badge lumi-char-badge" style="background:<LaTex>id_63</LaTex>{svgUser} <LaTex>id_62</LaTex>{locHtml}<LaTex>id_61</LaTex>{moodHtml}<LaTex>id_60</LaTex>{isLocked ? '...' : m.content.diary}</div><div class="lumi-actions"><button class="lumi-act <LaTex>id_59</LaTex>{svgPin}</button><button class="lumi-act <LaTex>id_58</LaTex>{svgStar}</button><button class="lumi-act" data-act="edit-inline"><LaTex>id_57</LaTex>{svgTag}</button><button class="lumi-act danger" data-act="del"><LaTex>id_56</LaTex>('#gen-form-container').html(`<div class="lumi-form"><label class="lumi-label">Scan Mode</label><div class="lumi-radio-group"><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="latest" checked> Latest X</label><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="first"> First X</label><label class="lumi-radio-label"><input type="radio" name="gen-mode" value="all"> All History</label></div><div id="gen-count-wrap" style="margin-bottom:10px;"><label class="lumi-label">Message Count</label><input type="number" id="gen-count" value="30" min="5" max="200" class="lumi-input"></div><button id="btn-run-gen" class="lumi-gen-btn" style="width:100%;justify-content:center"><LaTex>id_55</LaTex>('input[name="gen-mode"]').on('change', function() { $('#gen-count-wrap').toggle($(this).val() !== 'all'); });
     $('#btn-run-gen').on('click', generateBatchMemories);
 }
 
@@ -530,19 +522,11 @@ function renderStoryWeaver() {
             <label class="lumi-label">Story Settings</label>
             <div class="lumi-set-row"><span>Include All Characters</span><input type="checkbox" id="sw-all-chars" checked style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
             <div class="lumi-set-row"><span>Chapter Length</span><select id="sw-chapters" class="lumi-input" style="width:100px"><option value="auto">Auto</option><option value="3">3 Chapters</option><option value="5">5 Chapters</option></select></div>
-            <button id="btn-weave" class="lumi-gen-btn">${svgScroll} Weave Story</button>
-        </div>
-        <div id="sw-output" class="lumi-weaver-output" style="display:none;"></div>
-        <div id="sw-actions" style="display:none;text-align:center;margin-top:10px;">
-            <button id="btn-export-story" class="lumi-gen-btn">${svgBook} Export .md</button>
+            <button id="btn-weave" class="lumi-gen-btn"><LaTex>id_54</LaTex>{svgBook} Export .md</button>
         </div>
     `);
     $('#btn-weave').on('click', async function() {
-        $(this).html(`${svgScroll} Weaving...`).prop('disabled', true);
-        const story = await weaveStory(mems);
-        $(this).html(`${svgScroll} Weave Story`).prop('disabled', false);
-        if(story) {
-            $('#sw-output').text(story).show();
+        $(this).html(`<LaTex>id_53</LaTex>(this).html(`<LaTex>id_52</LaTex>('#sw-output').text(story).show();
             $('#sw-actions').show();
             $('#btn-export-story').off('click').on('click', () => exportText(story, 'LumiPulse_Story.md'));
         }
@@ -551,10 +535,7 @@ function renderStoryWeaver() {
 
 async function weaveStory(mems) {
     const ctx = SillyTavern.getContext();
-    const diaryText = mems.map(m => `[${m.character} | ${m.content.rp_date}] ${m.content.diary}`).join('\n\n');
-    const prompt = `[System: You are a master chronicler. Weave these diary entries into a cohesive narrative story.]
-Diaries:
-${diaryText}
+    const diaryText = mems.map(m => `[<LaTex>id_51</LaTex>{m.content.rp_date}] <LaTex>id_50</LaTex>{diaryText}
 
 Rules:
 1. Maintain chronological order.
@@ -581,15 +562,8 @@ function renderLoreExtractor() {
         <div id="lore-output" style="display:none;"></div>
     `);
     $('#btn-extract-lore').on('click', async function() {
-        $(this).html(`${svgGlobe} Extracting...`).prop('disabled', true);
-        const ctx = SillyTavern.getContext(); const mems = loadMemories({ botId: ctx.characterId });
-        const lore = await extractLore(mems);
-        $(this).html(`${svgGlobe} Extract Lore`).prop('disabled', false);
-        if(lore && lore.entries && Object.keys(lore.entries).length) {
-            let html = `<table class="lumi-lore-table"><tr><th>Keyword</th><th>Type</th><th>Content</th></tr>`;
-            Object.values(lore.entries).forEach(l => html += `<tr><td><b>${escapeHtml(l.key[0])}</b></td><td>${l.comment}</td><td>${escapeHtml(l.content).slice(0,100)}...</td></tr>`);
-            html += `</table><div style="text-align:center;margin-top:15px;"><button id="btn-export-lore" class="lumi-gen-btn">${svgBook} Export JSON</button></div>`;
-            $('#lore-output').html(html).show();
+        $(this).html(`<LaTex>id_49</LaTex>(this).html(`<LaTex>id_48</LaTex>{escapeHtml(l.key[0])}</b></td><td><LaTex>id_47</LaTex>{escapeHtml(l.content).slice(0,100)}...</td></tr>`);
+            html += `</table><div style="text-align:center;margin-top:15px;"><button id="btn-export-lore" class="lumi-gen-btn"><LaTex>id_46</LaTex>('#lore-output').html(html).show();
             $('#btn-export-lore').off('click').on('click', () => exportJSON(lore, 'LumiPulse_Lorebook.json'));
         } else {
             $('#lore-output').html('<div style="text-align:center;padding:20px;color:#999;">No extractable lore found.</div>').show();
@@ -599,60 +573,17 @@ function renderLoreExtractor() {
 
 async function extractLore(mems) {
     const ctx = SillyTavern.getContext();
-    const text = mems.map(m => `[${m.character}] ${m.content.diary}`).join('\n');
+    const text = mems.map(m => `[<LaTex>id_45</LaTex>{m.content.diary}`).join('\n');
     const prompt = `[System: Extract World Info for SillyTavern Lorebook.]
 Text:
-${text}
-
-Return ONLY JSON array:
-[{"keyword":"Name/Place/Item","type":"character|location|item|event|rule","content":"Brief description/context"}]`;
-    try {
-        let res;
-        if (typeof ctx.generateQuietPrompt === 'function') res = await ctx.generateQuietPrompt(prompt, false, false);
-        else if (typeof ctx.generateRaw === 'function') res = await ctx.generateRaw(prompt, true);
-        const match = res?.match(/\[[\s\S]*\]/);
-        if(!match) return { entries: {} };
-        
-        const aiData = JSON.parse(match[0]);
-        const entries = {};
-        aiData.forEach((item, index) => {
-            entries[index] = {
-                uid: index, key: [item.keyword], keysecondary: [], comment: item.type, content: item.content,
-                constant: false, vectorized: false, selective: true, selectiveLogic: 0, addMemo: true,
-                order: 10, position: 0, disable: false, ignoreBudget: false, excludeRecursion: false,
-                preventRecursion: false, probability: 100, useProbability: true, depth: 4,
-                group: "LumiPulse Extracted", groupWeight: 100, scanDepth: null, caseSensitive: null,
-                matchWholeWords: null, displayIndex: index, matchPersonaDescription: false,
-                matchCharacterDescription: false, matchCharacterPersonality: false,
-                matchCharacterDepthPrompt: false, matchScenario: false, matchCreatorNotes: false,
-                delayUntilRecursion: false, outletName: "", groupOverride: false, useGroupScoring: null,
-                automationId: "", role: null, sticky: 0, cooldown: 0, delay: 0, triggers: [],
-                characterFilter: { isExclude: false, names: [], tags: [] }
-            };
-        });
-        return { entries: entries };
-    } catch(e) { return { entries: {} }; }
-}
-
-// 🔗 Memory Linking
-function renderMemoryLinks() {
-    const ctx = SillyTavern.getContext(); const mems = loadMemories({ botId: ctx.characterId });
-    const linkedMems = mems.filter(m => m.meta.linkedIds && m.meta.linkedIds.length > 0);
-    let html = linkedMems.length === 0 ? `<div style="text-align:center;padding:40px;color:#999;">No linked memories yet. Generate more to build connections.</div>` : '';
-    linkedMems.forEach(m => {
-        const links = m.meta.linkedIds.map(id => {
-            const linked = mems.find(x => x.id === id);
-            return linked ? `<div class="lumi-badge" style="margin:4px 0;cursor:pointer" data-id="${linked.id}">${svgLink} ${linked.character} | ${linked.content.rp_date}</div>` : '';
-        }).join('');
-        html += `<div class="lumi-card" style="margin-bottom:15px;"><div class="lumi-meta"><span class="lumi-badge lumi-char-badge">${m.character}</span><span class="lumi-badge">${m.content.rp_date}</span></div><div style="font-size:12px;color:#666;margin-bottom:8px;">Linked Memories:</div>${links}</div>`;
+<LaTex>id_44</LaTex>{linked.id}"><LaTex>id_43</LaTex>{linked.character} | <LaTex>id_42</LaTex>{m.character}</span><span class="lumi-badge"><LaTex>id_41</LaTex>{links}</div>`;
     });
     $('#lumi-content').html(html);
     $('.lumi-badge[data-id]').off('click').on('click', function() {
         const id = $(this).data('id');
         const mem = mems.find(m => m.id === id);
         if(mem) {
-            $('#lumi-content').html(renderCard(mem, 0) + `<div style="text-align:center;margin-top:15px;"><button id="back-links" class="lumi-gen-btn">${svgBack} Back to Links</button></div>`);
-            $('#back-links').off('click').on('click', () => renderMemoryLinks());
+            $('#lumi-content').html(renderCard(mem, 0) + `<div style="text-align:center;margin-top:15px;"><button id="back-links" class="lumi-gen-btn"><LaTex>id_40</LaTex>('#back-links').off('click').on('click', () => renderMemoryLinks());
         }
     });
 }
@@ -670,30 +601,20 @@ function renderForumTab() {
     
     $('#lumi-body').html(`
         <div class="lumi-nav">
-            <div class="lumi-nav-tab active" data-forum="threads">${svgForum} Threads</div>
-            <div class="lumi-nav-tab" data-forum="network">${svgNetwork} Network</div>
+            <div class="lumi-nav-tab active" data-forum="threads"><LaTex>id_39</LaTex>{svgNetwork} Network</div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;">
             <select id="forum-mode-select" class="lumi-filter-select" style="flex:1;min-width:120px">
-                <option value="separate" ${extension_settings[extensionName].forum.mode==='separate'?'selected':''}>Separate Mode</option>
-                <option value="linked" ${extension_settings[extensionName].forum.mode==='linked'?'selected':''}>Linked to RP</option>
+                <option value="separate" <LaTex>id_38</LaTex>{extension_settings[extensionName].forum.mode==='linked'?'selected':''}>Linked to RP</option>
             </select>
             <select id="forum-topic-filter" class="lumi-filter-select" style="flex:1;min-width:100px">
                 <option value="">All Topics</option>
-                ${topics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')}
+                <LaTex>id_37</LaTex>{escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')}
             </select>
         </div>
         <div class="lumi-action-row" style="margin-top:10px;">
             <button class="lumi-gen-btn" id="btn-generate-forum" style="flex:1">${svgPlus} Generate Post</button>
-            <button class="lumi-gen-btn" id="btn-new-topic" style="flex:1;background:linear-gradient(135deg, #9B7ED9, #4A9FD9)">${svgPlus} New Topic</button>
-        </div>
-        <div style="display:flex;margin-top:15px;">
-            <div id="forum-content" class="lumi-forum-content" style="flex:1;padding-right:15px;"></div>
-            <div id="forum-sidebar" class="lumi-forum-sidebar" style="display:none;"></div>
-        </div>
-    `);
-    
-    $('#forum-mode-select').on('change', function() {
+            <button class="lumi-gen-btn" id="btn-new-topic" style="flex:1;background:linear-gradient(135deg, #9B7ED9, #4A9FD9)"><LaTex>id_36</LaTex>('#forum-mode-select').on('change', function() {
         extension_settings[extensionName].forum.mode = $(this).val();
         SillyTavern.getContext().saveSettingsDebounced();
         renderForumTab();
@@ -734,49 +655,30 @@ function renderForumThreads(topicFilter = '') {
         const isRumor = mainPost.tags && mainPost.tags.includes('#rumor');
         
         html += `<div class="lumi-forum-thread">
-            <div class="lumi-forum-topic ${isRumor?'lumi-rumor-badge':''}">${svgForum} ${escapeHtml(topic)}</div>
-            <div class="lumi-forum-post ${mainPost.isPlayer?'player':''}">
-                <div class="lumi-forum-post-header">
-                    <div class="lumi-forum-author">${svgUser} ${escapeHtml(mainPost.author)} ${mainPost.isPlayer?'<span style="font-size:10px;color:var(--lumi-secondary)">(You)</span>':''}</div>
-                    <div class="lumi-forum-time">${formatForumTime(mainPost.timestamp)}</div>
-                </div>
-                <div class="lumi-text">${escapeHtml(mainPost.content)}</div>
-                ${mainPost.tags && mainPost.tags.length ? `<div style="margin-top:8px;">${mainPost.tags.map(t=>`<span class="lumi-forum-tag">${t}</span>`).join('')}</div>`:''}
-            </div>
-            ${replies.length ? `<div class="lumi-forum-replies">
+            <div class="lumi-forum-topic ${isRumor?'lumi-rumor-badge':''}"><LaTex>id_35</LaTex>{escapeHtml(topic)}</div>
+            <div class="lumi-forum-post <LaTex>id_34</LaTex>{svgUser} <LaTex>id_33</LaTex>{mainPost.isPlayer?'<span style="font-size:10px;color:var(--lumi-secondary)">(You)</span>':''}</div>
+                    <div class="lumi-forum-time"><LaTex>id_32</LaTex>{escapeHtml(mainPost.content)}</div>
+                <LaTex>id_31</LaTex>{mainPost.tags.map(t=>`<span class="lumi-forum-tag"><LaTex>id_30</LaTex>{replies.length ? `<div class="lumi-forum-replies">
                 ${replies.map(reply => `
                     <div class="lumi-forum-post ${reply.isPlayer?'player':''}" style="margin:8px 0;">
                         <div class="lumi-forum-post-header">
-                            <div class="lumi-forum-author">${svgUser} ${escapeHtml(reply.author)} ${reply.isPlayer?'<span style="font-size:10px;color:var(--lumi-secondary)">(You)</span>':''}</div>
-                            <div class="lumi-forum-time">${formatForumTime(reply.timestamp)}</div>
+                            <div class="lumi-forum-author"><LaTex>id_29</LaTex>{escapeHtml(reply.author)} <LaTex>id_28</LaTex>{formatForumTime(reply.timestamp)}</div>
                         </div>
-                        <div class="lumi-text" style="font-size:12px;">${escapeHtml(reply.content)}</div>
-                    </div>
-                `).join('')}
-            </div>`:''}
-            <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--lumi-border);">
-                <textarea class="lumi-forum-input" data-topic="${escapeHtml(topic)}" placeholder="Reply to this thread..."></textarea>
-                <button class="lumi-gen-btn" onclick="submitForumReply('${escapeHtml(topic)}')" style="width:auto;padding:6px 12px;font-size:11px;">${svgComment} Reply</button>
+                        <div class="lumi-text" style="font-size:12px;"><LaTex>id_27</LaTex>{escapeHtml(topic)}" placeholder="Reply to this thread..."></textarea>
+                <button class="lumi-gen-btn" onclick="submitForumReply('<LaTex>id_26</LaTex>{svgComment} Reply</button>
             </div>
         </div>`;
     }
     
-    if(!html) html = `<div style="text-align:center;padding:60px 20px;color:#999;"><div style="font-size:48px;margin-bottom:16px;opacity:0.3">${svgForum}</div><div>No forum posts yet. Generate some discussions!</div></div>`;
-    
-    $('#forum-content').html(html);
+    if(!html) html = `<div style="text-align:center;padding:60px 20px;color:#999;"><div style="font-size:48px;margin-bottom:16px;opacity:0.3"><LaTex>id_25</LaTex>('#forum-content').html(html);
 }
 
 function renderNetworkSidebar() {
     const relationships = buildForumRelationshipNetwork();
     const chars = Object.keys(relationships);
     
-    let html = `<h4 style="margin:0 0 15px;color:var(--lumi-secondary);font-size:14px;">${svgNetwork} Character Network</h4>`;
-    chars.forEach(char => {
-        const connections = relationships[char];
-        const connectionCount = connections ? Object.keys(connections).length : 0;
-        html += `<div class="lumi-network-node" data-char="${escapeHtml(char)}">
-            <div style="font-weight:500;font-size:12px;">${escapeHtml(char)}</div>
-            <div style="font-size:10px;color:#999;">${connectionCount} connections</div>
+    let html = `<h4 style="margin:0 0 15px;color:var(--lumi-secondary);font-size:14px;"><LaTex>id_24</LaTex>{escapeHtml(char)}">
+            <div style="font-weight:500;font-size:12px;"><LaTex>id_23</LaTex>{connectionCount} connections</div>
         </div>`;
     });
     
@@ -790,24 +692,15 @@ function renderNetworkSidebar() {
 
 function showCharacterNetworkDetail(character, connections) {
     let html = `<div style="padding:15px;">
-        <h4 style="margin:0 0 15px;color:var(--lumi-secondary);">${svgUser} ${escapeHtml(character)}</h4>
-        <div style="margin-bottom:15px;">
-            <div style="font-size:11px;color:#666;margin-bottom:8px;">Connections:</div>`;
-    
-    if(connections && Object.keys(connections).length) {
-        for(const [targetChar, data] of Object.entries(connections)) {
-            html += `<div style="background:var(--lumi-bg);padding:8px;margin:5px 0;border-radius:6px;">
-                <div style="font-size:11px;"><b>${escapeHtml(targetChar)}</b></div>
-                <div style="font-size:10px;color:#999;">Interactions: ${data.count}</div>
-                <div style="font-size:10px;color:var(--lumi-primary);margin-top:4px;">${data.lastInteraction || 'No recent interaction'}</div>
+        <h4 style="margin:0 0 15px;color:var(--lumi-secondary);">${svgUser} <LaTex>id_22</LaTex>{escapeHtml(targetChar)}</b></div>
+                <div style="font-size:10px;color:#999;">Interactions: <LaTex>id_21</LaTex>{data.lastInteraction || 'No recent interaction'}</div>
             </div>`;
         }
     } else {
         html += `<div style="font-size:11px;color:#999;text-align:center;padding:10px;">No connections yet</div>`;
     }
     
-    html += `</div><button class="lumi-btn" onclick="renderNetworkSidebar()" style="width:100%;">${svgBack} Back</button></div>`;
-    $('#forum-sidebar').html(html);
+    html += `</div><button class="lumi-btn" onclick="renderNetworkSidebar()" style="width:100%;"><LaTex>id_20</LaTex>('#forum-sidebar').html(html);
 }
 
 function buildForumRelationshipNetwork() {
@@ -852,88 +745,19 @@ async function generateForumContent(mode) {
     const ctx = SillyTavern.getContext();
     const chat = ctx.chat || [];
     const recentChat = chat.slice(-30);
-    const chatLog = recentChat.map(m => `[${m.is_user?'User':m.name||'NPC'}]: ${m.mes.slice(0,100)}`).join('\n');
+    const chatLog = recentChat.map(m => `[<LaTex>id_19</LaTex>{m.mes.slice(0,100)}`).join('\n');
     const characters = [...new Set(recentChat.filter(m => m.name && !m.is_user).map(m => m.name))];
     
     const prompt = mode === 'linked' 
         ? `[System: Generate forum discussion based on recent RP events.]
 Recent Chat:
-${chatLog}
-Characters present: ${characters.join(', ')}
+<LaTex>id_18</LaTex>{characters.join(', ')}
 Generate a forum post that reflects these events. Return JSON:
 {"topic":"Topic title","author":"Character name","content":"Post content in Thai","isPlayer":false,"tags":["#gossip"]}`
         : `[System: Generate independent forum discussion.]
-Characters: ${characters.join(', ')}
-Generate a forum post. Return JSON:
-{"topic":"Topic title","author":"Character name","content":"Post content in Thai","isPlayer":false,"tags":["#rumor"]}`;
-    
-    try {
-        let res;
-        if (typeof ctx.generateQuietPrompt === 'function') res = await ctx.generateQuietPrompt(prompt, false, false);
-        else if (typeof ctx.generateRaw === 'function') res = await ctx.generateRaw(prompt, true);
-        const match = res?.match(/\{[\s\S]*\}/);
-        return match ? JSON.parse(match[0]) : null;
-    } catch(e) { return null; }
-}
-
-function createNewTopic() {
-    const topic = prompt('Enter topic title:');
-    if(!topic) return;
-    const content = prompt('Enter your post:');
-    if(!content) return;
-    saveForumPost({ id: 'forum_' + Date.now(), topic, author: 'Player', content, isPlayer: true, timestamp: new Date().toISOString(), tags: [] });
-    renderForumTab();
-}
-
-function submitForumReply(topic) {
-    const textarea = $(`.lumi-forum-input[data-topic="${CSS.escape(topic)}"]`);
-    const content = textarea.val().trim();
-    if(!content) return;
-    saveForumPost({ id: 'forum_' + Date.now(), topic, author: 'Player', content, isPlayer: true, timestamp: new Date().toISOString(), tags: [] });
-    renderForumTab();
-}
-
-function saveForumPost(post) {
-    const s = extension_settings[extensionName];
-    if(!s.forumPosts) s.forumPosts = [];
-    s.forumPosts.push(post);
-    if(s.forumPosts.length > s.forum.storage.max) s.forumPosts = s.forumPosts.slice(-s.forum.storage.max);
-    SillyTavern.getContext().saveSettingsDebounced();
-}
-
-async function autoGenerateForum() {
-    const s = extension_settings[extensionName];
-    const cfg = s.forum.autoGen;
-    if(!cfg.enabled) return;
-    let shouldGenerate = false;
-    if(cfg.triggerType === 'turn_count') {
-        s._internal.forumAutoCounter++;
-        if(s._internal.forumAutoCounter >= cfg.turnInterval) { shouldGenerate = true; s._internal.forumAutoCounter = 0; }
-    } else if(cfg.triggerType === 'time') {
-        if(Date.now() - s._internal.lastForumAutoGen >= cfg.timeInterval * 60000) { shouldGenerate = true; s._internal.lastForumAutoGen = Date.now(); }
-    } else if(cfg.triggerType === 'random' && Math.random() < cfg.randomChance) {
-        shouldGenerate = true;
-    } else if(cfg.triggerType === 'event' && Math.random() < cfg.eventChance) {
-        shouldGenerate = true;
-    }
-    if(shouldGenerate) {
-        const result = await generateForumContent(s.forum.mode);
-        if(result) saveForumPost(result);
-    }
-}
-
-function formatForumTime(timestamp) {
-    const date = new Date(timestamp);
-    const diff = Date.now() - date;
-    const minutes = Math.floor(diff / 60000);
-    if(minutes < 60) return `${minutes}m ago`;
-    return `${Math.floor(minutes / 60)}h ago`;
-}
-
-// ⚙️ SETTINGS
-function renderSettings() {
-    $('#lumi-title').text("Settings"); const s = extension_settings[extensionName]; const ag = s.diary.autoGen; const fg = s.forum.autoGen; const savedTheme = s._internal.theme || 'pink';
-    $('#lumi-body').html(`<div style="padding:10px;"><div class="lumi-form"><label class="lumi-label">Theme</label><select id="set-theme" class="lumi-input">${Object.entries(themes).map(([k,v]) => `<option value="${k}" ${k===savedTheme?'selected':''}>${v.name}</option>`).join('')}</select></div><div class="lumi-form"><label class="lumi-label">General</label><div class="lumi-set-row"><span>Extension Enabled</span><input type="checkbox" id="set-en" ${s.isEnabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div><div class="lumi-set-row"><span>World Mode</span><select id="set-wm" class="lumi-input" style="width:100px"><option value="auto" ${s.diary.worldMode==='auto'?'selected':''}>Auto</option><option value="solo" ${s.diary.worldMode==='solo'?'selected':''}>Solo</option><option value="rpg" ${s.diary.worldMode==='rpg'?'selected':''}>RPG</option></select></div></div><div class="lumi-form"><label class="lumi-label">Diary Auto-Gen</label><div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="ag-en" ${ag.enabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div></div><div class="lumi-form"><label class="lumi-label">Forum Auto-Gen</label><div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="fg-en" ${fg.enabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div><div class="lumi-set-row"><span>Trigger</span><select id="fg-tr" class="lumi-input" style="width:110px"><option value="turn_count" ${fg.triggerType==='turn_count'?'selected':''}>Every X Msgs</option><option value="time" ${fg.triggerType==='time'?'selected':''}>Every X Min</option><option value="random" ${fg.triggerType==='random'?'selected':''}>Random</option></select></div></div><div style="margin-top:15px;display:flex;gap:10px"><button id="btn-rst" class="lumi-input" style="background:#FFE0E0;color:var(--lumi-secondary);text-align:center;cursor:pointer">${svgBack} Reset FAB</button><button id="btn-clr" class="lumi-input" style="background:var(--lumi-danger) !important; color:white !important; text-align:center; cursor:pointer; border:none;">${svgClose} Clear Data</button></div></div>`);
+Characters: <LaTex>id_17</LaTex>(`.lumi-forum-input[data-topic="<LaTex>id_16</LaTex>{minutes}m ago`;
+    return `<LaTex>id_15</LaTex>('#lumi-title').text("Settings"); const s = extension_settings[extensionName]; const ag = s.diary.autoGen; const fg = s.forum.autoGen; const savedTheme = s._internal.theme || 'pink';
+    $('#lumi-body').html(`<div style="padding:10px;"><div class="lumi-form"><label class="lumi-label">Theme</label><select id="set-theme" class="lumi-input">${Object.entries(themes).map(([k,v]) => `<option value="${k}" ${k===savedTheme?'selected':''}>${v.name}</option>`).join('')}</select></div><div class="lumi-form"><label class="lumi-label">General</label><div class="lumi-set-row"><span>Extension Enabled</span><input type="checkbox" id="set-en" ${s.isEnabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div><div class="lumi-set-row"><span>World Mode</span><select id="set-wm" class="lumi-input" style="width:100px"><option value="auto" <LaTex>id_14</LaTex>{s.diary.worldMode==='solo'?'selected':''}>Solo</option><option value="rpg" <LaTex>id_13</LaTex>{ag.enabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div></div><div class="lumi-form"><label class="lumi-label">Forum Auto-Gen</label><div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="fg-en" <LaTex>id_12</LaTex>{fg.triggerType==='turn_count'?'selected':''}>Every X Msgs</option><option value="time" <LaTex>id_11</LaTex>{fg.triggerType==='random'?'selected':''}>Random</option></select></div></div><div style="margin-top:15px;display:flex;gap:10px"><button id="btn-rst" class="lumi-input" style="background:#FFE0E0;color:var(--lumi-secondary);text-align:center;cursor:pointer"><LaTex>id_10</LaTex>{svgClose} Clear Data</button></div></div>`);
     
     $('#set-theme').on('change', function() { s._internal.theme = $(this).val(); applyTheme($(this).val()); SillyTavern.getContext().saveSettingsDebounced(); });
     $('#set-en').on('change', function(){ 
@@ -1039,8 +863,7 @@ function createSettingsPanel() {
 function levenshteinDistance(str1, str2) { const m = str1.length, n = str2.length; const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0)); for (let i = 0; i <= m; i++) dp[i][0] = i; for (let j = 0; j <= n; j++) dp[0][j] = j; for (let i = 1; i <= m; i++) { for (let j = 1; j <= n; j++) { if (str1[i-1] === str2[j-1]) dp[i][j] = dp[i-1][j-1]; else dp[i][j] = 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]); } } return dp[m][n]; }
 function similarityScore(str1, str2) { const s1 = str1.toLowerCase().trim(); const s2 = str2.toLowerCase().trim(); const distance = levenshteinDistance(s1, s2); const maxLen = Math.max(s1.length, s2.length); return maxLen === 0 ? 100 : ((maxLen - distance) / maxLen) * 100; }
 
-function editMemoryInline(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; const card = $(`.lumi-card[data-id="${id}"]`); card.find('.lumi-text').html(`<textarea class="lumi-edit-textarea" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--lumi-border);border-radius:10px;font-family:'Mitr';font-size:13px;resize:vertical;color:var(--lumi-text);background:var(--lumi-card)">${mem.content.diary}</textarea><div style="margin-top:8px;display:flex;gap:8px"><button class="lumi-btn-save" style="flex:1;background:var(--lumi-primary);color:white;border:none;padding:8px;border-radius:8px;cursor:pointer">Save</button><button class="lumi-btn-cancel" style="flex:1;background:#FFE0E0;color:var(--lumi-danger);border:none;padding:8px;border-radius:8px;cursor:pointer">Cancel</button></div>`); card.find('.lumi-btn-save').on('click', function() { mem.content.diary = card.find('.lumi-edit-textarea').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDiaryTab(); showToast('Updated!'); }); card.find('.lumi-btn-cancel').on('click', function() { renderDiaryTab(); }); }
-function editMemoryModal(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; $('#lumi-title').text('Edit Memory'); $('#lumi-body').html(`<div style="padding:15px;"><div class="lumi-form"><label class="lumi-label">Character</label><input type="text" id="edit-char" value="${mem.character}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Date (RP)</label><input type="text" id="edit-date" value="${mem.content.rp_date||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Location</label><input type="text" id="edit-loc" value="${mem.content.rp_location||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Tags</label><input type="text" id="edit-tags" value="${(mem.content.rp_tags||[]).join(', ')}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Diary</label><textarea id="edit-diary" class="lumi-input" style="min-height:150px;resize:vertical">${mem.content.diary}</textarea></div><div style="display:flex;gap:10px"><button id="btn-save-edit" class="lumi-gen-btn" style="flex:2">Save</button><button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:#FFE0E0;color:var(--lumi-danger);text-align:center;cursor:pointer">Cancel</button></div></div>`); $('#btn-save-edit').on('click', function() { mem.character = $('#edit-char').val(); mem.content.rp_date = $('#edit-date').val(); mem.content.rp_location = $('#edit-loc').val(); mem.content.rp_tags = $('#edit-tags').val().split(',').map(t=>t.trim()).filter(t=>t); mem.content.diary = $('#edit-diary').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); showToast('Updated!'); }); $('#btn-cancel-edit').on('click', function() { renderDashboard(); }); }
+function editMemoryInline(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; const card = $(`.lumi-card[data-id="${id}"]`); card.find('.lumi-text').html(`<textarea class="lumi-edit-textarea" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--lumi-border);border-radius:10px;font-family:'Mitr';font-size:13px;resize:vertical;color:var(--lumi-text);background:var(--lumi-card)"><LaTex>id_9</LaTex>('#lumi-title').text('Edit Memory'); $('#lumi-body').html(`<div style="padding:15px;"><div class="lumi-form"><label class="lumi-label">Character</label><input type="text" id="edit-char" value="${mem.character}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Date (RP)</label><input type="text" id="edit-date" value="<LaTex>id_8</LaTex>{mem.content.rp_location||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Tags</label><input type="text" id="edit-tags" value="<LaTex>id_7</LaTex>{mem.content.diary}</textarea></div><div style="display:flex;gap:10px"><button id="btn-save-edit" class="lumi-gen-btn" style="flex:2">Save</button><button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:#FFE0E0;color:var(--lumi-danger);text-align:center;cursor:pointer">Cancel</button></div></div>`); $('#btn-save-edit').on('click', function() { mem.character = $('#edit-char').val(); mem.content.rp_date = $('#edit-date').val(); mem.content.rp_location = $('#edit-loc').val(); mem.content.rp_tags = $('#edit-tags').val().split(',').map(t=>t.trim()).filter(t=>t); mem.content.diary = $('#edit-diary').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); showToast('Updated!'); }); $('#btn-cancel-edit').on('click', function() { renderDashboard(); }); }
 
 async function callAIBatch(mode, count) {
     const ctx = SillyTavern.getContext(); const allChat = ctx.chat || [];
@@ -1050,22 +873,12 @@ async function callAIBatch(mode, count) {
     else { chatSlice = allChat.filter(m => m.mes && m.mes.length > 15).slice(-120); startIndex = Math.max(0, allChat.length - 120); endIndex = allChat.length; }
 
     const cleanChat = chatSlice.filter(m => m.mes && m.mes.length > 10);
-    const chatLog = cleanChat.map((m, i) => `[${m.is_user ? 'User' : (m.name || 'NPC')}]: ${m.mes.slice(0, 60)}`).join('\n');
-    const botMems = loadMemories({ botId: ctx.characterId });
-    const prevTopics = botMems.slice(0, 10).map(m => `- [${m.character}] ${m.content.rp_date} @ ${m.content.rp_location}: ${m.content.diary.slice(0, 50)}...`).join('\n');
-    const registryList = Object.keys(extension_settings[extensionName]._internal.nameRegistry || {}).join(', ');
-
-    const prompt = `[System: Analyze chat to create UNIQUE diary entries.]
-[Scanning Range: Message #${startIndex+1} to #${endIndex}]
-[Registered Names (USE EXACTLY THESE): ${registryList || "None"}]
+    const chatLog = cleanChat.map((m, i) => `[${m.is_user ? 'User' : (m.name || 'NPC')}]: <LaTex>id_6</LaTex>{m.character}] <LaTex>id_5</LaTex>{m.content.rp_location}: <LaTex>id_4</LaTex>{startIndex+1} to #<LaTex>id_3</LaTex>{registryList || "None"}]
 [PREVIOUSLY WRITTEN (DO NOT REPEAT CONTENT/DATES/LOCATIONS):
-${prevTopics || "None"}]
-
-Chat Log:
-${chatLog}
+<LaTex>id_2</LaTex>{chatLog}
 
 Rules:
-1. Focus ONLY on events within #${startIndex+1}-#${endIndex}.
+1. Focus ONLY on events within #<LaTex>id_1</LaTex>{endIndex}.
 2. Return rp_location accurately from context.
 3. Link to related existing memory IDs if applicable (return linkedIds array).
 4. Date MUST be numeric Thai format (e.g. "15 กันยายน 2567").
@@ -1091,6 +904,3 @@ function generateBatchMemories() {
         const ctx = SillyTavern.getContext(); const wm = extension_settings[extensionName].diary.worldMode === 'auto' ? detectWorldMode() : extension_settings[extensionName].diary.worldMode; const botId = ctx.characterId;
         results.forEach(res => saveMemory({ id: 'mem_'+Date.now()+'_'+Math.random().toString(36).substr(2,5), timestamp: new Date().toISOString(), character: res.character || ctx.name2 || "Character", botId: botId, worldMode: wm, content: { ...res }, meta: { isPinned: false, isFavorite: false, isSecret: res.isSecret, linkedIds: res.linkedIds || [], tags: extractTags(res.diary) } }));
         showToast(`Created ${results.length} memories!`); renderDiaryTab();
-    } else { showToast(`No significant memories found`); }
-}
-
