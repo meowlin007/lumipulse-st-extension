@@ -47,7 +47,8 @@ const defaultSettings = {
 
 let extension_settings = {};
 
-// Icon Linksconst btnUrl       = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
+// Icon
+const btnUrl       = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
 const iconDiary    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconForum    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png"; // ✅ Forum Icon
 const iconSettings = "https://file.garden/ad59q6JMmVnp7v1-/setting-icon.png";
