@@ -1,8 +1,5 @@
 "use strict";
 
-// ═══════════════════════════════════════════════
-// 1. CONFIG & ASSETS
-// ═══════════════════════════════════════════════
 const extensionName = "lumipulse-st-extension";
 
 const defaultSettings = {
@@ -33,11 +30,13 @@ const defaultSettings = {
 
 let extension_settings = {};
 
+// ไอคอน (URL เดิมของคุณ)
 const btnUrl       = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
 const iconDiary    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconSettings = "https://file.garden/ad59q6JMmVnp7v1-/setting-icon.png";
 const iconForum    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png"; 
 
+// SVG Icons
 const svgHeart    = `<svg viewBox="0 0 24 24" fill="none" width="40" height="40"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF69B4"/></svg>`;
 const svgPin      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1-1v-5h2v-2l-2-2z"/></svg>`;
 const svgStar     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
@@ -80,49 +79,49 @@ function applyTheme(themeName) {
 }
 
 // ═══════════════════════════════════════════════
-// 2. BOOT SYSTEM
+// BOOT SYSTEM (โครงสร้างเก่าที่มั่นคง)
 // ═══════════════════════════════════════════════
 jQuery(async () => {
+    // รอจนกว่า SillyTavern จะโหลดเสร็จ
     const boot = setInterval(() => {
         if (window.SillyTavern && SillyTavern.getContext && document.body) {
-            clearInterval(boot); initLumiPulse();
+            clearInterval(boot);
+            initLumiPulse();
         }
     }, 500);
 });
 
 function initLumiPulse() {
     const ctx = SillyTavern.getContext();
+    
+    // เริ่มต้นตั้งค่าถ้ายังไม่มี
     if (!ctx.extensionSettings[extensionName]) {
         ctx.extensionSettings[extensionName] = JSON.parse(JSON.stringify(defaultSettings));
         ctx.saveSettingsDebounced();
     }
     extension_settings = ctx.extensionSettings;
     
-    applyTheme(extension_settings[extensionName]._internal.theme || 'pink');
+    // 1. ลง CSS ทันที (แก้ปุ่มหายเพราะ CSS โหลดช้า)
+    injectStyles();
     
-    // ✅ ใช้วิธี "ฉีด CSS เข้าไปตรงๆ" เหมือนโค้ดเก่า เพื่อความเสถียร
-    injectStyles(); 
-    
-    // สร้าง Settings Panel ก่อนเสมอ
+    // 2. สร้าง Panel ตั้งค่า
     createSettingsPanel();
     
+    // 3. ถ้าเปิดใช้งาน -> สร้างปุ่ม
     if (extension_settings[extensionName].isEnabled) {
-        setTimeout(() => { 
-            spawnLumiButton(); 
-            createModal(); 
-            setupAutoTriggerListener(); 
-        }, 800);
+        spawnLumiButton();
+        createModal();
+        setupAutoTriggerListener();
     }
 }
 
 // ═══════════════════════════════════════════════
-// 3. UI RENDERING (คืนชีพ: CSS ในตัว)
+// 3. UI RENDERING & CSS
 // ═══════════════════════════════════════════════
 function injectStyles() {
     if ($('#lumi-styles').length) return;
     const s = document.createElement('style');
     s.id = 'lumi-styles';
-    // ✅ นำ CSS ทั้งหมดกลับมาใส่ในไฟล์นี้ เพื่อความชัวร์ 100%
     s.innerHTML = `
         @import url('https://fonts.googleapis.com/css2?family=Mitr:wght@200;300;400;500&display=swap');
         :root { --lumi-primary: #FFB6C1; --lumi-secondary: #FF69B4; --lumi-bg: #FFF0F5; --lumi-card: #FFFBFC; --lumi-text: #2A2A2A; --lumi-border: #FFE8EE; --lumi-danger: #D32F2F; --lumi-glass: rgba(255, 255, 255, 0.9); }
@@ -132,13 +131,13 @@ function injectStyles() {
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes highlightPulse { 0% { background: rgba(255,182,193,0.4); } 100% { background: transparent; } }
 
-        /* === FAB BUTTON === */
+        /* === FAB BUTTON (บังคับแสดงผล 100%) === */
         #lumi-fab {
             position: fixed !important;
             top: 50% !important;
             right: 20px !important;
             transform: translateY(-50%) !important;
-            z-index: 2147483647 !important;
+            z-index: 9999999 !important;
             width: 48px !important;
             height: 48px !important;
             border-radius: 50% !important;
@@ -158,7 +157,7 @@ function injectStyles() {
         #lumi-fab:active { cursor: grabbing !important; transform: translateY(-50%) scale(0.95) !important; }
 
         /* === MENU === */
-        .lumi-menu { position: fixed; z-index: 2147483646; display: none; background: rgba(255,255,255,0.98); backdrop-filter: blur(15px); border-radius: 20px; padding: 15px; border: 1px solid rgba(255,182,193,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-family: 'Mitr'; min-width: 200px; }
+        .lumi-menu { position: fixed; z-index: 9999998; display: none; background: rgba(255,255,255,0.98); backdrop-filter: blur(15px); border-radius: 20px; padding: 15px; border: 1px solid rgba(255,182,193,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-family: 'Mitr'; min-width: 200px; }
         .lumi-menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .lumi-menu-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; opacity: 0.85; transition: 0.2s; padding: 10px; border-radius: 12px; }
         .lumi-menu-item:hover { opacity: 1; background: var(--lumi-bg); }
@@ -166,7 +165,7 @@ function injectStyles() {
         .lumi-menu-item span { font-size: 11px; color: #666; }
 
         /* === MODAL === */
-        .lumi-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); z-index: 2147483648; display: none; align-items: center; justify-content: center; }
+        .lumi-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); z-index: 9999997; display: none; align-items: center; justify-content: center; }
         .lumi-modal { width: 94%; max-width: 500px; height: 88vh; background: var(--lumi-card); border-radius: 24px; border: 1px solid var(--lumi-border); box-shadow: 0 20px 50px rgba(255,105,180,0.2); display: flex; flex-direction: column; overflow: hidden; font-family: 'Mitr'; animation: popIn 0.3s; }
         .lumi-head { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--lumi-border); background: var(--lumi-bg); }
         .lumi-head h3 { margin: 0; font-size: 16px; color: var(--lumi-secondary); font-weight: 400; }
@@ -243,7 +242,7 @@ function injectStyles() {
         .lumi-timeline-date { background: linear-gradient(135deg, var(--lumi-bg), var(--lumi-card)); border-left: 3px solid var(--lumi-primary); border-radius: 12px; padding: 10px 14px; margin: 20px 0 15px; animation: slideIn 0.4s ease; color: var(--lumi-text); }
 
         /* === UTILS & TOAST === */
-        .lumi-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 999999; font-family: 'Mitr'; font-size: 13px; color: var(--lumi-secondary); border: 1px solid var(--lumi-border); animation: popIn 0.3s; pointer-events: none; }
+        .lumi-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 9999999; font-family: 'Mitr'; font-size: 13px; color: var(--lumi-secondary); border: 1px solid var(--lumi-border); animation: popIn 0.3s; pointer-events: none; }
 
         #lumi-panel .inline-drawer-content { font-family: 'Mitr'; padding: 10px; }
         #lumi-panel .menu_button { width: 100%; margin-bottom: 5px; background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; border-radius: 8px; padding: 8px; font-family: 'Mitr'; }
@@ -269,13 +268,15 @@ function injectStyles() {
 }
 
 // ═══════════════════════════════════════════════
-// 4. FAB BUTTON (คืนชีพ: วิธีเก่าที่มั่นคง)
+// 4. FAB BUTTON (ระบบเดิมที่มั่นคง + แก้บั๊ก)
 // ═══════════════════════════════════════════════
 function spawnLumiButton() {
-    // ล้างปุ่มเก่า
-    $('#lumi-fab, .lumi-menu').remove();
+    // ✅ ป้องกันการสร้างปุ่มซ้ำ (แก้ปุ่มหาย/กระพริบ)
+    if ($('#lumi-fab').length > 0) {
+        $('#lumi-fab').show(); // ถ้ามีแต่ซ่อนอยู่ ให้แสดง
+        return;
+    }
     
-    // รอจนกว่า body จะพร้อมจริง
     if (!document.body) {
         setTimeout(spawnLumiButton, 500);
         return;
@@ -301,6 +302,7 @@ function spawnLumiButton() {
     
     document.body.appendChild(fab);
 
+    // สร้างเมนู
     const menu = document.createElement('div');
     menu.className = 'lumi-menu';
     menu.innerHTML = `
@@ -324,7 +326,7 @@ function spawnLumiButton() {
         m.css({ left: l + 'px', top: t + 'px' });
     }
 
-    // ✅ Drag Logic แบบเก่าที่ลื่น
+    // Drag Logic
     let isDragging = false, hasMoved = false;
     let dragStart = { x: 0, y: 0 }, offset = { x: 0, y: 0 }, currentPos = { x: 0, y: 0 };
     const TH = 12;
@@ -333,7 +335,6 @@ function spawnLumiButton() {
         if (e.button === 2) return;
         e.preventDefault();
         isDragging = false; hasMoved = false;
-        fab.classList.add('dragging');
         const rect = fab.getBoundingClientRect();
         offset.x = e.clientX - rect.left; offset.y = e.clientY - rect.top;
         dragStart.x = e.clientX; dragStart.y = e.clientY;
@@ -354,7 +355,6 @@ function spawnLumiButton() {
         const onUp = () => {
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onUp);
-            fab.classList.remove('dragging');
             if (!hasMoved) { updateMenuPos(); $(menu).fadeToggle(150); }
             else {
                 extension_settings[extensionName]._internal.fabPosition = { 
@@ -372,7 +372,6 @@ function spawnLumiButton() {
     fab.addEventListener('touchstart', e => {
         e.preventDefault();
         isDragging = false; hasMoved = false;
-        fab.classList.add('dragging');
         const t = e.touches[0], rect = fab.getBoundingClientRect();
         offset.x = t.clientX - rect.left; offset.y = t.clientY - rect.top;
         dragStart.x = t.clientX; dragStart.y = t.clientY;
@@ -395,7 +394,6 @@ function spawnLumiButton() {
     }, { passive: false });
 
     fab.addEventListener('touchend', e => {
-        fab.classList.remove('dragging');
         if (!hasMoved) { updateMenuPos(); $(menu).fadeToggle(150); }
         else {
             extension_settings[extensionName]._internal.fabPosition = { 
@@ -932,13 +930,18 @@ function formatForumTime(timestamp) {
     return `${Math.floor(minutes / 60)}h ago`;
 }
 
-// ⚙️ SETTINGS (คืนชีพ: วิธีเก่าที่มั่นคง)
+// ⚙️ SETTINGS
 function renderSettings() {
     $('#lumi-title').text("Settings"); const s = extension_settings[extensionName]; const ag = s.diary.autoGen; const fg = s.forum.autoGen; const savedTheme = s._internal.theme || 'pink';
     $('#lumi-body').html(`<div style="padding:10px;"><div class="lumi-form"><label class="lumi-label">Theme</label><select id="set-theme" class="lumi-input">${Object.entries(themes).map(([k,v]) => `<option value="${k}" ${k===savedTheme?'selected':''}>${v.name}</option>`).join('')}</select></div><div class="lumi-form"><label class="lumi-label">General</label><div class="lumi-set-row"><span>Extension Enabled</span><input type="checkbox" id="set-en" ${s.isEnabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div><div class="lumi-set-row"><span>World Mode</span><select id="set-wm" class="lumi-input" style="width:100px"><option value="auto" ${s.diary.worldMode==='auto'?'selected':''}>Auto</option><option value="solo" ${s.diary.worldMode==='solo'?'selected':''}>Solo</option><option value="rpg" ${s.diary.worldMode==='rpg'?'selected':''}>RPG</option></select></div></div><div class="lumi-form"><label class="lumi-label">Diary Auto-Gen</label><div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="ag-en" ${ag.enabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div></div><div class="lumi-form"><label class="lumi-label">Forum Auto-Gen</label><div class="lumi-set-row"><span>Enabled</span><input type="checkbox" id="fg-en" ${fg.enabled?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div><div class="lumi-set-row"><span>Trigger</span><select id="fg-tr" class="lumi-input" style="width:110px"><option value="turn_count" ${fg.triggerType==='turn_count'?'selected':''}>Every X Msgs</option><option value="time" ${fg.triggerType==='time'?'selected':''}>Every X Min</option><option value="random" ${fg.triggerType==='random'?'selected':''}>Random</option></select></div></div><div style="margin-top:15px;display:flex;gap:10px"><button id="btn-rst" class="lumi-input" style="background:#FFE0E0;color:var(--lumi-secondary);text-align:center;cursor:pointer">${svgBack} Reset FAB</button><button id="btn-clr" class="lumi-input" style="background:var(--lumi-danger) !important; color:white !important; text-align:center; cursor:pointer; border:none;">${svgClose} Clear Data</button></div></div>`);
     
     $('#set-theme').on('change', function() { s._internal.theme = $(this).val(); applyTheme($(this).val()); SillyTavern.getContext().saveSettingsDebounced(); });
-    $('#set-en').on('change', function(){ s.isEnabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#set-en').on('change', function(){ 
+        s.isEnabled = $(this).prop('checked'); 
+        SillyTavern.getContext().saveSettingsDebounced(); 
+        if(s.isEnabled) { spawnLumiButton(); createModal(); } 
+        else { $('#lumi-fab, .lumi-menu, #lumi-overlay').remove(); }
+    });
     $('#set-wm').on('change', function(){ s.diary.worldMode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
     
     $('#ag-en').on('change', function(){ s.diary.autoGen.enabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
@@ -974,7 +977,7 @@ async function onNewChat() {
 }
 
 // ═══════════════════════════════════════════════
-// 7. HELPERS & UTILS (คืนชีพ: วิธีเก่าที่มั่นคง)
+// 7. HELPERS & UTILS
 // ═══════════════════════════════════════════════
 function loadMemories(filter = {}) {
     let mem = [...(extension_settings[extensionName].memories || [])];
@@ -1019,7 +1022,7 @@ function bindEvents() {
     });
 }
 
-// ✅ คืนชีพ: สร้าง Panel ในหน้า Extension Settings
+// ✅ สร้าง Panel ในหน้า Extension Settings
 function createSettingsPanel() {
     if ($('#lumi-panel').length) return;
     $('#extensions_settings').append(`
