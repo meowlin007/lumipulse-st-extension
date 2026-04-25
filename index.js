@@ -15,7 +15,8 @@ const defaultSettings = {
         filterDate: '', 
         filterLoc: '',
         forumMessageCounter: 0,
-        lastForumGenTime: 0
+        lastForumGenTime: 0,
+        messageCounter: 0 // For diary auto-gen
     },
     diary: {
         worldMode: 'auto',
@@ -363,7 +364,8 @@ function createModal() {
         if(e.target.id==='lumi-overlay' || e.target.closest('#lumi-close')) $('#lumi-overlay').fadeOut(); 
     });
     
-    $('#lumi-back').on('click', () => {
+    // ✅ Use delegated event for Back button to ensure it works after re-renders
+    $(document).off('click', '#lumi-back').on('click', '#lumi-back', () => {
         const currentTab = $('#lumi-body').data('current-tab') || 'diary';
         if(currentTab === 'forum') renderForum();
         else if(currentTab === 'settings') renderSettings();
