@@ -31,7 +31,7 @@ const defaultSettings = {
             timeInterval: 5, 
             onImportantEvent: true 
         },
-        mode: 'auto', // 'realtime', 'turnbased', 'auto'
+        mode: 'auto',
         storage: { max: 200 }
     },
     features: { storyWeaver: true, loreExtractor: true, memoryLinking: true }
@@ -63,6 +63,7 @@ const svgScroll   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const svgGlobe    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
 const svgNetwork  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="9.5" y1="17" x2="14.5" y2="17"/><line x1="7" y1="7" x2="10" y2="14"/><line x1="17" y1="7" x2="14" y2="14"/></svg>`;
 const svgComment  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+const svgSettings = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
 
 const themes = {
     pink: { name: 'Pink Pastel', primary: '#FFB6C1', secondary: '#FF69B4', bg: '#FFF0F5', card: '#FFFBFC', text: '#2A2A2A', border: '#FFE8EE', danger: '#D32F2F' },
@@ -109,7 +110,7 @@ function initLumiPulse() {
 }
 
 // ═══════════════════════════════════════════════
-// 3. UI RENDERING
+// 3. UI RENDERING (✅ ปรับ CSS ให้เต็มกรอบ)
 // ═══════════════════════════════════════════════
 function injectStyles() {
     if ($('#lumi-styles').length) return;
@@ -121,6 +122,7 @@ function injectStyles() {
         @keyframes heartFloat { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -100px) scale(1.5); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes highlightPulse { 0% { background: rgba(255,182,193,0.4); } 100% { background: transparent; } }
 
         #lumi-fab { position: fixed; z-index: 99999; width: 46px; height: 46px; border-radius: 50%; background: var(--lumi-glass) url('${btnUrl}') no-repeat center center; background-size: 24px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 4px 15px rgba(255,105,180,0.3); cursor: grab; touch-action: none; user-select: none; transition: transform 0.2s; }
@@ -141,9 +143,11 @@ function injectStyles() {
         .lumi-btn:hover { background: var(--lumi-border); }
         .lumi-body { flex: 1; overflow-y: auto; padding: 15px; background: var(--lumi-card); color: var(--lumi-text); }
 
-        .lumi-nav { display: flex; gap: 6px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .lumi-nav-tab { padding: 6px 12px; border-radius: 12px; background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-primary); font-size: 11px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        /* ✅ TABS - ปรับให้เต็มกรอบ */
+        .lumi-nav { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; }
+        .lumi-nav-tab { flex: 1; text-align: center; padding: 12px 8px; border-radius: 12px; background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-primary); font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
         .lumi-nav-tab.active { background: var(--lumi-primary); color: white; border-color: var(--lumi-primary); }
+        .lumi-nav-tab:hover:not(.active) { background: var(--lumi-border); }
         
         .lumi-stats-bar { display: flex; gap: 10px; margin-bottom: 15px; background: var(--lumi-bg); padding: 12px; border-radius: 14px; border: 1px solid var(--lumi-border); }
         .lumi-stat { flex: 1; text-align: center; }
@@ -151,10 +155,10 @@ function injectStyles() {
         .lumi-stat span { font-size: 10px; color: #777; }
         
         .lumi-action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .lumi-filters { display: flex; gap: 8px; flex-wrap: wrap; }
-        .lumi-filter-select { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 8px 12px; color: var(--lumi-primary); font-family: 'Mitr'; font-size: 12px; outline: none; min-width: 100px; }
+        .lumi-filters { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+        .lumi-filter-select { flex: 1; min-width: 80px; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 8px 12px; color: var(--lumi-primary); font-family: 'Mitr'; font-size: 12px; outline: none; }
         
-        .lumi-gen-btn { background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        .lumi-gen-btn { background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; width: 100%; }
         .lumi-gen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .lumi-form { background: var(--lumi-bg); border: 1px solid var(--lumi-border); border-radius: 16px; padding: 15px; margin-bottom: 15px; }
@@ -194,21 +198,20 @@ function injectStyles() {
         .lumi-act.danger:hover { color: #B84444; }
 
         .lumi-set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #666; }
-        .lumi-set-row select, .lumi-set-row input[type="number"] { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 8px; padding: 5px 8px; color: var(--lumi-text); font-family: 'Mitr'; outline: none; }
+        .lumi-set-row select, .lumi-set-row input[type="number"], .lumi-set-row input[type="text"] { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 8px; padding: 5px 8px; color: var(--lumi-text); font-family: 'Mitr'; outline: none; }
 
         .lumi-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 999999; font-family: 'Mitr'; font-size: 13px; color: var(--lumi-secondary); border: 1px solid var(--lumi-border); animation: popIn 0.3s; pointer-events: none; }
         
         #lumi-panel .inline-drawer-content { font-family: 'Mitr'; padding: 10px; }
         #lumi-panel .menu_button { width: 100%; margin-bottom: 5px; background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; border-radius: 8px; padding: 8px; font-family: 'Mitr'; }
-        #lumi-panel .btn-danger { background: var(--lumi-danger) !important; }
-
+        
         .lumi-weaver-output, .lumi-lore-output { background: var(--lumi-bg); border: 1px solid var(--lumi-border); border-radius: 12px; padding: 15px; margin: 15px 0; max-height: 300px; overflow-y: auto; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
         .lumi-lore-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 10px 0; }
         .lumi-lore-table th, .lumi-lore-table td { padding: 8px; border-bottom: 1px solid var(--lumi-border); text-align: left; }
         .lumi-lore-table th { color: var(--lumi-secondary); font-weight: 500; }
 
-        /* Forum Specific Styles */
-        .lumi-forum-container { display: flex; gap: 15px; height: calc(88vh - 150px); }
+        /* ✅ FORUM STYLES */
+        .lumi-forum-container { display: flex; gap: 15px; height: calc(88vh - 250px); }
         .lumi-forum-main { flex: 1; overflow-y: auto; }
         .lumi-forum-sidebar { width: 250px; background: var(--lumi-bg); border-radius: 12px; padding: 15px; overflow-y: auto; border: 1px solid var(--lumi-border); }
         .lumi-forum-thread { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 12px; padding: 15px; margin-bottom: 12px; }
@@ -222,7 +225,10 @@ function injectStyles() {
         .lumi-network-node { padding: 8px; margin: 5px 0; background: var(--lumi-card); border-radius: 8px; cursor: pointer; transition: 0.2s; border: 1px solid var(--lumi-border); }
         .lumi-network-node:hover { background: var(--lumi-border); transform: translateX(5px); }
         .lumi-network-node.active { background: var(--lumi-primary); color: white; }
-        .lumi-post-input { width: 100%; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 10px; color: var(--lumi-text); font-family: 'Mitr'; font-size: 12px; resize: vertical; min-height: 80px; margin-bottom: 10px; }
+        .lumi-post-input { width: 100%; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 10px; color: var(--lumi-text); font-family: 'Mitr'; font-size: 12px; resize: vertical; min-height: 80px; margin-bottom: 10px; box-sizing: border-box; }
+        
+        /* ✅ LOADING SPINNER */
+        .lumi-loading { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; margin-right: 8px; }
 
         @media (max-width: 768px) { .lumi-menu-grid { grid-template-columns: repeat(2, 1fr); } .lumi-modal { width: 96%; height: 92vh; } .lumi-forum-container { flex-direction: column; } .lumi-forum-sidebar { width: 100%; height: 200px; } }
         .lumi-card { transition: transform 0.2s, box-shadow 0.2s; }
@@ -233,7 +239,7 @@ function injectStyles() {
 }
 
 // ═══════════════════════════════════════════════
-// 4. FAB BUTTON (Unchanged Structure)
+// 4. FAB BUTTON (✅ เพิ่มปุ่ม Settings)
 // ═══════════════════════════════════════════════
 function spawnLumiButton() {
     $('#lumi-fab, .lumi-menu').remove();
@@ -264,13 +270,18 @@ function spawnLumiButton() {
 }
 
 // ═══════════════════════════════════════════════
-// 5. MODAL & UI LOGIC
+// 5. MODAL & UI LOGIC (✅ แก้ไข navigation)
 // ═══════════════════════════════════════════════
 function createModal() {
     if ($('#lumi-overlay').length) return;
     $('body').append(`<div id="lumi-overlay" class="lumi-overlay"><div class="lumi-modal"><div class="lumi-head"><button class="lumi-btn" id="lumi-back">${svgBack}</button><h3 id="lumi-title">LumiPulse</h3><button class="lumi-btn" id="lumi-close">${svgClose}</button></div><div id="lumi-body" class="lumi-body"></div></div></div>`);
     $('#lumi-close, #lumi-overlay').on('click', e => { if(e.target.id==='lumi-overlay'||e.target.closest('#lumi-close')) $('#lumi-overlay').fadeOut(); });
-    $('#lumi-back').on('click', () => { const currentTab = $('#lumi-body').data('current-tab') || 'diary'; if(currentTab === 'forum') renderForum(); else renderDashboard(); });
+    $('#lumi-back').on('click', () => { 
+        const currentTab = $('#lumi-body').data('current-tab') || 'diary'; 
+        if(currentTab === 'forum') renderForum(); 
+        else if(currentTab === 'settings') renderSettings();
+        else renderDashboard(); 
+    });
 }
 
 function openModal(type = 'diary') {
@@ -280,11 +291,13 @@ function openModal(type = 'diary') {
 }
 
 function openSettingsModal() {
+    $('#lumi-title').text('LumiPulse - Settings');
+    $('#lumi-body').data('current-tab', 'settings');
     $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200);
     renderSettings();
 }
 
-// Diary Dashboard (Unchanged)
+// Diary Dashboard
 function renderDashboard() {
     $('#lumi-body').data('current-tab', 'diary');
     $('#lumi-title').text('LumiPulse - Diary');
@@ -381,7 +394,7 @@ function renderGeneratorForm() {
     $('#btn-run-gen').on('click', generateBatchMemories);
 }
 
-// 📖 Story Weaver UI (Unchanged)
+// 📖 Story Weaver UI
 function renderStoryWeaver() {
     const ctx = SillyTavern.getContext(); const mems = loadMemories({ botId: ctx.characterId }).sort((a,b) => a.timestamp.localeCompare(b.timestamp));
     $('#lumi-content').html(`
@@ -389,7 +402,7 @@ function renderStoryWeaver() {
             <label class="lumi-label">Story Settings</label>
             <div class="lumi-set-row"><span>Include All Characters</span><input type="checkbox" id="sw-all-chars" checked style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
             <div class="lumi-set-row"><span>Chapter Length</span><select id="sw-chapters" class="lumi-input" style="width:100px"><option value="auto">Auto</option><option value="3">3 Chapters</option><option value="5">5 Chapters</option></select></div>
-            <button id="btn-weave" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgScroll} Weave Story</button>
+            <button id="btn-weave" class="lumi-gen-btn">${svgScroll} Weave Story</button>
         </div>
         <div id="sw-output" class="lumi-weaver-output" style="display:none;"></div>
         <div id="sw-actions" style="display:none;text-align:center;margin-top:10px;">
@@ -397,7 +410,7 @@ function renderStoryWeaver() {
         </div>
     `);
     $('#btn-weave').on('click', async function() {
-        $(this).html(`${svgScroll} Weaving...`).prop('disabled', true);
+        $(this).html('<span class="lumi-loading"></span>Weaving...').prop('disabled', true);
         const story = await weaveStory(mems);
         $(this).html(`${svgScroll} Weave Story`).prop('disabled', false);
         if(story) {
@@ -429,7 +442,7 @@ Rules:
     } catch(e) { return "Error weaving story."; }
 }
 
-// 🌐 World Info Extractor UI (Unchanged)
+// 🌐 World Info Extractor UI
 function renderLoreExtractor() {
     $('#lumi-content').html(`
         <div class="lumi-form">
@@ -440,7 +453,7 @@ function renderLoreExtractor() {
         <div id="lore-output" style="display:none;"></div>
     `);
     $('#btn-extract-lore').on('click', async function() {
-        $(this).html(`${svgGlobe} Extracting...`).prop('disabled', true);
+        $(this).html('<span class="lumi-loading"></span>Extracting...').prop('disabled', true);
         const ctx = SillyTavern.getContext(); const mems = loadMemories({ botId: ctx.characterId });
         const lore = await extractLore(mems);
         $(this).html(`${svgGlobe} Extract Lore`).prop('disabled', false);
@@ -493,7 +506,7 @@ Return ONLY JSON array of objects:
     } catch(e) { return { entries: {} }; }
 }
 
-// 🔗 Memory Linking UI (Unchanged)
+// 🔗 Memory Linking UI
 function renderMemoryLinks() {
     const ctx = SillyTavern.getContext(); const mems = loadMemories({ botId: ctx.characterId });
     const linkedMems = mems.filter(m => m.meta.linkedIds && m.meta.linkedIds.length > 0);
@@ -517,7 +530,7 @@ function renderMemoryLinks() {
 }
 
 // ═══════════════════════════════════════════════
-// FORUM MODE - NEW FEATURES
+// FORUM MODE (✅ เพิ่ม Loading States)
 // ═══════════════════════════════════════════════
 
 function renderForum() {
@@ -567,8 +580,16 @@ function renderForum() {
     `);
     
     $('#forum-filter-char, #forum-filter-type').on('change', function() { renderForumThreads(); });
-    $('#btn-generate-forum').on('click', generateForumPosts);
-    $('#btn-submit-post').on('click', submitForumPost);
+    $('#btn-generate-forum').on('click', async function() {
+        $(this).html('<span class="lumi-loading"></span>Generating...').prop('disabled', true);
+        await generateForumPosts();
+        $(this).html(`${svgPlus} Generate`).prop('disabled', false);
+    });
+    $('#btn-submit-post').on('click', function() {
+        $(this).html('<span class="lumi-loading"></span>Posting...').prop('disabled', true);
+        submitForumPost();
+        $(this).html(`${svgPlus} Post`).prop('disabled', false);
+    });
     
     $('.lumi-nav-tab').on('click', function() {
         $('.lumi-nav-tab').removeClass('active'); $(this).addClass('active');
@@ -844,11 +865,11 @@ function setupForumAutoTrigger() {
 }
 
 // ═══════════════════════════════════════════════
-// 6. AI BATCH GENERATION (Diary - Unchanged)
+// 6. AI BATCH GENERATION (Diary)
 // ═══════════════════════════════════════════════
 async function generateBatchMemories() {
     const mode = $('input[name="gen-mode"]:checked').val(); const count = parseInt($('#gen-count').val()) || 30;
-    $('#btn-run-gen').html(`${svgPlus} Thinking...`).prop('disabled', true);
+    $('#btn-run-gen').html('<span class="lumi-loading"></span>Thinking...').prop('disabled', true);
     const results = await callAIBatch(mode, count);
     $('#btn-run-gen').html(`${svgPlus} Analyze & Generate`).prop('disabled', false); $('#gen-form-container').slideUp(200);
     if(results && results.length > 0) {
@@ -900,7 +921,7 @@ Rules:
 }
 
 // ═══════════════════════════════════════════════
-// 7. AUTO-TRIGGER (Diary - Unchanged)
+// 7. AUTO-TRIGGER (Diary)
 // ═══════════════════════════════════════════════
 function setupAutoTriggerListener() { $(document).off('messageReceived', onNewChat).on('messageReceived', onNewChat); }
 async function onNewChat() {
@@ -920,7 +941,7 @@ async function onNewChat() {
 }
 
 // ═══════════════════════════════════════════════
-// 8. HELPERS & UTILS (Unchanged)
+// 8. HELPERS & UTILS
 // ═══════════════════════════════════════════════
 function loadMemories(filter = {}) {
     let mem = [...(extension_settings[extensionName].memories || [])];
@@ -974,10 +995,11 @@ function editMemoryInline(id) { const mem = extension_settings[extensionName].me
 function editMemoryModal(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; $('#lumi-title').text('Edit Memory'); $('#lumi-body').html(`<div style="padding:15px;"><div class="lumi-form"><label class="lumi-label">Character</label><input type="text" id="edit-char" value="${mem.character}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Date (RP)</label><input type="text" id="edit-date" value="${mem.content.rp_date||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Location</label><input type="text" id="edit-loc" value="${mem.content.rp_location||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Tags</label><input type="text" id="edit-tags" value="${(mem.content.rp_tags||[]).join(', ')}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Diary</label><textarea id="edit-diary" class="lumi-input" style="min-height:150px;resize:vertical">${mem.content.diary}</textarea></div><div style="display:flex;gap:10px"><button id="btn-save-edit" class="lumi-gen-btn" style="flex:2">Save</button><button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:#FFE0E0;color:var(--lumi-danger);text-align:center;cursor:pointer">Cancel</button></div></div>`); $('#btn-save-edit').on('click', function() { mem.character = $('#edit-char').val(); mem.content.rp_date = $('#edit-date').val(); mem.content.rp_location = $('#edit-loc').val(); mem.content.rp_tags = $('#edit-tags').val().split(',').map(t=>t.trim()).filter(t=>t); mem.content.diary = $('#edit-diary').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); showToast('Updated!'); }); $('#btn-cancel-edit').on('click', function() { renderDashboard(); }); }
 
 // ═══════════════════════════════════════════════
-// SETTINGS (Added Forum Settings)
+// SETTINGS (✅ แก้ไข navigation และเพิ่ม Forum settings)
 // ═══════════════════════════════════════════════
 function renderSettings() {
-    $('#lumi-title').text("Settings"); 
+    $('#lumi-title').text('LumiPulse - Settings');
+    $('#lumi-body').data('current-tab', 'settings');
     const s = extension_settings[extensionName]; 
     const ag = s.diary.autoGen; 
     const fg = s.forum.autoGen;
