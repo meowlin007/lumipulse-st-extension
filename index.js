@@ -29,7 +29,7 @@ const defaultSettings = {
             triggerType: 'turn_count', 
             turnInterval: 10,
             timeInterval: 5, // minutes
-            emotionKeywords: ['งานเลี้ยง',' scandal','ข่าวลือ','แต่งงาน','ทะเลาะ'],
+            emotionKeywords: ['งานเลี้ยง','scandal','ข่าวลือ','แต่งงาน','ทะเลาะ'],
             randomChance: 0.15 
         },
         storage: { max: 200 }
@@ -102,9 +102,14 @@ function initLumiPulse() {
     }
     extension_settings = ctx.extensionSettings;
     applyTheme(extension_settings[extensionName]._internal.theme || 'pink');
-    injectStyles(); createSettingsPanel();
+    injectStyles(); 
+    createSettingsPanel();
     if (extension_settings[extensionName].isEnabled) {
-        setTimeout(() => { spawnLumiButton(); createModal(); setupAutoTriggerListener(); }, 500);
+        setTimeout(() => { 
+            spawnLumiButton(); 
+            createModal(); 
+            setupAutoTriggerListener(); 
+        }, 500);
     }
 }
 
@@ -141,6 +146,7 @@ function injectStyles() {
         .lumi-btn:hover { background: var(--lumi-border); }
         .lumi-body { flex: 1; overflow-y: auto; padding: 15px; background: var(--lumi-card); color: var(--lumi-text); }
 
+        /* ✅ TABS FIX: แยก Container ชัดเจน */
         .lumi-nav { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; }
         .lumi-nav-tab { flex: 1; text-align: center; padding: 10px 5px; border-radius: 12px; background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-primary); font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .lumi-nav-tab.active { background: var(--lumi-primary); color: white; border-color: var(--lumi-primary); }
@@ -255,7 +261,6 @@ function spawnLumiButton() {
     
     document.body.appendChild(fab);
     
-    // ✅ บังคับแสดงทันที
     setTimeout(() => {
         fab.style.display = 'flex';
         fab.style.visibility = 'visible';
@@ -356,12 +361,12 @@ function spawnLumiButton() {
     
     $('#lumi-settings').on('click', () => {
         $(menu).fadeOut();
-        openSettingsModal();
+        openModal('settings');
     });
 }
 
 // ═══════════════════════════════════════════════
-// 5. MODAL & UI LOGIC
+// 5. MODAL & UI LOGIC (✅ แก้ไข Routing & Tab Bug)
 // ═══════════════════════════════════════════════
 function createModal() {
     if ($('#lumi-overlay').length) return;
@@ -377,38 +382,37 @@ function createModal() {
             </div>
         </div>
     `);
+    
     $('#lumi-close, #lumi-overlay').on('click', e => {
         if(e.target.id==='lumi-overlay' || e.target.closest('#lumi-close')) {
             $('#lumi-overlay').fadeOut();
         }
     });
+    
+    // ✅ Back Button: ปิด Modal แทนการสลับหน้าเพื่อป้องกันบั๊ก Routing
     $('#lumi-back').on('click', () => {
-        const currentMode = $('#lumi-body').data('current-mode');
-        if(currentMode === 'forum' || currentMode === 'diary') {
-            renderDashboard();
-        }
+        $('#lumi-overlay').fadeOut();
     });
 }
 
+// ✅ Routing System ที่ชัดเจน ไม่ทับกัน
 function openModal(mode) {
     $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200);
+    $('#lumi-body').empty(); // ล้างเนื้อหาเก่าก่อน render ใหม่เสมอ
+    $('#lumi-body').data('current-mode', mode);
+    
     if(mode === 'diary') {
-        renderDashboard();
+        renderDiaryView();
     } else if(mode === 'forum') {
-        renderForumMain();
+        renderForumView();
+    } else if(mode === 'settings') {
+        renderSettingsView();
     }
 }
 
-function openSettingsModal() {
-    $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200);
-    renderSettings();
-}
-
-// 📊 Dashboard (Diary Mode)
-function renderDashboard() {
-    $('#lumi-title').text('LumiPulse - Diary');
-    $('#lumi-body').data('current-mode', 'diary');
-    
+// 📖 Diary View (แยก Container ชัดเจน)
+function renderDiaryView() {
+    $('#lumi-title').text('Diary & Memories');
     const ctx = SillyTavern.getContext();
     const currentBotId = ctx.characterId;
     const currentBotName = ctx.name2 || "Unknown Bot";
@@ -437,14 +441,14 @@ function renderDashboard() {
             <div class="lumi-stat"><b>${mems.filter(m=>m.meta.isFavorite).length}</b><span>Favs</span></div>
         </div>
         
-        <div class="lumi-nav">
+        <div id="diary-tabs" class="lumi-nav">
             <div class="lumi-nav-tab active" data-tab="diary">${svgBook} Diary</div>
             <div class="lumi-nav-tab" data-tab="story">${svgScroll} Story</div>
             <div class="lumi-nav-tab" data-tab="lore">${svgGlobe} Lore</div>
             <div class="lumi-nav-tab" data-tab="links">${svgLink} Links</div>
         </div>
         
-        <div id="tab-content">
+        <div id="diary-content">
             <div class="lumi-filters">
                 <select id="filter-char" class="lumi-filter-select"><option value="">All Chars</option>${chars.map(c => `<option value="${escapeHtml(c)}" ${c===filterChar?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
                 <select id="filter-date" class="lumi-filter-select"><option value="">All Dates</option>${dates.map(d => `<option value="${escapeHtml(d)}" ${d===filterDate?'selected':''}>${escapeHtml(d)}</option>`).join('')}</select>
@@ -458,31 +462,32 @@ function renderDashboard() {
         </div>
     `);
     
-    $('#filter-char, #filter-date, #filter-loc').on('change', function() {
-        extension_settings[extensionName]._internal.filterChar = $('#filter-char').val();
-        extension_settings[extensionName]._internal.filterDate = $('#filter-date').val();
-        extension_settings[extensionName]._internal.filterLoc = $('#filter-loc').val();
-        SillyTavern.getContext().saveSettingsDebounced();
-        renderDashboard();
-    });
-    
-    $('#btn-open-gen').on('click', function() {
-        if($('#gen-form-container').is(':visible')) {
-            $('#gen-form-container').slideUp(200);
-        } else {
-            renderGeneratorForm();
-            $('#gen-form-container').slideDown(200);
-        }
-    });
-    
-    $('.lumi-nav-tab').on('click', function() {
-        $('.lumi-nav-tab').removeClass('active');
+    // ✅ Tab Handler แยก Scope
+    $('#diary-tabs .lumi-nav-tab').off('click').on('click', function() {
+        $('#diary-tabs .lumi-nav-tab').removeClass('active');
         $(this).addClass('active');
         const tab = $(this).data('tab');
         if(tab === 'diary') renderDiaryTab();
         else if(tab === 'story') renderStoryWeaver();
         else if(tab === 'lore') renderLoreExtractor();
         else if(tab === 'links') renderMemoryLinks();
+    });
+    
+    $('#filter-char, #filter-date, #filter-loc').off('change').on('change', function() {
+        extension_settings[extensionName]._internal.filterChar = $('#filter-char').val();
+        extension_settings[extensionName]._internal.filterDate = $('#filter-date').val();
+        extension_settings[extensionName]._internal.filterLoc = $('#filter-loc').val();
+        SillyTavern.getContext().saveSettingsDebounced();
+        renderDiaryView();
+    });
+    
+    $('#btn-open-gen').off('click').on('click', function() {
+        if($('#gen-form-container').is(':visible')) {
+            $('#gen-form-container').slideUp(200);
+        } else {
+            renderGeneratorForm();
+            $('#gen-form-container').slideDown(200);
+        }
     });
     
     renderDiaryTab();
@@ -582,10 +587,10 @@ function renderGeneratorForm() {
             <button id="btn-run-gen" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgPlus} Analyze & Generate</button>
         </div>
     `);
-    $('input[name="gen-mode"]').on('change', function() {
+    $('input[name="gen-mode"]').off('change').on('change', function() {
         $('#gen-count-wrap').toggle($(this).val() !== 'all');
     });
-    $('#btn-run-gen').on('click', generateBatchMemories);
+    $('#btn-run-gen').off('click').on('click', generateBatchMemories);
 }
 
 // 📖 Story Weaver UI
@@ -604,7 +609,7 @@ function renderStoryWeaver() {
             <button id="btn-export-story" class="lumi-gen-btn">${svgBook} Export .md</button>
         </div>
     `);
-    $('#btn-weave').on('click', async function() {
+    $('#btn-weave').off('click').on('click', async function() {
         $(this).html(`${svgScroll} Weaving...`).prop('disabled', true);
         const story = await weaveStory(mems);
         $(this).html(`${svgScroll} Weave Story`).prop('disabled', false);
@@ -647,7 +652,7 @@ function renderLoreExtractor() {
         </div>
         <div id="lore-output" style="display:none;"></div>
     `);
-    $('#btn-extract-lore').on('click', async function() {
+    $('#btn-extract-lore').off('click').on('click', async function() {
         $(this).html(`${svgGlobe} Extracting...`).prop('disabled', true);
         const ctx = SillyTavern.getContext();
         const mems = loadMemories({ botId: ctx.characterId });
@@ -737,11 +742,9 @@ function renderMemoryLinks() {
     });
 }
 
-// 📢 FORUM MODE UI (✅ แยกจาก Diary โดยสิ้นเชิง)
-function renderForumMain() {
-    $('#lumi-title').text('LumiPulse - Forum');
-    $('#lumi-body').data('current-mode', 'forum');
-    
+// 📢 FORUM VIEW (✅ แยก Container ชัดเจน)
+function renderForumView() {
+    $('#lumi-title').text('Forum Mode');
     const ctx = SillyTavern.getContext();
     const currentBotId = ctx.characterId;
     const currentBotName = ctx.name2 || "Unknown Bot";
@@ -750,12 +753,12 @@ function renderForumMain() {
     
     $('#lumi-body').html(`
         <div style="background:linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary));padding:20px;border-radius:16px;margin-bottom:15px;box-shadow:0 4px 15px rgba(255,105,180,0.2);animation:slideIn 0.3s ease;">
-            <div style="font-size:11px;color:rgba(255,255,255,0.9);margin-bottom:4px;display:flex;align-items:center;gap:6px">${svgForum} Forum Mode</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.9);margin-bottom:4px;display:flex;align-items:center;gap:6px">${svgForum} Forum of</div>
             <div style="font-size:18px;color:white;font-weight:500">${currentBotName}</div>
             <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">${forumMode === 'separate' ? '🔒 Separate Mode' : '🔗 RP-Linked Mode'} · ${posts.length} posts</div>
         </div>
         
-        <div class="lumi-nav">
+        <div id="forum-tabs" class="lumi-nav">
             <div class="lumi-nav-tab active" data-forum-tab="threads">${svgForum} Threads</div>
             <div class="lumi-nav-tab" data-forum-tab="network">${svgNetwork} Network</div>
             <div class="lumi-nav-tab" data-forum-tab="trending">${svgTag} Trending</div>
@@ -772,11 +775,12 @@ function renderForumMain() {
         </div>
     `);
     
-    $('#btn-new-post').on('click', () => renderNewPostForm());
-    $('#btn-generate-forum').on('click', () => generateForumPosts());
+    $('#btn-new-post').off('click').on('click', () => renderNewPostForm());
+    $('#btn-generate-forum').off('click').on('click', () => generateForumPosts());
     
-    $('.lumi-nav-tab').on('click', function() {
-        $('.lumi-nav-tab').removeClass('active');
+    // ✅ Forum Tab Handler แยก Scope
+    $('#forum-tabs .lumi-nav-tab').off('click').on('click', function() {
+        $('#forum-tabs .lumi-nav-tab').removeClass('active');
         $(this).addClass('active');
         const tab = $(this).data('forum-tab');
         if(tab === 'threads') renderForumThreads();
@@ -834,7 +838,7 @@ function renderNewPostForm() {
         </div>
     `);
     
-    $('#btn-submit-post').on('click', function() {
+    $('#btn-submit-post').off('click').on('click', function() {
         const title = $('#post-title').val().trim();
         const content = $('#post-content').val().trim();
         if(!title || !content) {
@@ -857,7 +861,7 @@ function renderNewPostForm() {
         renderForumThreads();
     });
     
-    $('#btn-cancel-post').on('click', () => renderForumThreads());
+    $('#btn-cancel-post').off('click').on('click', () => renderForumThreads());
 }
 
 async function generateForumPosts() {
@@ -925,7 +929,7 @@ function renderForumNetwork() {
     $('#forum-sidebar').html(html).show();
     $('#forum-main').html('<div style="padding:20px;text-align:center;color:#888;">Click on a character to see their posts and connections</div>');
     
-    $('.lumi-network-node').on('click', function() {
+    $('.lumi-network-node').off('click').on('click', function() {
         $('.lumi-network-node').removeClass('active');
         $(this).addClass('active');
         const author = $(this).data('author');
@@ -964,8 +968,8 @@ function renderTrendingTopics() {
     $('#forum-sidebar').hide();
 }
 
-// ⚙️ Settings (✅ รวม Forum Settings)
-function renderSettings() {
+// ⚙️ Settings View (✅ รวมการตั้งค่าทั้งหมด)
+function renderSettingsView() {
     $('#lumi-title').text("Settings");
     const s = extension_settings[extensionName];
     const ag = s.diary.autoGen;
@@ -1021,110 +1025,28 @@ function renderSettings() {
         </div>
     `);
     
-    $('#set-theme').on('change', function() {
-        s._internal.theme = $(this).val();
-        applyTheme($(this).val());
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
+    // ✅ Settings Event Handlers
+    $('#set-theme').off('change').on('change', function() { s._internal.theme = $(this).val(); applyTheme($(this).val()); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#set-en').off('change').on('change', function(){ s.isEnabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#set-wm').off('change').on('change', function(){ s.diary.worldMode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#ag-en').off('change').on('change', function(){ s.diary.autoGen.enabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#ag-tr').off('change').on('change', function() { s.diary.autoGen.triggerType = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); renderSettingsView(); });
+    $('#ag-int').off('change').on('change', function(){ s.diary.autoGen.turnInterval = parseInt($(this).val()) || 20; SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#ag-chance').off('change').on('change', function(){ s.diary.autoGen.randomChance = (parseInt($(this).val()) || 10) / 100; SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#ag-kw').off('change').on('change', function(){ s.diary.autoGen.emotionKeywords = $(this).val().split(',').map(k=>k.trim()).filter(k=>k); SillyTavern.getContext().saveSettingsDebounced(); });
     
-    $('#set-en').on('change', function(){
-        s.isEnabled = $(this).prop('checked');
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
+    $('#fg-en').off('change').on('change', function(){ s.forum.autoGen.enabled = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#forum-mode').off('change').on('change', function(){ s.forum.mode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#fg-tr').off('change').on('change', function() { s.forum.autoGen.triggerType = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); renderSettingsView(); });
+    $('#fg-int').off('change').on('change', function(){ s.forum.autoGen.turnInterval = parseInt($(this).val()) || 10; SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#fg-time').off('change').on('change', function(){ s.forum.autoGen.timeInterval = parseInt($(this).val()) || 5; SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#fg-chance').off('change').on('change', function(){ s.forum.autoGen.randomChance = (parseInt($(this).val()) || 15) / 100; SillyTavern.getContext().saveSettingsDebounced(); });
     
-    $('#set-wm').on('change', function(){
-        s.diary.worldMode = $(this).val();
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
+    $('#set-sec-en').off('change').on('change', function(){ s.diary.display.showSecretSystem = $(this).prop('checked'); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#set-sec-mode').off('change').on('change', function(){ s.diary.display.secretMode = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
     
-    $('#ag-en').on('change', function(){
-        s.diary.autoGen.enabled = $(this).prop('checked');
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#ag-tr').on('change', function() {
-        s.diary.autoGen.triggerType = $(this).val();
-        SillyTavern.getContext().saveSettingsDebounced();
-        renderSettings();
-    });
-    
-    $('#ag-int').on('change', function(){
-        s.diary.autoGen.turnInterval = parseInt($(this).val()) || 20;
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#ag-chance').on('change', function(){
-        s.diary.autoGen.randomChance = (parseInt($(this).val()) || 10) / 100;
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#ag-kw').on('change', function(){
-        s.diary.autoGen.emotionKeywords = $(this).val().split(',').map(k=>k.trim()).filter(k=>k);
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    // Forum Settings
-    $('#fg-en').on('change', function(){
-        s.forum.autoGen.enabled = $(this).prop('checked');
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#forum-mode').on('change', function(){
-        s.forum.mode = $(this).val();
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#fg-tr').on('change', function() {
-        s.forum.autoGen.triggerType = $(this).val();
-        SillyTavern.getContext().saveSettingsDebounced();
-        renderSettings();
-    });
-    
-    $('#fg-int').on('change', function(){
-        s.forum.autoGen.turnInterval = parseInt($(this).val()) || 10;
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#fg-time').on('change', function(){
-        s.forum.autoGen.timeInterval = parseInt($(this).val()) || 5;
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#fg-chance').on('change', function(){
-        s.forum.autoGen.randomChance = (parseInt($(this).val()) || 15) / 100;
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#set-sec-en').on('change', function(){
-        s.diary.display.showSecretSystem = $(this).prop('checked');
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#set-sec-mode').on('change', function(){
-        s.diary.display.secretMode = $(this).val();
-        SillyTavern.getContext().saveSettingsDebounced();
-    });
-    
-    $('#btn-rst').on('click', ()=>{
-        s._internal.fabPos = null;
-        SillyTavern.getContext().saveSettingsDebounced();
-        $('#lumi-fab').remove();
-        spawnLumiButton();
-        showToast('Reset FAB');
-    });
-    
-    $('#btn-clr').on('click', ()=>{
-        if(confirm('Clear all memories, forum posts & settings?')) {
-            s.memories = [];
-            s.forumPosts = [];
-            s._internal.fabPos = null;
-            s._internal.nameRegistry = {};
-            SillyTavern.getContext().saveSettingsDebounced();
-            $('#lumi-fab').remove();
-            spawnLumiButton();
-            showToast('Cleared All');
-        }
-    });
+    $('#btn-rst').off('click').on('click', ()=>{ s._internal.fabPos = null; SillyTavern.getContext().saveSettingsDebounced(); $('#lumi-fab').remove(); spawnLumiButton(); showToast('Reset FAB'); });
+    $('#btn-clr').off('click').on('click', ()=>{ if(confirm('Clear all memories, forum posts & settings?')) { s.memories=[]; s.forumPosts=[]; s._internal.fabPos=null; s._internal.nameRegistry={}; SillyTavern.getContext().saveSettingsDebounced(); $('#lumi-fab').remove(); spawnLumiButton(); showToast('Cleared All'); } });
 }
 
 // ═══════════════════════════════════════════════
@@ -1517,13 +1439,13 @@ function editMemoryInline(id) {
             <button class="lumi-btn-cancel" style="flex:1;background:#FFE0E0;color:var(--lumi-danger);border:none;padding:8px;border-radius:8px;cursor:pointer">Cancel</button>
         </div>
     `);
-    card.find('.lumi-btn-save').on('click', function() {
+    card.find('.lumi-btn-save').off('click').on('click', function() {
         mem.content.diary = card.find('.lumi-edit-textarea').val();
         SillyTavern.getContext().saveSettingsDebounced();
         renderDiaryTab();
         showToast('Updated!');
     });
-    card.find('.lumi-btn-cancel').on('click', function() {
+    card.find('.lumi-btn-cancel').off('click').on('click', function() {
         renderDiaryTab();
     });
 }
@@ -1560,18 +1482,18 @@ function editMemoryModal(id) {
             </div>
         </div>
     `);
-    $('#btn-save-edit').on('click', function() {
+    $('#btn-save-edit').off('click').on('click', function() {
         mem.character = $('#edit-char').val();
         mem.content.rp_date = $('#edit-date').val();
         mem.content.rp_location = $('#edit-loc').val();
         mem.content.rp_tags = $('#edit-tags').val().split(',').map(t=>t.trim()).filter(t=>t);
         mem.content.diary = $('#edit-diary').val();
         SillyTavern.getContext().saveSettingsDebounced();
-        renderDashboard();
+        renderDiaryView();
         showToast('Updated!');
     });
-    $('#btn-cancel-edit').on('click', function() {
-        renderDashboard();
+    $('#btn-cancel-edit').off('click').on('click', function() {
+        renderDiaryView();
     });
 }
 
