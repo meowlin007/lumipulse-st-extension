@@ -1,7 +1,7 @@
 "use strict";
 
 // ═══════════════════════════════════════════════
-// 1. CONFIG & ASSETTS
+// 1. CONFIG & ASSETS
 // ═══════════════════════════════════════════════
 const extensionName = "lumipulse-st-extension";
 
@@ -47,8 +47,7 @@ const iconForum    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png";
 const svgHeart    = `<svg viewBox="0 0 24 24" fill="none" width="40" height="40"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF69B4"/></svg>`;
 const svgPin      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1-1v-5h2v-2l-2-2z"/></svg>`;
 const svgStar     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
-const svgLock     = `<svg viewBox="0 0 24 24" fill="none" stroke="#ff85a2" stroke-width="2" width="20" height="20"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
-const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+const svgLock     = `<svg viewBox="0 0 24 24" fill="none" stroke="#ff85a2" stroke-width="2" width="20" height="20"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 const svgBack     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
 const svgPlus     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
 const svgChevron  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>`;
@@ -85,254 +84,28 @@ function applyTheme(themeName) {
 }
 
 // ═══════════════════════════════════════════════
-// 2. BOOT SYSTEM (✅ แก้ไขแล้ว)
+// 2. BOOT SYSTEM
 // ═══════════════════════════════════════════════
 jQuery(async () => {
     const boot = setInterval(() => {
         if (window.SillyTavern && SillyTavern.getContext && document.body) {
-            clearInterval(boot); 
-            try {
-                initLumiPulse();
-            } catch(e) {
-                console.error('[LumiPulse] Init Error:', e);
-                alert('LumiPulse Error: ' + e.message);
-            }
+            clearInterval(boot); initLumiPulse();
         }
     }, 500);
-    
-    // Timeout safety
-    setTimeout(() => {
-        clearInterval(boot);
-        if (!window.SillyTavern || !SillyTavern.getContext) {
-            console.error('[LumiPulse] SillyTavern API not found!');
-        }
-    }, 10000);
 });
 
 function initLumiPulse() {
-    console.log('[LumiPulse] Initializing...');
     const ctx = SillyTavern.getContext();
-    
-    try {
-        // ✅ DEEP MERGE SETTINGS
-        if (ctx.extensionSettings[extensionName]) {
-            const oldSettings = ctx.extensionSettings[extensionName];
-            ctx.extensionSettings[extensionName] = $.extend(true, {}, defaultSettings, oldSettings);
-            ctx.saveSettingsDebounced();
-            console.log('[LumiPulse] Settings merged successfully');
-        } else {
-            ctx.extensionSettings[extensionName] = JSON.parse(JSON.stringify(defaultSettings));
-            ctx.saveSettingsDebounced();
-            console.log('[LumiPulse] Fresh settings created');
-        }
-        
-        extension_settings = ctx.extensionSettings;
-        
-        // ✅ Validate required settings
-        if (!extension_settings[extensionName]._internal) {
-            extension_settings[extensionName]._internal = defaultSettings._internal;
-        }
-        if (!extension_settings[extensionName].forum) {
-            extension_settings[extensionName].forum = defaultSettings.forum;        }
-        
-        applyTheme(extension_settings[extensionName]._internal.theme || 'pink');
-        injectStyles(); 
-        createSettingsPanel();
-        
-        if (extension_settings[extensionName].isEnabled) {
-            setTimeout(() => { 
-                try {
-                    spawnLumiButton();
-                    console.log('[LumiPulse] FAB button spawned');
-                } catch(e) {
-                    console.error('[LumiPulse] FAB Error:', e);
-                }
-                
-                try {
-                    createModal();
-                    console.log('[LumiPulse] Modal created');
-                } catch(e) {
-                    console.error('[LumiPulse] Modal Error:', e);
-                }
-                
-                setupAutoTriggerListener(); 
-                setupForumAutoTrigger();
-            }, 500);
-        }
-        
-        console.log('[LumiPulse] Initialization complete');
-    } catch(e) {
-        console.error('[LumiPulse] Critical Error:', e);
-        alert('LumiPulse Critical Error: ' + e.message + '\n\nPlease check browser console (F12)');
+    if (!ctx.extensionSettings[extensionName]) {        ctx.extensionSettings[extensionName] = JSON.parse(JSON.stringify(defaultSettings));
+        ctx.saveSettingsDebounced();
+    }
+    extension_settings = ctx.extensionSettings;
+    applyTheme(extension_settings[extensionName]._internal.theme || 'pink');
+    injectStyles(); createSettingsPanel();
+    if (extension_settings[extensionName].isEnabled) {
+        setTimeout(() => { spawnLumiButton(); createModal(); setupAutoTriggerListener(); setupForumAutoTrigger(); }, 500);
     }
 }
-
-// ═══════════════════════════════════════════════
-// 4. FAB BUTTON (✅ แก้ไขแล้ว)
-// ═══════════════════════════════════════════════
-function spawnLumiButton() {
-    console.log('[LumiPulse] Spawning FAB button...');
-    
-    // ✅ Remove old buttons
-    $('#lumi-fab, .lumi-menu').remove();
-    
-    // ✅ Check if document.body exists
-    if (!document.body) {
-        console.error('[LumiPulse] document.body not found!');
-        return;
-    }
-    
-    try {        const fab = document.createElement('div'); 
-        fab.id = 'lumi-fab';
-        fab.title = 'LumiPulse - Click to open menu';
-        
-        const pos = extension_settings[extensionName]._internal.fabPos;
-        if (pos) {
-            Object.assign(fab.style, pos);
-        } else { 
-            fab.style.top = '50%'; 
-            fab.style.right = '20px'; 
-            fab.style.transform = 'translateY(-50%)'; 
-        }
-        
-        // ✅ Ensure visibility
-        fab.style.display = 'flex';
-        fab.style.visibility = 'visible';
-        fab.style.opacity = '1';
-        fab.style.zIndex = '99999';
-        
-        document.body.appendChild(fab);
-        console.log('[LumiPulse] FAB element created and appended');
-        
-        // ✅ Create menu
-        const menu = document.createElement('div'); 
-        menu.className = 'lumi-menu';
-        menu.innerHTML = `
-            <div class="lumi-menu-grid">
-                <div class="lumi-menu-item" id="lumi-open">
-                    <img src="${iconDiary}">
-                    <span>Diary</span>
-                </div>
-                <div class="lumi-menu-item" id="lumi-forum-btn">
-                    <img src="${iconForum}">
-                    <span>Forum</span>
-                </div>
-                <div class="lumi-menu-item" id="lumi-set">
-                    <img src="${iconSettings}">
-                    <span>Settings</span>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(menu);
-        console.log('[LumiPulse] Menu created');
-
-        // ✅ Drag functionality
-        let isDragging = false, startX, startY, initLeft, initTop, movedDist = 0;
-        const THRESHOLD = 12;
-        
-        function startDrag(x, y) { 
-            isDragging = false;             movedDist = 0; 
-            startX = x; 
-            startY = y; 
-            const rect = fab.getBoundingClientRect(); 
-            initLeft = rect.left; 
-            initTop = rect.top; 
-            fab.style.transform = 'none'; 
-        }
-        
-        function moveDrag(x, y) { 
-            const dx = x - startX, dy = y - startY; 
-            movedDist = Math.hypot(dx, dy); 
-            if (movedDist > THRESHOLD) isDragging = true; 
-            if (isDragging) { 
-                fab.style.left = (initLeft + dx) + 'px'; 
-                fab.style.top = (initTop + dy) + 'px'; 
-                fab.style.right = 'auto'; 
-                fab.style.bottom = 'auto'; 
-                $(menu).fadeOut(100); 
-            } 
-        }
-        
-        function endDrag() { 
-            if (isDragging) { 
-                extension_settings[extensionName]._internal.fabPos = { 
-                    top: fab.style.top, 
-                    left: fab.style.left, 
-                    right: 'auto', 
-                    bottom: 'auto', 
-                    transform: 'none' 
-                }; 
-                SillyTavern.getContext().saveSettingsDebounced(); 
-            } else if (movedDist < THRESHOLD) { 
-                const r = fab.getBoundingClientRect(); 
-                const mW = $(menu).outerWidth(); 
-                menu.style.left = Math.max(10, Math.min(r.left + r.width/2 - mW/2, window.innerWidth - mW - 10)) + 'px'; 
-                menu.style.top = Math.max(10, r.top - $(menu).outerHeight() - 15) + 'px'; 
-                $(menu).fadeToggle(200); 
-            } 
-            isDragging = false; 
-        }
-
-        // ✅ Mouse events
-        fab.addEventListener('mousedown', e => { 
-            if(e.button!==0) return; 
-            e.preventDefault(); 
-            startDrag(e.clientX, e.clientY); 
-            const onMove = ev => moveDrag(ev.clientX, ev.clientY); 
-            const onUp = () => {
-                document.removeEventListener('mousemove', onMove);                document.removeEventListener('mouseup', onUp);
-                endDrag();
-            }; 
-            document.addEventListener('mousemove', onMove); 
-            document.addEventListener('mouseup', onUp); 
-        });
-        
-        // ✅ Touch events
-        fab.addEventListener('touchstart', e => { 
-            e.preventDefault(); 
-            startDrag(e.touches[0].clientX, e.touches[0].clientY); 
-        }, { passive: false });
-        
-        fab.addEventListener('touchmove', e => { 
-            e.preventDefault(); 
-            moveDrag(e.touches[0].clientX, e.touches[0].clientY); 
-        }, { passive: false });
-        
-        fab.addEventListener('touchend', e => { 
-            e.preventDefault(); 
-            endDrag(); 
-        }, { passive: false });
-        
-        // ✅ Menu click handlers
-        $('#lumi-open').off('click').on('click', () => { 
-            $(menu).fadeOut(); 
-            openModal('diary'); 
-        });
-        
-        $('#lumi-forum-btn').off('click').on('click', () => { 
-            $(menu).fadeOut(); 
-            openModal('forum'); 
-        });
-        
-        $('#lumi-set').off('click').on('click', () => { 
-            $(menu).fadeOut(); 
-            openSettingsModal(); 
-        });
-        
-        console.log('[LumiPulse] FAB button ready!');
-        
-        // ✅ Safety check after 1 second
-        setTimeout(() => {
-            if (!document.getElementById('lumi-fab')) {
-                console.error('[LumiPulse] FAB button disappeared! Re-spawning...');
-                spawnLumiButton();
-            }
-        }, 1000);
-        
-    } catch(e) {        console.error('[LumiPulse] spawnLumiButton Error:', e);
-        alert('FAB Button Error: ' + e.message);
-    }
-                                }
 
 // ═══════════════════════════════════════════════
 // 3. UI RENDERING
@@ -368,20 +141,20 @@ function injectStyles() {
         .lumi-btn:hover { background: var(--lumi-border); }
         .lumi-body { flex: 1; overflow-y: auto; padding: 15px; background: var(--lumi-card); color: var(--lumi-text); }
 
-        .lumi-nav { display: flex; gap: 6px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .lumi-nav-tab { padding: 6px 12px; border-radius: 12px; background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-primary); font-size: 11px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .lumi-nav { display: flex; gap: 8px; margin-bottom: 15px; width: 100%; }
+        .lumi-nav-tab { flex: 1; text-align: center; padding: 12px 8px; border-radius: 12px; background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-primary); font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
         .lumi-nav-tab.active { background: var(--lumi-primary); color: white; border-color: var(--lumi-primary); }
-        
-        .lumi-stats-bar { display: flex; gap: 10px; margin-bottom: 15px; background: var(--lumi-bg); padding: 12px; border-radius: 14px; border: 1px solid var(--lumi-border); }
+        .lumi-nav-tab:hover:not(.active) { background: var(--lumi-border); }
+                .lumi-stats-bar { display: flex; gap: 10px; margin-bottom: 15px; background: var(--lumi-bg); padding: 12px; border-radius: 14px; border: 1px solid var(--lumi-border); }
         .lumi-stat { flex: 1; text-align: center; }
         .lumi-stat b { display: block; font-size: 18px; color: var(--lumi-secondary); font-weight: 500; }
         .lumi-stat span { font-size: 10px; color: #777; }
         
         .lumi-action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .lumi-filters { display: flex; gap: 8px; flex-wrap: wrap; }
-        .lumi-filter-select { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 8px 12px; color: var(--lumi-primary); font-family: 'Mitr'; font-size: 12px; outline: none; min-width: 100px; }
+        .lumi-filters { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+        .lumi-filter-select { flex: 1; min-width: 80px; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 8px 12px; color: var(--lumi-primary); font-family: 'Mitr'; font-size: 12px; outline: none; }
         
-        .lumi-gen-btn { background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        .lumi-gen-btn { background: linear-gradient(135deg, var(--lumi-primary), var(--lumi-secondary)); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-family: 'Mitr'; cursor: pointer; box-shadow: 0 4px 10px rgba(255,105,180,0.3); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; width: 100%; }
         .lumi-gen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .lumi-form { background: var(--lumi-bg); border: 1px solid var(--lumi-border); border-radius: 16px; padding: 15px; margin-bottom: 15px; }
@@ -421,8 +194,7 @@ function injectStyles() {
         .lumi-act.danger:hover { color: #B84444; }
 
         .lumi-set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #666; }
-        .lumi-set-row select, .lumi-set-row input[type="number"] { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 8px; padding: 5px 8px; color: var(--lumi-text); font-family: 'Mitr'; outline: none; }
-
+        .lumi-set-row select, .lumi-set-row input[type="number"], .lumi-set-row input[type="text"] { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 8px; padding: 5px 8px; color: var(--lumi-text); font-family: 'Mitr'; outline: none; }
         .lumi-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 20px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 999999; font-family: 'Mitr'; font-size: 13px; color: var(--lumi-secondary); border: 1px solid var(--lumi-border); animation: popIn 0.3s; pointer-events: none; }
         
         #lumi-panel .inline-drawer-content { font-family: 'Mitr'; padding: 10px; }
@@ -448,6 +220,7 @@ function injectStyles() {
         .lumi-network-node:hover { background: var(--lumi-border); transform: translateX(5px); }
         .lumi-network-node.active { background: var(--lumi-primary); color: white; }
         .lumi-post-input { width: 100%; background: var(--lumi-card); border: 1px solid var(--lumi-border); border-radius: 10px; padding: 10px; color: var(--lumi-text); font-family: 'Mitr'; font-size: 12px; resize: vertical; min-height: 80px; margin-bottom: 10px; box-sizing: border-box; }
+        
         .lumi-loading { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; margin-right: 8px; }
 
         @media (max-width: 768px) { .lumi-menu-grid { grid-template-columns: repeat(2, 1fr); } .lumi-modal { width: 96%; height: 92vh; } .lumi-forum-container { flex-direction: column; } .lumi-forum-sidebar { width: 100%; height: 200px; } }
@@ -470,8 +243,7 @@ function spawnLumiButton() {
     document.body.appendChild(fab);
     setTimeout(() => { fab.style.display = 'flex'; fab.style.visibility = 'visible'; fab.style.opacity = '1'; }, 50);
 
-    const menu = document.createElement('div'); menu.className = 'lumi-menu';
-    menu.innerHTML = `<div class="lumi-menu-grid"><div class="lumi-menu-item" id="lumi-open"><img src="${iconDiary}"><span>Diary</span></div><div class="lumi-menu-item" id="lumi-forum-btn"><img src="${iconForum}"><span>Forum</span></div><div class="lumi-menu-item" id="lumi-set"><img src="${iconSettings}"><span>Settings</span></div></div>`;
+    const menu = document.createElement('div'); menu.className = 'lumi-menu';    menu.innerHTML = `<div class="lumi-menu-grid"><div class="lumi-menu-item" id="lumi-open"><img src="${iconDiary}"><span>Diary</span></div><div class="lumi-menu-item" id="lumi-forum-btn"><img src="${iconForum}"><span>Forum</span></div><div class="lumi-menu-item" id="lumi-set"><img src="${iconSettings}"><span>Settings</span></div></div>`;
     document.body.appendChild(menu);
 
     let isDragging = false, startX, startY, initLeft, initTop, movedDist = 0;
@@ -490,44 +262,37 @@ function spawnLumiButton() {
 }
 
 // ═══════════════════════════════════════════════
-// 5. MODAL & UI LOGIC (✅ แก้ไข Navigation)
+// 5. MODAL & UI LOGIC
 // ═══════════════════════════════════════════════
 function createModal() {
     if ($('#lumi-overlay').length) return;
     $('body').append(`<div id="lumi-overlay" class="lumi-overlay"><div class="lumi-modal"><div class="lumi-head"><button class="lumi-btn" id="lumi-back">${svgBack}</button><h3 id="lumi-title">LumiPulse</h3><button class="lumi-btn" id="lumi-close">${svgClose}</button></div><div id="lumi-body" class="lumi-body"></div></div></div>`);
     $('#lumi-close, #lumi-overlay').on('click', e => { if(e.target.id==='lumi-overlay'||e.target.closest('#lumi-close')) $('#lumi-overlay').fadeOut(); });
     $('#lumi-back').on('click', () => { 
-        const currentTab = $('#lumi-body').data('current-tab');
-        if(currentTab === 'forum') {
-            renderForum();
-        } else if(currentTab === 'settings') {
-            renderSettings();
-        } else {
-            renderDashboard();
-        }
+        const currentTab = $('#lumi-body').data('current-tab') || 'diary'; 
+        if(currentTab === 'forum') renderForum(); 
+        else if(currentTab === 'settings') renderSettings();
+        else renderDashboard(); 
     });
 }
 
 function openModal(type = 'diary') {
     $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200);
-    if (type === 'forum') {
-        renderForum();
-    } else {
-        renderDashboard();
-    }
+    if (type === 'forum') renderForum();
+    else renderDashboard();
 }
 
+// ✅ แยก Settings Modal ออกมาชัดเจน
 function openSettingsModal() {
-    $('#lumi-title').text('LumiPulse - Settings');
     $('#lumi-body').data('current-tab', 'settings');
+    $('#lumi-title').text('LumiPulse - Settings');
     $('#lumi-overlay').css('display', 'flex').hide().fadeIn(200);
     renderSettings();
 }
 
 // Diary Dashboard
 function renderDashboard() {
-    $('#lumi-body').data('current-tab', 'diary');
-    $('#lumi-title').text('LumiPulse - Diary');
+    $('#lumi-body').data('current-tab', 'diary');    $('#lumi-title').text('LumiPulse - Diary');
     const ctx = SillyTavern.getContext(); const currentBotId = ctx.characterId; const currentBotName = ctx.name2 || "Unknown Bot";
     const mems = loadMemories({ botId: currentBotId });
     const filterChar = extension_settings[extensionName]._internal.filterChar || '';
@@ -576,8 +341,7 @@ function renderDashboard() {
         const tab = $(this).data('tab');
         if(tab === 'diary') renderDiaryTab();
         else if(tab === 'story') renderStoryWeaver();
-        else if(tab === 'lore') renderLoreExtractor();
-        else if(tab === 'links') renderMemoryLinks();
+        else if(tab === 'lore') renderLoreExtractor();        else if(tab === 'links') renderMemoryLinks();
     });
     renderDiaryTab();
 }
@@ -626,14 +390,13 @@ function renderStoryWeaver() {
     const ctx = SillyTavern.getContext(); const mems = loadMemories({ botId: ctx.characterId }).sort((a,b) => a.timestamp.localeCompare(b.timestamp));
     $('#lumi-content').html(`
         <div class="lumi-form">
-            <label class="lumi-label">Story Settings</label>
-            <div class="lumi-set-row"><span>Include All Characters</span><input type="checkbox" id="sw-all-chars" checked style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
+            <label class="lumi-label">Story Settings</label>            <div class="lumi-set-row"><span>Include All Characters</span><input type="checkbox" id="sw-all-chars" checked style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
             <div class="lumi-set-row"><span>Chapter Length</span><select id="sw-chapters" class="lumi-input" style="width:100px"><option value="auto">Auto</option><option value="3">3 Chapters</option><option value="5">5 Chapters</option></select></div>
             <button id="btn-weave" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgScroll} Weave Story</button>
         </div>
         <div id="sw-output" class="lumi-weaver-output" style="display:none;"></div>
         <div id="sw-actions" style="display:none;text-align:center;margin-top:10px;">
-            <button id="btn-export-story" class="lumi-gen-btn">${svgBook} Export .md</button>
+            <button id="btn-export-story" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgBook} Export .md</button>
         </div>
     `);
     $('#btn-weave').on('click', async function() {
@@ -676,8 +439,7 @@ function renderLoreExtractor() {
             <label class="lumi-label">Lore Extraction</label>
             <p style="font-size:12px;color:#666;margin-bottom:10px;">Scan memories to generate SillyTavern-compatible World Info JSON.</p>
             <button id="btn-extract-lore" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgGlobe} Extract Lore</button>
-        </div>
-        <div id="lore-output" style="display:none;"></div>
+        </div>        <div id="lore-output" style="display:none;"></div>
     `);
     $('#btn-extract-lore').on('click', async function() {
         $(this).html('<span class="lumi-loading"></span>Extracting...').prop('disabled', true);
@@ -687,7 +449,7 @@ function renderLoreExtractor() {
         if(lore && lore.entries && Object.keys(lore.entries).length) {
             let html = `<table class="lumi-lore-table"><tr><th>Keyword</th><th>Type</th><th>Content</th></tr>`;
             Object.values(lore.entries).forEach(l => html += `<tr><td><b>${escapeHtml(l.key[0])}</b></td><td>${l.comment}</td><td>${escapeHtml(l.content).slice(0,100)}...</td></tr>`);
-            html += `</table><div style="text-align:center;margin-top:15px;"><button id="btn-export-lore" class="lumi-gen-btn">${svgBook} Export JSON</button></div>`;
+            html += `</table><div style="text-align:center;margin-top:15px;"><button id="btn-export-lore" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgBook} Export JSON</button></div>`;
             $('#lore-output').html(html).show();
             $('#btn-export-lore').off('click').on('click', () => exportJSON(lore, 'LumiPulse_Lorebook.json'));
         } else {
@@ -726,8 +488,7 @@ Return ONLY JSON array of objects:
                 matchCharacterDepthPrompt: false, matchScenario: false, matchCreatorNotes: false,
                 delayUntilRecursion: false, outletName: "", groupOverride: false, useGroupScoring: null,
                 automationId: "", role: null, sticky: 0, cooldown: 0, delay: 0, triggers: [],
-                characterFilter: { isExclude: false, names: [], tags: [] }
-            };
+                characterFilter: { isExclude: false, names: [], tags: [] }            };
         });
         return { entries: entries };
     } catch(e) { return { entries: {} }; }
@@ -750,14 +511,14 @@ function renderMemoryLinks() {
         const id = $(this).data('id');
         const mem = mems.find(m => m.id === id);
         if(mem) {
-            $('#lumi-content').html(renderCard(mem, 0) + `<div style="text-align:center;margin-top:15px;"><button id="back-links" class="lumi-gen-btn">${svgBack} Back to Links</button></div>`);
+            $('#lumi-content').html(renderCard(mem, 0) + `<div style="text-align:center;margin-top:15px;"><button id="back-links" class="lumi-gen-btn" style="width:100%;justify-content:center">${svgBack} Back to Links</button></div>`);
             $('#back-links').off('click').on('click', () => renderMemoryLinks());
         }
     });
 }
 
 // ═══════════════════════════════════════════════
-// FORUM MODE (✅ แก้ไขสมบูรณ์)
+// FORUM MODE - ADVANCED FEATURES
 // ═══════════════════════════════════════════════
 
 function renderForum() {
@@ -776,8 +537,7 @@ function renderForum() {
         
         <div class="lumi-nav">
             <div class="lumi-nav-tab active" data-forum-tab="threads">${svgComment} Threads</div>
-            <div class="lumi-nav-tab" data-forum-tab="network">${svgNetwork} Network</div>
-            <div class="lumi-nav-tab" data-forum-tab="analytics">${svgMood} Analytics</div>
+            <div class="lumi-nav-tab" data-forum-tab="network">${svgNetwork} Network</div>            <div class="lumi-nav-tab" data-forum-tab="analytics">${svgMood} Analytics</div>
         </div>
         
         <div class="lumi-action-row" style="margin-bottom:15px;">
@@ -785,7 +545,7 @@ function renderForum() {
                 <select id="forum-filter-char" class="lumi-filter-select"><option value="">All Characters</option>${chars.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}</select>
                 <select id="forum-filter-type" class="lumi-filter-select"><option value="all">All Types</option><option value="public">Public</option><option value="private">Private</option><option value="faction">Faction</option></select>
             </div>
-            <button class="lumi-gen-btn" id="btn-generate-forum">${svgPlus} Generate</button>
+            <button class="lumi-gen-btn" id="btn-generate-forum" style="width:auto;padding:10px 20px;">${svgPlus} Generate</button>
         </div>
         
         <div class="lumi-form" style="margin-bottom:15px;">
@@ -793,7 +553,7 @@ function renderForum() {
             <textarea id="forum-post-input" class="lumi-post-input" placeholder="Share your thoughts..."></textarea>
             <div style="display:flex;gap:8px;">
                 <select id="forum-post-type" class="lumi-filter-select" style="flex:1"><option value="public">Public</option><option value="private">Private</option></select>
-                <button id="btn-submit-post" class="lumi-gen-btn" style="flex:2">${svgPlus} Post</button>
+                <button id="btn-submit-post" class="lumi-gen-btn" style="flex:2;width:auto;padding:10px 20px;">${svgPlus} Post</button>
             </div>
         </div>
         
@@ -806,47 +566,32 @@ function renderForum() {
         </div>
     `);
     
-    // ✅ Bind events หลัง render เสร็จ
-    setTimeout(() => {
-        $('#forum-filter-char, #forum-filter-type').on('change', function() { renderForumThreads(); });
-        
-        $('#btn-generate-forum').on('click', async function() {
-            const $btn = $(this);
-            $btn.html('<span class="lumi-loading"></span>Generating...').prop('disabled', true);
-            try {
-                await generateForumPosts();
-                renderForum();
-            } catch(e) {
-                console.error(e);
-                showToast('Error generating posts');
-            }
-            $btn.html(`${svgPlus} Generate`).prop('disabled', false);
-        });
-        
-        $('#btn-submit-post').on('click', function() {
-            const $btn = $(this);
-            $btn.html('<span class="lumi-loading"></span>Posting...').prop('disabled', true);
-            try {
-                submitForumPost();
-                renderForum();
-            } catch(e) {
-                console.error(e);
-                showToast('Error posting');
-            }
-            $btn.html(`${svgPlus} Post`).prop('disabled', false);
-        });
-        
-        $('.lumi-nav-tab').on('click', function() {
-            $('.lumi-nav-tab').removeClass('active'); $(this).addClass('active');
-            const tab = $(this).data('forum-tab');
-            if(tab === 'threads') renderForumThreads();
-            else if(tab === 'network') renderForumNetwork();
-            else if(tab === 'analytics') renderForumAnalytics();
-        });
-        
-        renderForumThreads();
-        renderForumNetwork();
-    }, 100);
+    // ✅ Bind Events อย่างถูกต้อง
+    $('#forum-filter-char, #forum-filter-type').on('change', function() { renderForumThreads(); });
+    
+    $('#btn-generate-forum').on('click', async function() {
+        const $btn = $(this);
+        $btn.html('<span class="lumi-loading"></span>Generating...').prop('disabled', true);
+        await generateForumPosts();
+        $btn.html(`${svgPlus} Generate`).prop('disabled', false);
+    });
+    
+    $('#btn-submit-post').on('click', async function() {
+        const $btn = $(this);
+        $btn.html('<span class="lumi-loading"></span>Posting...').prop('disabled', true);
+        await submitForumPost();
+        $btn.html(`${svgPlus} Post`).prop('disabled', false);
+    });
+    
+    $('.lumi-nav-tab').on('click', function() {
+        $('.lumi-nav-tab').removeClass('active'); $(this).addClass('active');
+        const tab = $(this).data('forum-tab');
+        if(tab === 'threads') renderForumThreads();        else if(tab === 'network') renderForumNetwork();
+        else if(tab === 'analytics') renderForumAnalytics();
+    });
+    
+    renderForumThreads();
+    renderForumNetwork();
 }
 
 function renderForumThreads() {
@@ -859,33 +604,27 @@ function renderForumThreads() {
     
     let html = '';
     const threads = groupPostsByThread(filtered);
-    
-    if(threads.length === 0) {
-        html = '<div style="text-align:center;padding:60px 20px;color:#999;"><div style="font-size:48px;margin-bottom:15px;opacity:0.3">💬</div><div>No forum posts yet. Generate or create one!</div></div>';
-    } else {
-        threads.forEach(thread => {
-            html += `
-                <div class="lumi-forum-thread">
-                    <div class="lumi-forum-header">
-                        <div class="lumi-forum-title">${escapeHtml(thread.title)}</div>
-                        <div class="lumi-forum-meta">${thread.posts.length} posts</div>
-                    </div>
-                    ${thread.posts.map(post => renderForumPost(post)).join('')}
+    threads.forEach(thread => {
+        html += `
+            <div class="lumi-forum-thread">
+                <div class="lumi-forum-header">
+                    <div class="lumi-forum-title">${escapeHtml(thread.title)}</div>
+                    <div class="lumi-forum-meta">${thread.posts.length} posts</div>
                 </div>
-            `;
-        });
-    }
-    $('#forum-main-content').html(html);
+                ${thread.posts.map(post => renderForumPost(post)).join('')}
+            </div>
+        `;
+    });
+    $('#forum-main-content').html(html || '<div style="text-align:center;padding:40px;color:#999;">No posts yet. Generate or create one!</div>');
 }
 
 function renderForumPost(post) {
     const isPlayer = post.author === 'Player';
-    const time = new Date(post.timestamp).toLocaleString('th-TH');
     return `
         <div class="lumi-forum-post" style="${isPlayer ? 'border-left:3px solid var(--lumi-primary);' : ''}">
             <div class="lumi-forum-author">${isPlayer ? '👤 You' : escapeHtml(post.author)}</div>
             <div class="lumi-forum-content">${escapeHtml(post.content)}</div>
-            <div style="font-size:10px;color:#888;margin-top:5px;">${time}</div>
+            <div style="font-size:10px;color:#888;margin-top:5px;">${new Date(post.timestamp).toLocaleString()}</div>
         </div>
     `;
 }
@@ -896,21 +635,15 @@ function renderForumNetwork() {
     const connections = analyzeCharacterConnections(posts);
     
     let html = '<div style="font-size:12px;font-weight:500;color:var(--lumi-secondary);margin-bottom:10px;">Active Characters</div>';
-    
-    if(chars.length === 0) {
-        html += '<div style="text-align:center;padding:20px;color:#999;font-size:12px;">No activity yet</div>';
-    } else {
-        chars.forEach(char => {
-            const postCount = posts.filter(p => p.author === char).length;
-            const affinity = connections[char] || 0;
-            html += `
-                <div class="lumi-network-node" data-char="${escapeHtml(char)}">
-                    <div style="font-size:11px;font-weight:500;">${escapeHtml(char)}</div>
-                    <div style="font-size:10px;color:#888;">${postCount} posts • Affinity: ${affinity}</div>
-                </div>
-            `;
-        });
-    }
+    chars.forEach(char => {        const postCount = posts.filter(p => p.author === char).length;
+        const affinity = connections[char] || 0;
+        html += `
+            <div class="lumi-network-node" data-char="${escapeHtml(char)}">
+                <div style="font-size:11px;font-weight:500;">${escapeHtml(char)}</div>
+                <div style="font-size:10px;color:#888;">${postCount} posts • Affinity: ${affinity}</div>
+            </div>
+        `;
+    });
     $('#network-nodes').html(html);
     
     $('.lumi-network-node').off('click').on('click', function() {
@@ -931,41 +664,27 @@ function renderForumAnalytics() {
                 <div class="lumi-stat"><b>${Object.keys(moodData).length}</b><span>Moods</span></div>
             </div>
             <div style="margin-top:15px;">
+                ${Object.entries(moodData).map(([mood, count]) => `
+                    <div style="margin:8px 0;padding:10px;background:var(--lumi-bg);border-radius:8px;">
+                        <div style="display:flex;justify-content:space-between;font-size:12px;">
+                            <span>${mood}</span>
+                            <span style="color:var(--lumi-primary);font-weight:500;">${count} posts</span>
+                        </div>
+                        <div style="height:6px;background:var(--lumi-border);border-radius:3px;margin-top:5px;overflow:hidden;">
+                            <div style="height:100%;background:var(--lumi-primary);width:${(count/posts.length)*100}%;transition:width 0.3s;"></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
     `;
-    
-    if(Object.keys(moodData).length === 0) {
-        html += '<div style="text-align:center;padding:40px;color:#999;">No data yet. Generate some posts!</div>';
-    } else {
-        Object.entries(moodData).forEach(([mood, count]) => {
-            const percentage = posts.length > 0 ? (count / posts.length) * 100 : 0;
-            html += `
-                <div style="margin:8px 0;padding:10px;background:var(--lumi-bg);border-radius:8px;">
-                    <div style="display:flex;justify-content:space-between;font-size:12px;">
-                        <span>${mood}</span>
-                        <span style="color:var(--lumi-primary);font-weight:500;">${count} posts</span>
-                    </div>
-                    <div style="height:6px;background:var(--lumi-border);border-radius:3px;margin-top:5px;overflow:hidden;">
-                        <div style="height:100%;background:var(--lumi-primary);width:${percentage}%;transition:width 0.3s;"></div>
-                    </div>
-                </div>
-            `;
-        });
-    }
-    
-    html += '</div></div>';
     $('#forum-main-content').html(html);
 }
 
 function groupPostsByThread(posts) {
     const threads = {};
     posts.forEach(post => {
-        if(!threads[post.threadId]) {
-            threads[post.threadId] = { 
-                title: post.threadTitle || 'Untitled Thread', 
-                posts: [] 
-            };
-        }
-        threads[post.threadId].posts.push(post);
+        if(!threads[post.threadId]) threads[post.threadId] = { title: post.threadTitle, posts: [] };        threads[post.threadId].posts.push(post);
     });
     return Object.values(threads).sort((a,b) => b.posts.length - a.posts.length);
 }
@@ -991,10 +710,10 @@ function analyzeForumMoods(posts) {
 
 function detectMood(text) {
     const lower = text.toLowerCase();
-    if(lower.match(/(รัก|ชอบ|สุข|ดีใจ|happy|love|smile)/)) return 'Happy';
-    if(lower.match(/(โกรธ|ไม่พอใจ|angry|hate|mad)/)) return 'Angry';
-    if(lower.match(/(เศร้า|เสียใจ|sad|cry|tear)/)) return 'Sad';
-    if(lower.match(/(กลัว|worried|fear|scared)/)) return 'Anxious';
+    if(lower.match(/(รัก|ชอบ|สุข|ดีใจ|happy|love)/)) return 'Happy';
+    if(lower.match(/(โกรธ|ไม่พอใจ|angry|hate)/)) return 'Angry';
+    if(lower.match(/(เศร้า|เสียใจ|sad|cry)/)) return 'Sad';
+    if(lower.match(/(กลัว|worried|fear)/)) return 'Anxious';
     return 'Neutral';
 }
 
@@ -1014,8 +733,7 @@ function showCharacterDetails(char) {
             <div style="font-size:12px;color:#666;margin-bottom:10px;">Recent Posts:</div>
             ${charPosts.slice(-5).map(post => renderForumPost(post)).join('')}
         </div>
-    `);
-    
+    `);    
     $('#back-to-network').on('click', () => renderForumNetwork());
 }
 
@@ -1025,6 +743,7 @@ function calculateAffinity(char) {
     return Math.min(100, charPosts.length * 5);
 }
 
+// ✅ Generate Forum Posts - ทำงานจริง
 async function generateForumPosts() {
     const ctx = SillyTavern.getContext();
     const chat = ctx.chat || [];
@@ -1032,7 +751,7 @@ async function generateForumPosts() {
     const characters = [...new Set(recentChat.filter(m => m.name && !m.is_user).map(m => m.name))];
     
     if(characters.length === 0) {
-        showToast('No characters in recent chat to generate from');
+        showToast('No characters in recent chat to generate forum posts');
         return false;
     }
     
@@ -1047,56 +766,37 @@ Generate 2-3 forum posts from different characters discussing recent events. Eac
 2. React to events in the chat
 3. Show their perspective and emotions
 
-Return ONLY JSON array (no markdown):
-[{"author":"Character Name","threadId":"1","threadTitle":"Topic Title","content":"Post content","type":"public","mood":"Happy","timestamp":"${new Date().toISOString()}"}]`;
+Return JSON array:
+[{"author":"Character Name","threadId":"1","threadTitle":"Topic Title","content":"Post content","type":"public|private","mood":"Happy|Angry|Sad|Neutral","timestamp":"${new Date().toISOString()}"}]`;
 
     try {
         let res;
         if (typeof ctx.generateQuietPrompt === 'function') res = await ctx.generateQuietPrompt(prompt, false, false);
         else if (typeof ctx.generateRaw === 'function') res = await ctx.generateRaw(prompt, true);
         
-        if(!res) { 
-            showToast('AI did not respond'); 
-            return false; 
-        }
-        
-        res = res.replace(/
-```json/g, '').replace(/
-```/g, '').trim();
-        
+        if(!res) { showToast('Failed to generate forum posts'); return false; }
         const match = res.match(/\[[\s\S]*\]/);
-        if(!match) { 
-            showToast('Invalid response format'); 
-            return false; 
-        }
+        if(!match) { showToast('Invalid response format'); return false; }
         
         const newPosts = JSON.parse(match[0]);
-        if(!Array.isArray(newPosts) || newPosts.length === 0) {
-            showToast('No posts generated');
-            return false;
-        }
-        
         const s = extension_settings[extensionName];
         s.forumPosts = [...(s.forumPosts || []), ...newPosts].slice(-s.forum.storage.max);
         SillyTavern.getContext().saveSettingsDebounced();
-        
-        showToast(`✅ Generated ${newPosts.length} posts!`);
+                showToast(`Generated ${newPosts.length} forum posts!`);
+        renderForum();
         return true;
     } catch(e) {
-        console.error('Generate error:', e);
-        showToast('Error: ' + e.message);
+        console.error(e);
+        showToast('Error generating forum posts');
         return false;
     }
 }
 
-function submitForumPost() {
+// ✅ Submit Forum Post - ทำงานจริง
+async function submitForumPost() {
     const content = $('#forum-post-input').val().trim();
     const type = $('#forum-post-type').val();
-    
-    if(!content) { 
-        showToast('Please enter post content'); 
-        return false; 
-    }
+    if(!content) { showToast('Please enter post content'); return false; }
     
     const s = extension_settings[extensionName];
     const newPost = {
@@ -1115,7 +815,8 @@ function submitForumPost() {
     SillyTavern.getContext().saveSettingsDebounced();
     
     $('#forum-post-input').val('');
-    showToast('✅ Post submitted!');
+    showToast('Post submitted!');
+    renderForum();
     return true;
 }
 
@@ -1123,15 +824,14 @@ function setupForumAutoTrigger() {
     $(document).on('messageReceived', async function() {
         const s = extension_settings[extensionName];
         const cfg = s.forum.autoGen;
-        if(!cfg.enabled || !s.forum.enabled) return;
+        if(!cfg.enabled) return;
         
         s._internal.forumMessageCounter = (s._internal.forumMessageCounter || 0) + 1;
         const now = Date.now();
         const timeSinceLastGen = now - (s._internal.lastForumGenTime || 0);
         
         let shouldGenerate = false;
-        
-        if(cfg.messageInterval && s._internal.forumMessageCounter >= cfg.messageInterval) {
+                if(cfg.messageInterval && s._internal.forumMessageCounter >= cfg.messageInterval) {
             shouldGenerate = true;
             s._internal.forumMessageCounter = 0;
         }
@@ -1180,8 +880,7 @@ async function callAIBatch(mode, count) {
     const cleanChat = chatSlice.filter(m => m.mes && m.mes.length > 10);
     const chatLog = cleanChat.map((m, i) => `[${m.is_user ? 'User' : (m.name || 'NPC')}]: ${m.mes.slice(0, 60)}`).join('\n');
     
-    const botMems = loadMemories({ botId: ctx.characterId });
-    const prevTopics = botMems.slice(0, 10).map(m => `- [${m.character}] ${m.content.rp_date} @ ${m.content.rp_location}: ${m.content.diary.slice(0, 50)}...`).join('\n');
+    const botMems = loadMemories({ botId: ctx.characterId });    const prevTopics = botMems.slice(0, 10).map(m => `- [${m.character}] ${m.content.rp_date} @ ${m.content.rp_location}: ${m.content.diary.slice(0, 50)}...`).join('\n');
     const registryList = Object.keys(extension_settings[extensionName]._internal.nameRegistry || {}).join(', ');
 
     const prompt = `[System: Analyze chat to create UNIQUE diary entries.]
@@ -1230,7 +929,6 @@ async function onNewChat() {
         }
     }
 }
-
 // ═══════════════════════════════════════════════
 // 8. HELPERS & UTILS
 // ═══════════════════════════════════════════════
@@ -1281,12 +979,11 @@ function createSettingsPanel() { if ($('#lumi-panel').length) return; $('#extens
 
 function levenshteinDistance(str1, str2) { const m = str1.length, n = str2.length; const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0)); for (let i = 0; i <= m; i++) dp[i][0] = i; for (let j = 0; j <= n; j++) dp[0][j] = j; for (let i = 1; i <= m; i++) { for (let j = 1; j <= n; j++) { if (str1[i-1] === str2[j-1]) dp[i][j] = dp[i-1][j-1]; else dp[i][j] = 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]); } } return dp[m][n]; }
 function similarityScore(str1, str2) { const s1 = str1.toLowerCase().trim(); const s2 = str2.toLowerCase().trim(); const distance = levenshteinDistance(s1, s2); const maxLen = Math.max(s1.length, s2.length); return maxLen === 0 ? 100 : ((maxLen - distance) / maxLen) * 100; }
-
 function editMemoryInline(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; const card = $(`.lumi-card[data-id="${id}"]`); card.find('.lumi-text').html(`<textarea class="lumi-edit-textarea" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--lumi-border);border-radius:10px;font-family:'Mitr';font-size:13px;resize:vertical;color:var(--lumi-text);background:var(--lumi-card)">${mem.content.diary}</textarea><div style="margin-top:8px;display:flex;gap:8px"><button class="lumi-btn-save" style="flex:1;background:var(--lumi-primary);color:white;border:none;padding:8px;border-radius:8px;cursor:pointer">Save</button><button class="lumi-btn-cancel" style="flex:1;background:#FFE0E0;color:var(--lumi-danger);border:none;padding:8px;border-radius:8px;cursor:pointer">Cancel</button></div>`); card.find('.lumi-btn-save').on('click', function() { mem.content.diary = card.find('.lumi-edit-textarea').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDiaryTab(); showToast('Updated!'); }); card.find('.lumi-btn-cancel').on('click', function() { renderDiaryTab(); }); }
 function editMemoryModal(id) { const mem = extension_settings[extensionName].memories.find(m => m.id === id); if (!mem) return; $('#lumi-title').text('Edit Memory'); $('#lumi-body').html(`<div style="padding:15px;"><div class="lumi-form"><label class="lumi-label">Character</label><input type="text" id="edit-char" value="${mem.character}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Date (RP)</label><input type="text" id="edit-date" value="${mem.content.rp_date||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Location</label><input type="text" id="edit-loc" value="${mem.content.rp_location||''}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Tags</label><input type="text" id="edit-tags" value="${(mem.content.rp_tags||[]).join(', ')}" class="lumi-input"></div><div class="lumi-form"><label class="lumi-label">Diary</label><textarea id="edit-diary" class="lumi-input" style="min-height:150px;resize:vertical">${mem.content.diary}</textarea></div><div style="display:flex;gap:10px"><button id="btn-save-edit" class="lumi-gen-btn" style="flex:2">Save</button><button id="btn-cancel-edit" class="lumi-input" style="flex:1;background:#FFE0E0;color:var(--lumi-danger);text-align:center;cursor:pointer">Cancel</button></div></div>`); $('#btn-save-edit').on('click', function() { mem.character = $('#edit-char').val(); mem.content.rp_date = $('#edit-date').val(); mem.content.rp_location = $('#edit-loc').val(); mem.content.rp_tags = $('#edit-tags').val().split(',').map(t=>t.trim()).filter(t=>t); mem.content.diary = $('#edit-diary').val(); SillyTavern.getContext().saveSettingsDebounced(); renderDashboard(); showToast('Updated!'); }); $('#btn-cancel-edit').on('click', function() { renderDashboard(); }); }
 
 // ═══════════════════════════════════════════════
-// SETTINGS (✅ แก้ไข Navigation)
+// SETTINGS
 // ═══════════════════════════════════════════════
 function renderSettings() {
     $('#lumi-title').text('LumiPulse - Settings');
@@ -1330,8 +1027,7 @@ function renderSettings() {
                 </div>
             </div>
 
-            <div class="lumi-form">
-                <label class="lumi-label">Secret System</label>
+            <div class="lumi-form">                <label class="lumi-label">Secret System</label>
                 <div class="lumi-set-row"><span>Enable Secret Mode</span><input type="checkbox" id="set-sec-en" ${s.diary.display.showSecretSystem?'checked':''} style="width:20px;height:20px;accent-color:var(--lumi-primary)"></div>
                 <div class="lumi-set-row"><span>Unlock Rule</span><select id="set-sec-mode" class="lumi-input" style="width:110px"><option value="ai" ${s.diary.display.secretMode==='ai'?'selected':''}>AI Decide</option><option value="time" ${s.diary.display.secretMode==='time'?'selected':''}>Time (3 days)</option><option value="affection" ${s.diary.display.secretMode==='affection'?'selected':''}>Affection ≥ 80</option></select></div>
             </div>
