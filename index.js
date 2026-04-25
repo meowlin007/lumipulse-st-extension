@@ -639,7 +639,7 @@ Output:` + '
         
         if(!res) return [];
         
-        // Clean up response to extract JSON
+        
         const start = res.indexOf('[');
         const end = res.lastIndexOf(']') + 1;
         if(start === -1 || end === 0) return [];
@@ -647,7 +647,7 @@ Output:` + '
         const jsonStr = res.substring(start, end);
         const parsed = JSON.parse(jsonStr);
         
-        // Add reference range if missing
+        
         parsed.forEach(entry => {
             if(!entry.refRange) {
                 entry.refRange = `${startIndex}-${endIndex}`;
@@ -667,8 +667,7 @@ Output:` + '
     }
 }
 
-// FORUM MODULE
-// ═══════════════════════════════════════════════
+
 function renderForum() {
     <LaTex>id_33</LaTex>{[...new Set(posts.map(p => p.author))].map(c => `<option value="<LaTex>id_32</LaTex>{c}</option>`).join('')}
                 </select>
@@ -707,7 +706,7 @@ function renderForum() {
     `;
     
     $('#lumi-body').html(html);
-    // ✅ ย้าย .data() มาหลัง .html()
+    
     <LaTex>id_31</LaTex>('#forum-filter-char, #forum-filter-type').on('change', function() {
         renderForumThreads();
     });
@@ -717,7 +716,7 @@ function renderForum() {
         const success = await generateForumPosts();
         
         if (success) {
-            renderForumThreads(); // ✅ เรียกเฉพาะส่วนเนื้อหา ไม่ re-render ทั้งหน้า
+            renderForumThreads(); 
         }
         
         <LaTex>id_28</LaTex>{svgPlus} Generate`).prop('disabled', false);
@@ -778,7 +777,7 @@ function renderForumThreads() {
                 <div class="lumi-forum-content"><LaTex>id_23</LaTex>('#forum-posts-container').html(html);
 }
 
-// ✅ แก้ไข: ลบ renderForum() ออก ให้ caller จัดการเอง
+
 async function generateForumPosts() {
     const ctx = SillyTavern.getContext();
     const chat = ctx.chat || [];
@@ -819,7 +818,7 @@ Return JSON array:
         SillyTavern.getContext().saveSettingsDebounced();
         
         showToast(`Generated ${newPosts.length} forum posts!`);
-        // ✅ ไม่เรียก renderForum() ที่นี่ - ให้ caller จัดการ
+        
         return true;
     } catch(e) {
         console.error(e);
@@ -828,7 +827,7 @@ Return JSON array:
     }
 }
 
-// ✅ แก้ไข: ลบ renderForum() ออก ให้ caller จัดการเอง
+
 async function submitForumPost() {
     const content = <LaTex>id_21</LaTex>('#forum-post-type').val();
     
@@ -969,10 +968,10 @@ async function submitForumPost() {
 
     <LaTex>id_19</LaTex>('#lumi-body').data('current-tab', 'settings');
 
-    // Bind settings events
+    
     <LaTex>id_18</LaTex>(this).val();
         SillyTavern.getContext().saveSettingsDebounced();
-        injectStyles(); // Re-inject with new theme
+        injectStyles(); 
     });
     
     <LaTex>id_17</LaTex>(this).prop('checked');
@@ -981,7 +980,7 @@ async function submitForumPost() {
     
     <LaTex>id_16</LaTex>(this).val();
         SillyTavern.getContext().saveSettingsDebounced();
-        renderSettings(); // Re-render to show/hide options
+        renderSettings(); 
     });
     
     <LaTex>id_15</LaTex>(this).val()) || 20;
@@ -1037,8 +1036,7 @@ async function submitForumPost() {
     });
 }
 
-// HELPERS & UTILS
-// ═══════════════════════════════════════════════
+
 function showToast(msg) {
     const t = document.createElement('div');
     t.className = 'lumi-toast';
@@ -1052,9 +1050,9 @@ function checkUnlock(m) {
     if(!extension_settings[extensionName].diary.display.showSecretSystem) return true;
     
     const mode = extension_settings[extensionName].diary.display.secretMode;
-    if(mode === 'time') return (Date.now() - new Date(m.timestamp)) > 86400000 * 3; // 3 days
+    if(mode === 'time') return (Date.now() - new Date(m.timestamp)) > 86400000 * 3; 
     if(mode === 'affection') return (m.content.affection_score || 0) >= 80;
-    return true; // 'always'
+    return true; 
 }
 
 function exportText(content, filename) {
