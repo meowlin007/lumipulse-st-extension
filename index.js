@@ -984,7 +984,7 @@ Active characters: ${characters.join(', ')}
 
 Generate 2-4 forum posts from different characters reacting to recent events.
 Each post should feel authentic to the character's personality and voice.
-Vary post types: some are new topics, some are reactions.
+Vary post types: some are new topics, some are reactions. Use Thai Language.
 
 Return ONLY a valid JSON array (no markdown, no extra text):
 [{"author":"Character Name","title":"Optional thread title or null","content":"Post content (1-3 sentences, natural voice)","threadTag":"Gossip|Event|Question|Rant|Update"}]`;
@@ -1062,6 +1062,7 @@ Rules:
 - Can agree, disagree, tease, ask questions, add info
 - Keep each reply to 1-2 sentences
 - Stay in character
+- Use Thai Language
 
 Return ONLY valid JSON array:
 [{"author":"Character Name","content":"Reply content"}]`;
