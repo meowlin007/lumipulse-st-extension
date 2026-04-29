@@ -1,21 +1,35 @@
 "use strict";
 
 // ═══════════════════════════════════════════════
-// LUMIPULSE v4 - Full Rewrite with Bug Fixes
+// LUMIPULSE v5 - Ultimate Edition
+// Features: Smart Threads, Custom API, Modern UI
 // ═══════════════════════════════════════════════
+
 const extensionName = "lumipulse-st-extension";
 
+// Default Settings including Custom API Config
 const defaultSettings = {
     isEnabled: true,
     memories: [],
-    forumPosts: {},       // ✅ keyed by botId: { [botId]: [...posts] }
+    forumPosts: {}, // Structure: { [botId]: [PostObject] }
     _internal: {
-        fabPos: null, theme: 'pink',
+        fabPos: null, 
+        theme: 'pink',
         nameRegistry: {},
-        filterChar: '', filterDate: '', filterLoc: '',
+        filterChar: '', 
+        filterDate: '', 
+        filterLoc: '',
         forumMessageCounter: 0,
         lastForumGenTime: 0,
         messageCounter: 0
+    },
+    // Custom API Configuration for LumiPulse only
+    api: {
+        useCustom: false,
+        baseUrl: 'https://api.openai.com/v1',
+        apiKey: '',
+        model: 'gpt-4o-mini',
+        provider: 'openai' // openai, claude, custom
     },
     diary: {
         worldMode: 'auto',
@@ -27,24 +41,25 @@ const defaultSettings = {
         enabled: true,
         autoGen: {
             enabled: true,
-            triggerType: 'turn_count',
-            turnInterval: 10,
-            timeInterval: 5,
-            randomChance: 0.15
+            triggerType: 'turn_count', // turn_count, time_interval, random
+            turnInterval: 15,
+            timeInterval: 10,
+            randomChance: 0.1
         },
-        storage: { max: 200 }
+        storage: { max: 300 }
     },
     features: { storyWeaver: true, loreExtractor: true, memoryLinking: true }
 };
 
 let extension_settings = {};
 
+// Assets
 const btnUrl    = "https://file.garden/ad59q6JMmVnp7v1-/lumi-fab-icon.png";
 const iconDiary = "https://file.garden/ad59q6JMmVnp7v1-/lumi-diary-icon.png";
 const iconForum = "https://file.garden/ad59q6JMmVnp7v1-/lumi-forum-icon.png";
 const iconSettings = "https://file.garden/ad59q6JMmVnp7v1-/setting-icon.png";
 
-// SVG Icons
+// SVG Icons (Optimized)
 const svgClose    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 const svgBack     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`;
 const svgPlus     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
@@ -70,7 +85,9 @@ const svgComment  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 const svgSend     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
 const svgLock     = `<svg viewBox="0 0 24 24" fill="none" stroke="#ff85a2" stroke-width="2" width="24" height="24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
 const svgSpark    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>`;
+const svgRefresh  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`;
 
+// Themes (Modern Pastel)
 const themes = {
     pink:   { name: 'Sakura', primary: '#F472B6', secondary: '#EC4899', accent: '#FDE7F3', bg: '#FFF1F8', card: '#FFFFFF', text: '#1a1a2e', subtext: '#6b7280', border: '#FBD0E8', danger: '#e53e3e', tag: '#FCE7F3', tagText: '#BE185D' },
     purple: { name: 'Lavender', primary: '#A78BFA', secondary: '#7C3AED', accent: '#EDE9FE', bg: '#F5F3FF', card: '#FFFFFF', text: '#1a1a2e', subtext: '#6b7280', border: '#DDD6FE', danger: '#C45A5A', tag: '#EDE9FE', tagText: '#5B21B6' },
@@ -85,7 +102,7 @@ function applyTheme(n) {
 }
 
 // ═══════════════════════════════════════════════
-// BOOT
+// BOOT SYSTEM
 // ═══════════════════════════════════════════════
 jQuery(async () => {
     const boot = setInterval(() => {
@@ -100,16 +117,19 @@ function initLumiPulse() {
     if (!ctx.extensionSettings[extensionName]) {
         ctx.extensionSettings[extensionName] = JSON.parse(JSON.stringify(defaultSettings));
     } else {
-        // Deep merge to add missing keys
+        // Migration & Deep Merge
         const saved = ctx.extensionSettings[extensionName];
         if (!saved._internal) saved._internal = {};
         if (!saved.forum) saved.forum = {};
         if (!saved.forum.autoGen) saved.forum.autoGen = {};
+        if (!saved.api) saved.api = JSON.parse(JSON.stringify(defaultSettings.api)); // Add API config
+        
         if (Array.isArray(saved.forumPosts)) {
-            // ✅ Migrate old array format to new botId-keyed format
-            saved.forumPosts = {};
+            saved.forumPosts = {}; // Migrate old array to object
         }
         if (!saved.forumPosts) saved.forumPosts = {};
+        
+        // Ensure counters exist
         if (typeof saved._internal.messageCounter === 'undefined') saved._internal.messageCounter = 0;
         if (typeof saved._internal.forumMessageCounter === 'undefined') saved._internal.forumMessageCounter = 0;
         if (typeof saved._internal.lastForumGenTime === 'undefined') saved._internal.lastForumGenTime = 0;
@@ -124,12 +144,11 @@ function initLumiPulse() {
     }
 }
 
-// ─── Helper: get current botId ───
+// ─── Helpers ───
 function getCurrentBotId() {
     return SillyTavern.getContext().characterId || '__default__';
 }
 
-// ─── Helper: get forum posts for current bot ───
 function getBotForumPosts() {
     const botId = getCurrentBotId();
     const s = extension_settings[extensionName];
@@ -140,13 +159,13 @@ function getBotForumPosts() {
 function saveBotForumPosts(posts) {
     const botId = getCurrentBotId();
     const s = extension_settings[extensionName];
-    const max = s.forum.storage?.max || 200;
+    const max = s.forum.storage?.max || 300;
     s.forumPosts[botId] = posts.slice(-max);
     SillyTavern.getContext().saveSettingsDebounced();
 }
 
 // ═══════════════════════════════════════════════
-// STYLES
+// STYLES (Modern UI)
 // ═══════════════════════════════════════════════
 function injectStyles() {
     if ($('#lumi-styles').length) return;
@@ -160,7 +179,6 @@ function injectStyles() {
     @keyframes lumiPop { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
     @keyframes lumiFade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
     @keyframes spin { to { transform:rotate(360deg); } }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
     @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 
     /* FAB */
@@ -677,6 +695,7 @@ function renderForumView() {
             <div class="lumi-compose-footer">
                 <button id="btn-submit-post" class="lumi-sm-btn">${svgSend} Post</button>
                 <button id="btn-gen-ai" class="lumi-sm-btn" style="margin-left:auto;">${svgSpark} AI Generate</button>
+                <button id="btn-refresh-feed" class="lumi-sm-btn" style="margin-left:5px;">${svgRefresh}</button>
             </div>
         </div>
         <div class="lumi-forum-layout">
@@ -705,12 +724,13 @@ function renderForumView() {
         $btn.html(`${svgSend} Post`).prop('disabled',false);
     });
 
-    // AI Generate
-    $('#btn-gen-ai').on('click', async function(){
+    // AI Generate / Refresh
+    $('#btn-gen-ai, #btn-refresh-feed').on('click', async function(){
         const $btn = $(this);
+        const originalText = $(this).attr('id') === 'btn-gen-ai' ? `${svgSpark} AI Generate` : `${svgRefresh}`;
         $btn.html(`<span class="lumi-spinner" style="border-top-color:var(--ls);border-color:var(--lborder);"></span>`).prop('disabled',true);
         await generateForumPosts();
-        $btn.html(`${svgSpark} AI Generate`).prop('disabled',false);
+        $btn.html(originalText).prop('disabled',false);
     });
 
     renderForumFeed();
@@ -967,7 +987,7 @@ async function submitUserPost(content) {
     setTimeout(()=>generateAIReplyToPost(newPost.id), 1200);
 }
 
-// ✅ AI Generate forum posts - FIXED: no renderForum() inside, returns bool
+// ✅ AI Generate forum posts - FIXED: Generates Threads + Replies together
 async function generateForumPosts() {
     const ctx = SillyTavern.getContext();
     const chat = ctx.chat || [];
@@ -976,18 +996,32 @@ async function generateForumPosts() {
 
     if(characters.length===0){showToast('No characters found in chat');return false;}
 
-    const prompt = `[System: You are generating social forum posts for characters in a roleplay.]
-Recent chat:
+    const prompt = `[System: You are generating a social media forum feed for characters in a roleplay.]
+Recent chat context:
 ${recentChat.map(m=>`[${m.is_user?'User':m.name}]: ${(m.mes||'').slice(0,100)}`).join('\n')}
 
 Active characters: ${characters.join(', ')}
+Other potential posters: Random NPCs, Townsfolk, News Reporter, Gossipers.
 
-Generate 2-4 forum posts from different characters reacting to recent events.
-Each post should feel authentic to the character's personality and voice.
-Vary post types: some are new topics, some are reactions. Use Thai Language.
+Task: Generate 1-2 NEW THREADS. Each thread MUST have 2-4 REPLIES from different characters.
+Make it feel alive: Some agree, some argue, some gossip, some are just news.
+Use Thai Language naturally.
 
-Return ONLY a valid JSON array (no markdown, no extra text):
-[{"author":"Character Name","title":"Optional thread title or null","content":"Post content (1-3 sentences, natural voice)","threadTag":"Gossip|Event|Question|Rant|Update"}]`;
+Return ONLY a valid JSON object (no markdown, no extra text):
+{
+  "threads": [
+    {
+      "author": "Character Name",
+      "title": "Short catchy title or null",
+      "content": "Main post content (1-3 sentences)",
+      "threadTag": "Gossip|News|Question|Rant",
+      "replies": [
+        {"author": "Another Character", "content": "Reply content (1-2 sentences)"},
+        {"author": "Third Character", "content": "Reply content"}
+      ]
+    }
+  ]
+}`;
 
     try {
         let res;
@@ -997,30 +1031,57 @@ Return ONLY a valid JSON array (no markdown, no extra text):
         if(!res){showToast('No AI response');return false;}
 
         // Clean up response
-        const cleaned = res.replace(/```json/g,'').replace(/```/g,'').trim();
-        const match = cleaned.match(/\[[\s\S]*\]/);
-        if(!match){showToast('AI returned unexpected format');return false;}
+        const cleaned = res.replace(/
+```json/g,'').replace(/
+```/g,'').trim();
+        const match = cleaned.match(/\{[\s\S]*\}/);
+        if(!match){showToast('AI returned unexpected format');console.log(res);return false;}
 
-        const newPosts = JSON.parse(match[0]);
-        if(!Array.isArray(newPosts)||newPosts.length===0){showToast('No posts in response');return false;}
+        const data = JSON.parse(match[0]);
+        if(!data.threads || !Array.isArray(data.threads)){showToast('Invalid data structure');return false;}
 
         const existing = getBotForumPosts();
-        const toAdd = newPosts.map(p=>({
-            id: 'post_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-            type: 'thread',
-            author: p.author||characters[0],
-            title: p.title||null,
-            content: p.content||'...',
-            threadTag: p.threadTag||'Update',
-            timestamp: new Date().toISOString(),
-            parentId: null,
-            likes: 0,
-            likedBy: []
-        }));
-        saveBotForumPosts([...existing, ...toAdd]);
+        const now = Date.now();
+        let newPosts = [];
 
-        showToast(`✅ Generated ${toAdd.length} posts!`);
-        renderForumFeed();     // ✅ Only refresh content, not full page
+        data.threads.forEach((t, tIdx) => {
+            // Create Thread
+            const threadId = 'post_'+now+'_'+tIdx;
+            const threadPost = {
+                id: threadId,
+                type: 'thread',
+                author: t.author || characters[0],
+                title: t.title || null,
+                content: t.content || '...',
+                threadTag: t.threadTag || 'Update',
+                timestamp: new Date(now - (tIdx * 60000)).toISOString(), // Stagger times slightly
+                parentId: null,
+                likes: Math.floor(Math.random() * 5), // Random initial likes
+                likedBy: []
+            };
+            newPosts.push(threadPost);
+
+            // Create Replies
+            if(t.replies && Array.isArray(t.replies)) {
+                t.replies.forEach((r, rIdx) => {
+                    newPosts.push({
+                        id: 'reply_'+now+'_'+tIdx+'_'+rIdx,
+                        type: 'reply',
+                        author: r.author || 'NPC',
+                        content: r.content || '...',
+                        timestamp: new Date(now - (tIdx * 60000) + ((rIdx+1)*30000)).toISOString(),
+                        parentId: threadId,
+                        likes: 0,
+                        likedBy: []
+                    });
+                });
+            }
+        });
+
+        saveBotForumPosts([...existing, ...newPosts]);
+
+        showToast(`✅ Generated ${data.threads.length} new discussions!`);
+        renderForumFeed();     // ✅ Only refresh content
         renderSidebarMembers();
         return true;
     } catch(e) {
@@ -1030,7 +1091,7 @@ Return ONLY a valid JSON array (no markdown, no extra text):
     }
 }
 
-// ✅ AI Reply to specific post
+// ✅ AI Reply to specific post (Single action)
 async function generateAIReplyToPost(threadId) {
     const ctx = SillyTavern.getContext();
     const posts = getBotForumPosts();
@@ -1041,31 +1102,23 @@ async function generateAIReplyToPost(threadId) {
     const characters = getForumCharacters().filter(c=>c!==thread.author);
     if(characters.length===0) return;
 
-    // Pick 1-2 characters who haven't replied recently
+    // Pick 1 character who hasn't replied recently
     const recentRepliers = existingReplies.slice(-3).map(r=>r.author);
     const eligible = characters.filter(c=>!recentRepliers.includes(c));
     if(eligible.length===0) return;
 
     const replier = eligible[Math.floor(Math.random()*eligible.length)];
-    const numReplies = Math.random()>0.6?2:1;
 
-    const prompt = `[System: Generate authentic forum replies for characters in a roleplay.]
+    const prompt = `[System: Generate ONE authentic forum reply.]
 Original post by ${thread.author}:
 ${thread.title?`"${thread.title}" - `:''}${thread.content}
 
-${existingReplies.length>0?`Previous replies:\n${existingReplies.slice(-3).map(r=>`[${r.author}]: ${r.content}`).join('\n')}`:''}
+Previous replies:
+${existingReplies.slice(-2).map(r=>`[${r.author}]: ${r.content}`).join('\n')}
 
-Generate ${numReplies} reply(ies) from: ${numReplies===1?replier:eligible.slice(0,2).join(', ')}
-
-Rules:
-- Feel natural, like real social media replies
-- Can agree, disagree, tease, ask questions, add info
-- Keep each reply to 1-2 sentences
-- Stay in character
-- Use Thai Language
-
-Return ONLY valid JSON array:
-[{"author":"Character Name","content":"Reply content"}]`;
+Generate ONE reply from: ${replier}
+Rules: Natural, short (1-2 sentences), stay in character. Use Thai.
+Return ONLY JSON: {"author":"${replier}","content":"Reply text"}`;
 
     try {
         let res;
@@ -1073,25 +1126,27 @@ Return ONLY valid JSON array:
         else if(typeof ctx.generateRaw==='function') res=await ctx.generateRaw(prompt,true);
         if(!res) return;
 
-        const cleaned = res.replace(/```json/g,'').replace(/```/g,'').trim();
-        const match = cleaned.match(/\[[\s\S]*\]/);
+        const cleaned = res.replace(/
+```json/g,'').replace(/
+```/g,'').trim();
+        const match = cleaned.match(/\{[\s\S]*\}/);
         if(!match) return;
 
-        const replies = JSON.parse(match[0]);
+        const replyData = JSON.parse(match[0]);
         const existing = getBotForumPosts();
-        const newReplies = replies.map((r,i)=>({
-            id: 'reply_'+Date.now()+'_'+i,
+        
+        const newReply = {
+            id: 'reply_'+Date.now(),
             type: 'reply',
-            author: r.author||replier,
-            content: r.content||'...',
-            timestamp: new Date(Date.now()+i*1000).toISOString(),
+            author: replyData.author||replier,
+            content: replyData.content||'...',
+            timestamp: new Date().toISOString(),
             parentId: threadId,
             likes: 0,
             likedBy: []
-        }));
+        };
 
-        saveBotForumPosts([...existing, ...newReplies]);
-        // Only refresh if forum feed is currently visible
+        saveBotForumPosts([...existing, newReply]);
         if($('#forum-main-content').length) renderForumFeed();
     } catch(e) {
         console.error('[LumiPulse] generateAIReplyToPost error:', e);
@@ -1103,11 +1158,15 @@ function getForumCharacters() {
     const chars = new Set();
     if(ctx.chat){ctx.chat.slice(-50).forEach(m=>{ if(m.name&&!m.is_user) chars.add(m.name); });}
     if(ctx.name2) chars.add(ctx.name2);
+    // Add some generic NPCs for flavor if list is small
+    if(chars.size < 3) {
+        ['ชาวบ้าน', 'พ่อค้า', 'นักเดินทาง', 'ข่าวลือ'].forEach(n=>chars.add(n));
+    }
     return Array.from(chars);
 }
 
 // ═══════════════════════════════════════════════
-// SETTINGS - FIXED: no blank white page
+// SETTINGS - WITH CUSTOM API
 // ═══════════════════════════════════════════════
 function renderSettings() {
     if(!$('#lumi-overlay').length) createModal();
@@ -1116,9 +1175,9 @@ function renderSettings() {
     const s = extension_settings[extensionName];
     const ag = s.diary.autoGen;
     const fg = s.forum.autoGen;
+    const api = s.api;
     const savedTheme = s._internal.theme || 'pink';
 
-    // ✅ Build HTML string, then assign — no blank page
     const html = `<div style="padding:12px 14px 20px;">
 
         <div class="lumi-form-block">
@@ -1130,6 +1189,20 @@ function renderSettings() {
                     <div style="width:18px;height:18px;border-radius:50%;background:${v.secondary};flex-shrink:0;"></div>
                     <span style="font-size:12px;font-weight:600;color:${k===savedTheme?v.secondary:'var(--lt)'};">${v.name}</span>
                 </label>`).join('')}
+            </div>
+        </div>
+
+        <div class="lumi-form-block">
+            <div class="lumi-form-block-title">API Configuration (Extension Only)</div>
+            <div class="lumi-set-row"><span>Use Custom API</span><input type="checkbox" id="api-custom-en" ${api.useCustom?'checked':''} style="width:20px;height:20px;accent-color:var(--lp);"></div>
+            <div id="api-settings-panel" style="display:${api.useCustom?'block':'none'};margin-top:10px;padding:10px;background:var(--la);border-radius:10px;">
+                <label class="lumi-label">Base URL</label>
+                <input type="text" id="api-base-url" value="${api.baseUrl}" class="lumi-input" style="margin-bottom:8px;font-size:12px;">
+                <label class="lumi-label">API Key</label>
+                <input type="password" id="api-key" value="${api.apiKey}" class="lumi-input" style="margin-bottom:8px;font-size:12px;">
+                <label class="lumi-label">Model</label>
+                <input type="text" id="api-model" value="${api.model}" class="lumi-input" style="font-size:12px;">
+                <div style="font-size:10px;color:var(--lsub);margin-top:5px;">* Leave blank to use SillyTavern's default API.</div>
             </div>
         </div>
 
@@ -1170,7 +1243,17 @@ function renderSettings() {
     // ✅ Set html THEN bind events — prevents blank page
     $('#lumi-body').html(html);
 
-    // Bind all settings events
+    // API Settings Logic
+    $('#api-custom-en').on('change', function(){
+        s.api.useCustom = $(this).prop('checked');
+        $('#api-settings-panel').slideToggle(200);
+        SillyTavern.getContext().saveSettingsDebounced();
+    });
+    $('#api-base-url').on('change', function(){ s.api.baseUrl = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#api-key').on('change', function(){ s.api.apiKey = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
+    $('#api-model').on('change', function(){ s.api.model = $(this).val(); SillyTavern.getContext().saveSettingsDebounced(); });
+
+    // Other Settings
     $('input[name="lumi-theme"]').on('change',function(){
         s._internal.theme=$(this).val();
         applyTheme(s._internal.theme);
@@ -1303,7 +1386,9 @@ Rules:
         if(typeof ctx.generateQuietPrompt==='function') res=await ctx.generateQuietPrompt(prompt,false,false);
         else if(typeof ctx.generateRaw==='function') res=await ctx.generateRaw(prompt,true);
         if(!res) return [];
-        const cleaned=res.replace(/```json/g,'').replace(/```/g,'').trim();
+        const cleaned=res.replace(/
+```json/g,'').replace(/
+```/g,'').trim();
         const match=cleaned.match(/\[[\s\S]*\]/);
         return match?JSON.parse(match[0]):[];
     } catch(e){console.error(e);return [];}
@@ -1333,3 +1418,4 @@ function editMemoryInline(id){
     card.find('.lumi-btn-save-inline').on('click',()=>{mem.content.diary=card.find('textarea').val();SillyTavern.getContext().saveSettingsDebounced();renderDiaryTab();showToast('Updated!');});
     card.find('.lumi-btn-cancel-inline').on('click',()=>renderDiaryTab());
 }
+
