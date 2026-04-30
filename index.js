@@ -310,17 +310,21 @@ function injectStyles() {
 
 /* ── FAB ── */
 #lumi-fab{
-  position:fixed;z-index:99999;
+  position:fixed !important;
+  z-index:99999 !important;
   width:42px;height:42px;border-radius:50%;
   background:var(--lcard) url("${ASSETS.fab}") no-repeat center/22px;
   border:1.5px solid var(--lborder);
   box-shadow:var(--lglow),0 6px 20px rgba(0,0,0,.45);
   cursor:grab;touch-action:none;user-select:none;
   transition:box-shadow .25s,transform .15s;
-  position:relative;
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  pointer-events:auto !important;
 }
 #lumi-fab:hover{box-shadow:var(--lglow),0 0 0 5px var(--la),0 6px 20px rgba(0,0,0,.45);}
-#lumi-fab:active{transform:scale(.88);cursor:grabbing;}
+#lumi-fab:active{transform:scale(.88) !important;cursor:grabbing;}
 .lumi-fab-badge{
   position:absolute;top:-3px;right:-3px;
   width:10px;height:10px;border-radius:50%;
@@ -603,14 +607,48 @@ function injectStyles() {
 // ════════════════════════════════════════════════════════════
 function spawnFAB() {
     $('#lumi-fab,.lumi-menu').remove();
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed;z-index:99999;';
+    if (!document.body) { setTimeout(spawnFAB, 500); return; }
+
     const fab = document.createElement('div');
     fab.id = 'lumi-fab';
     fab.innerHTML = `<div class="lumi-fab-badge" id="lumi-fab-badge"></div>`;
+
+    // ✅ บังคับ style ตรงๆ ไม่พึ่ง CSS class
+    const sz = EXT._internal.fabSize || 42;
+    fab.style.cssText = `
+        position: fixed !important;
+        z-index: 99999 !important;
+        width: ${sz}px !important;
+        height: ${sz}px !important;
+        border-radius: 50% !important;
+        background: var(--lcard) url("${ASSETS.fab}") no-repeat center center !important;
+        background-size: ${Math.round(sz*0.52)}px !important;
+        border: 1.5px solid var(--lborder) !important;
+        box-shadow: var(--lglow), 0 6px 20px rgba(0,0,0,.45) !important;
+        cursor: grab !important;
+        touch-action: none !important;
+        user-select: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    `;
+
     const pos = EXT._internal.fabPos;
-    if (pos) Object.assign(fab.style, pos);
-    else { fab.style.top='50%'; fab.style.right='20px'; fab.style.transform='translateY(-50%)'; }
+    if (pos) {
+        fab.style.top    = pos.top    || 'auto';
+        fab.style.left   = pos.left   || 'auto';
+        fab.style.right  = pos.right  || 'auto';
+        fab.style.bottom = pos.bottom || 'auto';
+        fab.style.transform = pos.transform || 'none';
+    } else {
+        fab.style.top       = '50%';
+        fab.style.right     = '20px';
+        fab.style.transform = 'translateY(-50%)';
+    }
+
     document.body.appendChild(fab);
 
     const menu = document.createElement('div');
@@ -623,29 +661,62 @@ function spawnFAB() {
     document.body.appendChild(menu);
 
     // Drag
-    let isDrag=false,sx,sy,il,it,dist=0; const TH=10;
-    const startDrag=(x,y)=>{isDrag=false;dist=0;sx=x;sy=y;const r=fab.getBoundingClientRect();il=r.left;it=r.top;fab.style.transform='none';};
-    const moveDrag=(x,y)=>{const dx=x-sx,dy=y-sy;dist=Math.hypot(dx,dy);if(dist>TH)isDrag=true;if(isDrag){fab.style.left=(il+dx)+'px';fab.style.top=(it+dy)+'px';fab.style.right='auto';fab.style.bottom='auto';$(menu).fadeOut(80);}};
-    const endDrag=()=>{
-        if(isDrag){EXT._internal.fabPos={top:fab.style.top,left:fab.style.left,right:'auto',bottom:'auto',transform:'none'};save();}
-        else if(dist<TH){const r=fab.getBoundingClientRect(),mW=$(menu).outerWidth()||180,mH=$(menu).outerHeight()||120;menu.style.left=Math.max(8,Math.min(r.left+r.width/2-mW/2,window.innerWidth-mW-8))+'px';menu.style.top=Math.max(8,r.top-mH-10)+'px';$(menu).fadeToggle(160);}
+    let isDrag=false, sx, sy, il, it, dist=0;
+    const TH = 10;
+    const startDrag = (x,y) => {
+        isDrag=false; dist=0; sx=x; sy=y;
+        const r=fab.getBoundingClientRect();
+        il=r.left; it=r.top;
+        fab.style.transform='none';
+    };
+    const moveDrag = (x,y) => {
+        const dx=x-sx, dy=y-sy;
+        dist=Math.hypot(dx,dy);
+        if(dist>TH) isDrag=true;
+        if(isDrag){
+            fab.style.left=(il+dx)+'px';
+            fab.style.top=(it+dy)+'px';
+            fab.style.right='auto';
+            fab.style.bottom='auto';
+            $(menu).fadeOut(80);
+        }
+    };
+    const endDrag = () => {
+        if(isDrag){
+            EXT._internal.fabPos={
+                top:fab.style.top, left:fab.style.left,
+                right:'auto', bottom:'auto', transform:'none'
+            };
+            save();
+        } else if(dist<TH){
+            const r=fab.getBoundingClientRect();
+            const mW=$(menu).outerWidth()||180;
+            const mH=$(menu).outerHeight()||120;
+            menu.style.left = Math.max(8, Math.min(r.left+r.width/2-mW/2, window.innerWidth-mW-8))+'px';
+            menu.style.top  = Math.max(8, r.top-mH-10)+'px';
+            $(menu).fadeToggle(160);
+        }
         isDrag=false;
     };
-    fab.addEventListener('mousedown',e=>{if(e.button!==0)return;e.preventDefault();startDrag(e.clientX,e.clientY);const mv=ev=>moveDrag(ev.clientX,ev.clientY);const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);endDrag();};document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);});
-    fab.addEventListener('touchstart',e=>{e.preventDefault();startDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-    fab.addEventListener('touchmove',e=>{e.preventDefault();moveDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-    fab.addEventListener('touchend',e=>{e.preventDefault();endDrag();},{passive:false});
 
-    $('#lm-diary').on('click',()=>{$(menu).fadeOut();openModal('diary');});
-    $('#lm-forum').on('click',()=>{$(menu).fadeOut();EXT._internal.forumUnread=false;save();updateForumBadge();openModal('forum');});
-    $('#lm-set').on('click',()=>{$(menu).fadeOut();openModal('settings');});
+    fab.addEventListener('mousedown', e=>{
+        if(e.button!==0) return;
+        e.preventDefault();
+        startDrag(e.clientX, e.clientY);
+        const mv=ev=>moveDrag(ev.clientX,ev.clientY);
+        const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); endDrag(); };
+        document.addEventListener('mousemove',mv);
+        document.addEventListener('mouseup',up);
+    });
+    fab.addEventListener('touchstart', e=>{ e.preventDefault(); startDrag(e.touches[0].clientX,e.touches[0].clientY); }, {passive:false});
+    fab.addEventListener('touchmove',  e=>{ e.preventDefault(); moveDrag(e.touches[0].clientX,e.touches[0].clientY); }, {passive:false});
+    fab.addEventListener('touchend',   e=>{ e.preventDefault(); endDrag(); }, {passive:false});
+
+    $(document).off('click','#lm-diary').on('click','#lm-diary',  ()=>{ $(menu).fadeOut(); openModal('diary'); });
+    $(document).off('click','#lm-forum').on('click','#lm-forum',  ()=>{ $(menu).fadeOut(); EXT._internal.forumUnread=false; save(); updateForumBadge(); openModal('forum'); });
+    $(document).off('click','#lm-set').on('click','#lm-set',      ()=>{ $(menu).fadeOut(); openModal('settings'); });
+
     updateForumBadge();
-}
-
-function updateForumBadge() {
-    const show = EXT._internal.forumUnread;
-    $('#lumi-fab-badge').toggleClass('show', show);
-    $('#lm-forum-notif').toggleClass('show', show);
 }
 
 // ════════════════════════════════════════════════════════════
