@@ -1,7 +1,6 @@
 "use strict";
 // ═══════════════════════════════════════════════════════════
-// LUMIPULSE — SillyTavern Extension
-// Social diary & forum for your roleplay world
+// LUMIPULSE v6.2 — Fixed JSON Parsing & Strict Mode
 // ═══════════════════════════════════════════════════════════
 const extensionName = "lumipulse-st-extension";
 
@@ -24,7 +23,7 @@ const defaultSettings = {
         provider: 'openai',
         baseUrl: 'https://api.openai.com/v1',
         apiKey: '',
-        model: '',
+        model: '', // Will be auto-filled if possible
         maxTokens: 800
     },
     diary: {
@@ -234,50 +233,77 @@ function simScore(a, b) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// ROBUST JSON EXTRACTOR
-// ✅ Strips <think>, code fences, HTML, narrative text
+// ROBUST JSON EXTRACTOR (Improved)
 // ═══════════════════════════════════════════════════════════
 function extractJSON(raw, type = 'array') {
-    if (!raw || typeof raw !== 'string') return null;
+    if (!raw || typeof raw !== 'string') {
+        console.warn('[LumiPulse] extractJSON: Input is not a string');
+        return null;
+    }
 
-    // Strip think/reasoning tags
+    // 1. Strip think/reasoning tags
     let s = raw.replace(/<think>[\s\S]*?<\/think>/gi, '');
-    // Strip HTML tags (in case AI generates HTML)
+    // 2. Strip HTML tags (common in some models)
     s = s.replace(/<[^>]{1,200}>/g, '');
-    // Strip markdown code fences
-    s = s.replace(/```(?:json)?/gi, '').replace(/```/g, '');
-    // Strip common AI preambles
-    s = s.replace(/^[^[{]*([\[{])/m, '$1');
+    // 3. Strip markdown code fences
+    s = s.replace(/
+```(?:json)?/gi, '').replace(/
+```/g, '');
+    // 4. Remove common AI preamble/postamble text up to the first bracket
+    // This regex finds the FIRST [ or { and cuts everything before it
+    const firstBracket = s.search(/[\[{]/);
+    if (firstBracket !== -1) {
+        s = s.substring(firstBracket);
+    }
+    
+    // Trim whitespace
     s = s.trim();
 
     const opener = type === 'array' ? '[' : '{';
     const closer = type === 'array' ? ']' : '}';
-    const start = s.indexOf(opener);
-    if (start === -1) return null;
+    
+    if (!s.startsWith(opener)) {
+        console.warn('[LumiPulse] extractJSON: Does not start with', opener, '. Start:', s.slice(0,20));
+        return null;
+    }
 
     let depth = 0, end = -1;
     let inStr = false, escape = false;
-    for (let i = start; i < s.length; i++) {
+    
+    // Find the matching closing bracket
+    for (let i = 0; i < s.length; i++) {
         const ch = s[i];
         if (escape) { escape = false; continue; }
         if (ch === '\\' && inStr) { escape = true; continue; }
         if (ch === '"') { inStr = !inStr; continue; }
         if (inStr) continue;
+        
         if (ch === opener) depth++;
-        else if (ch === closer) { depth--; if (depth === 0) { end = i; break; } }
+        else if (ch === closer) { 
+            depth--; 
+            if (depth === 0) { end = i; break; } 
+        }
     }
-    if (end === -1) return null;
 
+    if (end === -1) {
+        console.warn('[LumiPulse] extractJSON: Could not find matching closing bracket.');
+        return null;
+    }
+
+    const jsonStr = s.slice(0, end + 1);
+    
     try {
-        return JSON.parse(s.slice(start, end + 1));
+        return JSON.parse(jsonStr);
     } catch (e) {
+        console.warn('[LumiPulse] extractJSON: JSON Parse failed. Trying fixes...');
         // Try to fix common JSON errors
         try {
-            const fixed = s.slice(start, end + 1)
+            const fixed = jsonStr
                 .replace(/,\s*([}\]])/g, '$1')  // trailing commas
                 .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":'); // unquoted keys
             return JSON.parse(fixed);
         } catch (e2) {
+            console.error('[LumiPulse] extractJSON: All parsing attempts failed.', e2);
             return null;
         }
     }
@@ -285,8 +311,6 @@ function extractJSON(raw, type = 'array') {
 
 // ═══════════════════════════════════════════════════════════
 // AI CALL LAYER
-// ✅ Custom API first, ST fallback
-// ✅ Forum uses ONLY custom API if enabled, otherwise warns
 // ═══════════════════════════════════════════════════════════
 
 // For diary: tries custom API, falls back to ST
@@ -301,7 +325,7 @@ async function callAI(prompt, systemPrompt = '') {
     return await callST(systemPrompt ? systemPrompt + '\n\n' + prompt : prompt);
 }
 
-// For forum: ONLY custom API if configured, strict JSON mode
+// For forum: ONLY custom API if configured, otherwise strict ST
 async function callAIForForum(prompt) {
     const SYS = 'You are a JSON-only API. Your response must be ONLY a valid JSON array starting with [ and ending with ]. No other text, no explanation, no markdown, no code fences. Only output the JSON array.';
 
@@ -337,6 +361,12 @@ async function callST(prompt) {
 
 async function callCustomAPI(prompt, systemPrompt) {
     const cfg = EXT.api;
+    
+    // ✅ Check if model is selected
+    if (!cfg.model) {
+        throw new Error('No model selected. Please fetch models in Settings.');
+    }
+
     let url, headers, body;
 
     if (cfg.provider === 'anthropic') {
@@ -353,7 +383,7 @@ async function callCustomAPI(prompt, systemPrompt) {
             messages: [{ role: 'user', content: prompt }]
         });
     } else if (cfg.provider === 'google') {
-        const model = cfg.model || 'gemini-1.5-flash';
+        const model = cfg.model; // e.g., gemini-1.5-flash
         url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cfg.apiKey}`;
         headers = { 'Content-Type': 'application/json' };
         const text = (systemPrompt ? systemPrompt + '\n\n' : '') + prompt;
@@ -1252,7 +1282,10 @@ Output ONLY this JSON array (nothing else before or after):
 [{"author":"Name","posterType":"main|npc|citizen|news","title":"Title or null","content":"Post body 1-3 sentences","threadTag":"Gossip|Event|Question|Update|News|Warning|Rant|Music|Memory","postMedia":null,"replies":[{"author":"Name","posterType":"main|npc|citizen","content":"Reply 1-2 sentences","nestedReplies":[{"author":"Name","posterType":"main|npc|citizen","content":"Nested reply"}]}]}]`;
 
     try {
+        console.log('[LumiPulse] Sending Forum Prompt...');
         const raw  = await callAIForForum(prompt);
+        console.log('[LumiPulse] Raw Response Length:', raw ? raw.length : 0);
+        
         const data = extractJSON(raw, 'array');
 
         if (!data || !Array.isArray(data) || !data.length) {
@@ -1643,3 +1676,4 @@ function createSettingsPanel() {
 // ═══════════════════════════════════════════════════════════
 const exportText = (c, f) => { const b=new Blob([c],{type:'text/markdown'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=f;a.click();URL.revokeObjectURL(u);toast('✓ Exported'); };
 const exportJSON = (d, f) => { const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=f;a.click();URL.revokeObjectURL(u);toast('✓ Exported'); };
+
